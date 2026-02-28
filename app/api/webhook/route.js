@@ -153,9 +153,34 @@ export async function POST(req) {
         );
       }
 
-      // /buy <id> or /start buy_<id>
-      else if (text.startsWith('/buy ') || text.startsWith('/start buy_')) {
-        const productId = text.startsWith('/start buy_') ? text.slice(11) : text.slice(5).trim();
+      // /start buy_<id> (deep link)
+      else if (text.startsWith('/start buy_')) {
+        const productId = text.slice(11).trim();
+        const product = getProduct(productId);
+        
+        if (!product) {
+          await b.api.sendMessage(chatId, '❌ Product not found or no longer available.');
+          return NextResponse.json({ ok: true });
+        }
+        
+        if (hasPurchased(productId, userId)) {
+          await b.api.sendMessage(chatId, '✅ You already purchased this! The content was sent to you.');
+          return NextResponse.json({ ok: true });
+        }
+        
+        if (product.creator_id === userId) {
+          await b.api.sendMessage(chatId, '🤷 That\'s your own product!');
+          return NextResponse.json({ ok: true });
+        }
+        
+        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, 'XTR', [
+          { label: product.title, amount: product.price_stars }
+        ]);
+      }
+
+      // /buy <id>
+      else if (text.startsWith('/buy ')) {
+        const productId = text.slice(5).trim();
         const product = getProduct(productId);
         
         if (!product) {

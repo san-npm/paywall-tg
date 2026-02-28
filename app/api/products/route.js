@@ -20,7 +20,9 @@ export async function GET(req) {
   }
 
   if (creatorId) {
-    const products = getCreatorProducts(creatorId);
+    const products = getCreatorProducts(creatorId).map(p => ({
+      ...p, content: undefined, file_id: undefined
+    }));
     const stats = getCreatorStats(creatorId);
     return NextResponse.json({ products, stats });
   }
