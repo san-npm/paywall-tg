@@ -12,15 +12,17 @@ export default function BuyProduct() {
 
   useEffect(() => {
     let u = null;
+    let initData = '';
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
       u = tg.initDataUnsafe?.user || null;
+      initData = tg.initData || '';
       if (u) setUser(u);
     }
 
-    fetch(`/api/products?product_id=${id}${u ? `&buyer_id=${u.id}` : ''}`)
+    fetch(`/api/products?product_id=${id}${initData ? `&init_data=${encodeURIComponent(initData)}` : ''}`)
       .then(r => r.json())
       .then(data => {
         if (data.error) {

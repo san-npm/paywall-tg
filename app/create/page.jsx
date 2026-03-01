@@ -47,13 +47,12 @@ export default function CreateProduct() {
 
     setLoading(true);
     try {
+      const tg = window.Telegram?.WebApp;
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          creator_id: String(user.id),
-          username: user.username,
-          display_name: user.first_name,
+          init_data: tg?.initData || '',
           title,
           description,
           price_stars: priceNum,
