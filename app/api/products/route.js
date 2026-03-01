@@ -1,20 +1,33 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
+import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats } from '@/lib/db';
+import { validateInitData } from '@/lib/validate';
+
+export const runtime = 'nodejs';
 
 // GET — list products for a creator or get single product
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const creatorId = searchParams.get('creator_id');
   const productId = searchParams.get('product_id');
-  const buyerId = searchParams.get('buyer_id');
+  const initDataParam = searchParams.get('init_data');
+
+  // Validate buyer identity from initData to prevent content gate bypass
+  let authenticatedBuyerId = null;
+  if (initDataParam) {
+    const parsed = validateInitData(initDataParam);
+    if (parsed?.user?.id) {
+      authenticatedBuyerId = String(parsed.user.id);
+    }
+  }
 
   if (productId) {
     const product = getProduct(productId);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    
-    // Don't expose content unless buyer has purchased
-    const purchased = buyerId ? hasPurchased(productId, buyerId) : false;
+
+    // Don't expose content unless authenticated buyer has purchased
+    const purchased = authenticatedBuyerId ? hasPurchased(productId, authenticatedBuyerId) : false;
     const safeProduct = { ...product, content: purchased ? product.content : undefined, file_id: undefined };
     return NextResponse.json({ product: safeProduct, purchased });
   }
@@ -30,7 +43,7 @@ export async function GET(req) {
   return NextResponse.json({ error: 'creator_id or product_id required' }, { status: 400 });
 }
 
-// POST — create product
+// POST — create product (requires valid Telegram initData)
 export async function POST(req) {
   let body;
   try {
@@ -39,15 +52,37 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { creator_id, username, display_name, title, description, price_stars, content_type, content } = body;
+  // Validate Telegram initData to authenticate the creator
+  const initData = validateInitData(body.init_data);
+  if (!initData || !initData.user?.id) {
+    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  }
 
-  if (!creator_id || !title || !price_stars || !content_type || !content) {
+  // Use the authenticated user ID, not the client-supplied one
+  const creatorId = String(initData.user.id);
+  const username = initData.user.username || null;
+  const displayName = initData.user.first_name || null;
+
+  const { title, description, price_stars, content_type, content } = body;
+
+  if (!title || !price_stars || !content_type || !content) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
+  // Input length limits
+  if (String(title).length > MAX_TITLE_LENGTH) {
+    return NextResponse.json({ error: `Title must be ${MAX_TITLE_LENGTH} characters or less` }, { status: 400 });
+  }
+  if (description && String(description).length > MAX_DESCRIPTION_LENGTH) {
+    return NextResponse.json({ error: `Description must be ${MAX_DESCRIPTION_LENGTH} characters or less` }, { status: 400 });
+  }
+  if (String(content).length > MAX_CONTENT_LENGTH) {
+    return NextResponse.json({ error: `Content must be ${MAX_CONTENT_LENGTH} characters or less` }, { status: 400 });
+  }
+
   const price = parseInt(price_stars);
-  if (isNaN(price) || price < 1 || price > 10000) {
-    return NextResponse.json({ error: 'Price must be 1-10000 Stars' }, { status: 400 });
+  if (isNaN(price) || price < MIN_PRICE_STARS || price > MAX_PRICE_STARS) {
+    return NextResponse.json({ error: `Price must be ${MIN_PRICE_STARS}-${MAX_PRICE_STARS} Stars` }, { status: 400 });
   }
 
   const validTypes = ['text', 'file', 'link', 'message'];
@@ -56,9 +91,9 @@ export async function POST(req) {
   }
 
   try {
-    getOrCreateCreator(String(creator_id), username || null, display_name || null);
-    const id = uuid().slice(0, 8);
-    const product = createProduct(id, String(creator_id), title, description || '', price, content_type, content, null);
+    getOrCreateCreator(creatorId, username, displayName);
+    const id = uuid();
+    const product = createProduct(id, creatorId, String(title), String(description || ''), price, content_type, String(content), null);
     return NextResponse.json({ product });
   } catch (err) {
     console.error('Create product error:', err);
