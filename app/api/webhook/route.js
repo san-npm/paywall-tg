@@ -32,6 +32,7 @@ export async function POST(req) {
     if (body.pre_checkout_query) {
       const query = body.pre_checkout_query;
       const productId = query.invoice_payload;
+      const buyerId = String(query.from.id);
       const product = getProduct(productId);
 
       // Validate product exists and price matches
@@ -41,6 +42,11 @@ export async function POST(req) {
       }
       if (query.total_amount !== product.price_stars) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Price has changed. Please try again.' });
+        return NextResponse.json({ ok: true });
+      }
+      // Prevent duplicate purchase — buyer would lose Stars with no new content
+      if (hasPurchased(productId, buyerId)) {
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You already purchased this product.' });
         return NextResponse.json({ ok: true });
       }
 
@@ -101,14 +107,19 @@ export async function POST(req) {
 
         await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
 
-        // If file, send the file
-        if (product.content_type === 'file' && product.file_id) {
-          await b.api.sendDocument(buyerId, product.file_id);
+        // If file type with a stored file_id, send the file
+        if (product.content_type === 'file') {
+          if (product.file_id) {
+            await b.api.sendDocument(buyerId, product.file_id);
+          } else {
+            await b.api.sendMessage(buyerId, 'The file for this product is not yet available. Contact the creator.');
+          }
         }
 
         // Notify creator
         const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;
-        await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' }).catch(() => {});
+        await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' })
+          .catch(err => console.error('Failed to notify creator:', product.creator_id, err.message));
       }
 
       return NextResponse.json({ ok: true });
@@ -279,7 +290,7 @@ export async function POST(req) {
             parse_mode: 'MarkdownV2',
             reply_markup: {
               inline_keyboard: [[
-                { text: '\u{1F4CA} Full Dashboard', web_app: { url: `${WEBAPP_URL}/dashboard` } }
+                { text: '\u{1F4CA} Full Dashboard', web_app: { url: WEBAPP_URL } }
               ]]
             }
           }

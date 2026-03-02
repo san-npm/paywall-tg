@@ -9,16 +9,18 @@ export default function Home() {
 
   useEffect(() => {
     let u = null;
+    let initData = '';
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
       u = tg.initDataUnsafe?.user || null;
+      initData = tg.initData || '';
     }
 
-    if (u) {
+    if (u && initData) {
       setUser(u);
-      fetch(`/api/products?creator_id=${u.id}`)
+      fetch(`/api/products?creator_id=${u.id}&init_data=${encodeURIComponent(initData)}`)
         .then(r => r.json())
         .then(data => {
           setProducts(data.products || []);
@@ -90,7 +92,12 @@ export default function Home() {
               </div>
               <div className="mt-2 flex gap-2">
                 <button onClick={() => {
-                  const url = `https://t.me/share/url?url=${encodeURIComponent(`Buy "${p.title}" for ⭐${p.price_stars}`)}&text=${encodeURIComponent(`Check this out!`)}`;
+                  const tg = window.Telegram?.WebApp;
+                  const botUsername = tg?.initDataUnsafe?.bot?.username || '';
+                  const buyLink = botUsername
+                    ? `https://t.me/${botUsername}?start=buy_${p.id}`
+                    : `/buy/${p.id}`;
+                  const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ⭐${p.price_stars} Stars`)}`;
                   window.open(url);
                 }} className="text-xs px-3 py-1 rounded-lg" style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}>
                   Share
