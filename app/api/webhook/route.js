@@ -33,7 +33,7 @@ export async function POST(req) {
       const query = body.pre_checkout_query;
       const productId = query.invoice_payload;
       const buyerId = String(query.from.id);
-      const product = getProduct(productId);
+      const product = await getProduct(productId);
 
       // Validate product exists and price matches
       if (!product) {
@@ -44,8 +44,8 @@ export async function POST(req) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Price has changed. Please try again.' });
         return NextResponse.json({ ok: true });
       }
-      // Prevent duplicate purchase — buyer would lose Stars with no new content
-      if (hasPurchased(productId, buyerId)) {
+      // Prevent duplicate purchase
+      if (await hasPurchased(productId, buyerId)) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You already purchased this product.' });
         return NextResponse.json({ ok: true });
       }
@@ -59,7 +59,7 @@ export async function POST(req) {
       const payment = body.message.successful_payment;
       const buyerId = String(body.message.from.id);
       const productId = payment.invoice_payload;
-      const product = getProduct(productId);
+      const product = await getProduct(productId);
 
       if (product) {
         // Verify payment amount matches product price
@@ -68,8 +68,8 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        // Guard against duplicate delivery (DB has UNIQUE constraint too)
-        if (hasPurchased(productId, buyerId)) {
+        // Guard against duplicate delivery
+        if (await hasPurchased(productId, buyerId)) {
           return NextResponse.json({ ok: true });
         }
 
@@ -78,7 +78,7 @@ export async function POST(req) {
         const creatorShare = starsPaid - platformFee;
 
         try {
-          recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, payment.telegram_payment_charge_id);
+          await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, payment.telegram_payment_charge_id);
         } catch (err) {
           // UNIQUE constraint violation = duplicate, silently skip
           if (err.message?.includes('UNIQUE constraint')) {
@@ -87,7 +87,7 @@ export async function POST(req) {
           throw err;
         }
 
-        // Deliver the content — escape user-controlled text for MarkdownV2
+        // Deliver the content
         const safeTitle = escapeMarkdown(product.title);
         let contentMessage = '';
         switch (product.content_type) {
@@ -134,7 +134,7 @@ export async function POST(req) {
 
       // /start command
       if (text === '/start') {
-        getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
         await b.api.sendMessage(chatId,
           `\u{1F44B} Welcome to *PayGate*\\!\n\nSell digital content directly in Telegram\\.\n\n` +
           `\u{1F4E6} /create \\— Create a new product\n` +
@@ -155,7 +155,7 @@ export async function POST(req) {
 
       // /create command
       else if (text === '/create') {
-        getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
         await b.api.sendMessage(chatId,
           `\u{1F4E6} *Create a product*\n\nOpen the Mini App to create your product with a nice UI, or use the quick command:\n\n` +
           `\`/new <price_in_stars> <title> | <content>\`\n\n` +
@@ -200,9 +200,9 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
         const id = uuid();
-        createProduct(id, userId, title, '', price, 'text', content, null);
+        await createProduct(id, userId, title, '', price, 'text', content, null);
 
         const shareUrl = `https://t.me/${(await b.api.getMe()).username}?start=buy_${id}`;
         const safeTitle = escapeMarkdown(title);
@@ -217,14 +217,14 @@ export async function POST(req) {
       // /start buy_<id> (deep link)
       else if (text.startsWith('/start buy_')) {
         const productId = text.slice(11).trim();
-        const product = getProduct(productId);
+        const product = await getProduct(productId);
 
         if (!product) {
           await b.api.sendMessage(chatId, '\u274C Product not found or no longer available.');
           return NextResponse.json({ ok: true });
         }
 
-        if (hasPurchased(productId, userId)) {
+        if (await hasPurchased(productId, userId)) {
           await b.api.sendMessage(chatId, '\u2705 You already purchased this! The content was sent to you.');
           return NextResponse.json({ ok: true });
         }
@@ -242,14 +242,14 @@ export async function POST(req) {
       // /buy <id>
       else if (text.startsWith('/buy ')) {
         const productId = text.slice(5).trim();
-        const product = getProduct(productId);
+        const product = await getProduct(productId);
 
         if (!product) {
           await b.api.sendMessage(chatId, '\u274C Product not found or no longer available.');
           return NextResponse.json({ ok: true });
         }
 
-        if (hasPurchased(productId, userId)) {
+        if (await hasPurchased(productId, userId)) {
           await b.api.sendMessage(chatId, '\u2705 You already purchased this! The content was sent to you.');
           return NextResponse.json({ ok: true });
         }
@@ -266,7 +266,7 @@ export async function POST(req) {
 
       // /products
       else if (text === '/products') {
-        const products = getCreatorProducts(userId);
+        const products = await getCreatorProducts(userId);
         if (products.length === 0) {
           await b.api.sendMessage(chatId, 'No products yet\\. Use /create to make one\\!', { parse_mode: 'MarkdownV2' });
         } else {
@@ -279,7 +279,7 @@ export async function POST(req) {
 
       // /dashboard
       else if (text === '/dashboard') {
-        const stats = getCreatorStats(userId);
+        const stats = await getCreatorStats(userId);
         await b.api.sendMessage(chatId,
           `\u{1F4CA} *Your Dashboard*\n\n` +
           `\u{1F4E6} Products: ${stats.products}\n` +
