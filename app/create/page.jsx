@@ -139,7 +139,7 @@ export default function CreateProduct() {
             className="w-full p-3 rounded-xl border-none outline-none"
             style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}
             placeholder="50" />
-          {price && !isNaN(parseInt(price)) && <p className="text-xs text-tg-hint mt-1">≈ ${(parseInt(price) * 0.013).toFixed(2)} USD</p>}
+          {price && !isNaN(parseInt(price)) && <p className="text-xs text-tg-hint mt-1">{parseInt(price)} Telegram Stars</p>}
         </div>
 
         <div>

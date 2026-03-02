@@ -33,6 +33,10 @@ export async function GET(req) {
   }
 
   if (creatorId) {
+    // Verify the requester is the creator (prevent viewing other users' stats)
+    if (!authenticatedBuyerId || authenticatedBuyerId !== creatorId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
     const products = getCreatorProducts(creatorId).map(p => ({
       ...p, content: undefined, file_id: undefined
     }));
@@ -85,9 +89,21 @@ export async function POST(req) {
     return NextResponse.json({ error: `Price must be ${MIN_PRICE_STARS}-${MAX_PRICE_STARS} Stars` }, { status: 400 });
   }
 
-  const validTypes = ['text', 'file', 'link', 'message'];
+  const validTypes = ['text', 'link', 'message'];
   if (!validTypes.includes(content_type)) {
-    return NextResponse.json({ error: 'Invalid content_type' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message' }, { status: 400 });
+  }
+
+  // Validate link content is a proper URL (prevent javascript: URIs and arbitrary text)
+  if (content_type === 'link') {
+    try {
+      const url = new URL(String(content));
+      if (!['http:', 'https:'].includes(url.protocol)) {
+        return NextResponse.json({ error: 'Link must be an http or https URL' }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: 'Link must be a valid URL' }, { status: 400 });
+    }
   }
 
   try {

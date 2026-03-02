@@ -63,7 +63,7 @@ export default function BuyProduct() {
           <span className="text-sm text-tg-hint">Price</span>
           <span className="text-2xl font-bold">⭐ {product.price_stars}</span>
         </div>
-        <p className="text-xs text-tg-hint text-right">≈ ${(product.price_stars * 0.013).toFixed(2)} USD</p>
+        <p className="text-xs text-tg-hint text-right">Paid with Telegram Stars</p>
       </div>
 
       <div className="text-sm text-tg-hint mb-4 space-y-1">
