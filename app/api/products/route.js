@@ -23,24 +23,24 @@ export async function GET(req) {
   }
 
   if (productId) {
-    const product = getProduct(productId);
+    const product = await getProduct(productId);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     // Don't expose content unless authenticated buyer has purchased
-    const purchased = authenticatedBuyerId ? hasPurchased(productId, authenticatedBuyerId) : false;
+    const purchased = authenticatedBuyerId ? await hasPurchased(productId, authenticatedBuyerId) : false;
     const safeProduct = { ...product, content: purchased ? product.content : undefined, file_id: undefined };
     return NextResponse.json({ product: safeProduct, purchased });
   }
 
   if (creatorId) {
-    // Verify the requester is the creator (prevent viewing other users' stats)
+    // Verify the requester is the creator
     if (!authenticatedBuyerId || authenticatedBuyerId !== creatorId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-    const products = getCreatorProducts(creatorId).map(p => ({
+    const products = (await getCreatorProducts(creatorId)).map(p => ({
       ...p, content: undefined, file_id: undefined
     }));
-    const stats = getCreatorStats(creatorId);
+    const stats = await getCreatorStats(creatorId);
     return NextResponse.json({ products, stats });
   }
 
@@ -94,7 +94,7 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message' }, { status: 400 });
   }
 
-  // Validate link content is a proper URL (prevent javascript: URIs and arbitrary text)
+  // Validate link content is a proper URL
   if (content_type === 'link') {
     try {
       const url = new URL(String(content));
@@ -107,9 +107,9 @@ export async function POST(req) {
   }
 
   try {
-    getOrCreateCreator(creatorId, username, displayName);
+    await getOrCreateCreator(creatorId, username, displayName);
     const id = uuid();
-    const product = createProduct(id, creatorId, String(title), String(description || ''), price, content_type, String(content), null);
+    const product = await createProduct(id, creatorId, String(title), String(description || ''), price, content_type, String(content), null);
     return NextResponse.json({ product });
   } catch (err) {
     console.error('Create product error:', err);
