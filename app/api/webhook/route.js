@@ -3,8 +3,8 @@ import { Bot } from 'grammy';
 import { v4 as uuid } from 'uuid';
 import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT } from '@/lib/config';
 import {
-  getOrCreateCreator, createProduct, getProduct, getCreatorProducts,
-  getCreatorStats, recordPurchase, hasPurchased
+  getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
+  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown } from '@/lib/validate';
 
@@ -51,6 +51,29 @@ export async function POST(req) {
       }
 
       await b.api.answerPreCheckoutQuery(query.id, true);
+      return NextResponse.json({ ok: true });
+    }
+
+    // Handle refunded payment
+    if (body.message?.refunded_payment) {
+      const refund = body.message.refunded_payment;
+      const buyerId = String(body.message.from.id);
+      const productId = refund.invoice_payload;
+
+      const marked = await markPurchaseRefunded(productId, buyerId);
+
+      if (marked) {
+        const product = await getProductRaw(productId);
+        if (product) {
+          const safeTitle = escapeMarkdown(product.title);
+          // Notify creator about the refund
+          await b.api.sendMessage(product.creator_id,
+            `\u{1F4B8} *Refund processed*\n\n*${safeTitle}*\nA buyer received a refund of \u2B50 ${refund.total_amount} Stars`,
+            { parse_mode: 'MarkdownV2' }
+          ).catch(err => console.error('Failed to notify creator of refund:', err.message));
+        }
+      }
+
       return NextResponse.json({ ok: true });
     }
 
@@ -125,7 +148,7 @@ export async function POST(req) {
       return NextResponse.json({ ok: true });
     }
 
-    // Handle messages
+    // Handle messages (text commands)
     if (body.message?.text) {
       const msg = body.message;
       const chatId = msg.chat.id;
@@ -140,7 +163,8 @@ export async function POST(req) {
           `\u{1F4E6} /create \\— Create a new product\n` +
           `\u{1F4CA} /dashboard \\— View your stats\n` +
           `\u{1F4CB} /products \\— List your products\n` +
-          `\u{1F6D2} /buy \\<id\\> \\— Buy a product\n\n` +
+          `\u{1F6D2} /buy \\<id\\> \\— Buy a product\n` +
+          `\u{1F4CE} /attach \\<id\\> \\— Attach a file to a product\n\n` +
           `Or open the Mini App \u{1F447}`,
           {
             parse_mode: 'MarkdownV2',
@@ -211,6 +235,36 @@ export async function POST(req) {
           `\u{1F4E6} *${safeTitle}*\n\u2B50 ${price} Stars\n\u{1F194} \`${id}\`\n\n` +
           `Share this link:\n${escapeMarkdown(shareUrl)}`,
           { parse_mode: 'MarkdownV2' }
+        );
+      }
+
+      // /attach <product_id> — prompts creator to send a file
+      else if (text.startsWith('/attach ')) {
+        const productId = text.slice(8).trim();
+        const product = await getProductRaw(productId);
+
+        if (!product) {
+          await b.api.sendMessage(chatId, '\u274C Product not found.');
+          return NextResponse.json({ ok: true });
+        }
+        if (product.creator_id !== userId) {
+          await b.api.sendMessage(chatId, '\u274C You can only attach files to your own products.');
+          return NextResponse.json({ ok: true });
+        }
+        if (product.content_type !== 'file') {
+          await b.api.sendMessage(chatId, '\u274C This product is not a file type. Only file-type products accept file attachments.');
+          return NextResponse.json({ ok: true });
+        }
+
+        // Store a pending attach state using reply markup
+        await b.api.sendMessage(chatId,
+          `\u{1F4CE} *Attach a file to:* ${escapeMarkdown(product.title)}\n\n` +
+          `Reply to this message with the file you want to attach\\.\n` +
+          `Product ID: \`${productId}\``,
+          {
+            parse_mode: 'MarkdownV2',
+            reply_markup: { force_reply: true, selective: true, input_field_placeholder: 'Send or forward a file...' }
+          }
         );
       }
 
@@ -295,6 +349,33 @@ export async function POST(req) {
             }
           }
         );
+      }
+    }
+
+    // Handle document/file replies (for /attach flow)
+    if (body.message?.document && body.message?.reply_to_message?.text) {
+      const replyText = body.message.reply_to_message.text;
+      const chatId = body.message.chat.id;
+      const userId = String(body.message.from.id);
+      const fileId = body.message.document.file_id;
+
+      // Extract product ID from the /attach reply
+      const match = replyText.match(/Product ID:\s*([a-f0-9-]+)/i);
+      if (match) {
+        const productId = match[1];
+        const product = await getProductRaw(productId);
+
+        if (!product || product.creator_id !== userId) {
+          await b.api.sendMessage(chatId, '\u274C Unable to attach file. Product not found or not yours.');
+          return NextResponse.json({ ok: true });
+        }
+
+        const attached = await attachFileToProduct(productId, fileId);
+        if (attached) {
+          await b.api.sendMessage(chatId, `\u2705 File attached to *${escapeMarkdown(product.title)}*\\!`, { parse_mode: 'MarkdownV2' });
+        } else {
+          await b.api.sendMessage(chatId, '\u274C Failed to attach file. Make sure the product is a file type.');
+        }
       }
     }
   } catch (err) {

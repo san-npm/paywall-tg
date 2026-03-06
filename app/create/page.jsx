@@ -1,6 +1,29 @@
 'use client';
 import { useState, useEffect } from 'react';
 
+function CreateSkeleton() {
+  return (
+    <div className="p-4 max-w-lg mx-auto animate-pulse">
+      <div className="h-7 w-48 rounded-lg mb-4" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      <div className="space-y-4">
+        {[1, 2, 3].map(i => (
+          <div key={i}>
+            <div className="h-4 w-20 rounded mb-1" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+            <div className="h-12 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+          </div>
+        ))}
+        <div className="grid grid-cols-2 gap-2">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-10 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+          ))}
+        </div>
+        <div className="h-24 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+        <div className="h-12 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      </div>
+    </div>
+  );
+}
+
 export default function CreateProduct() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
@@ -73,7 +96,7 @@ export default function CreateProduct() {
   };
 
   if (!ready) {
-    return <div className="p-4 text-center text-tg-hint">Loading...</div>;
+    return <CreateSkeleton />;
   }
 
   if (created) {
@@ -88,6 +111,17 @@ export default function CreateProduct() {
           <p className="font-mono font-bold text-lg">{created.id}</p>
         </div>
 
+        {created.content_type === 'file' && (
+          <div className="p-3 rounded-xl mb-4 text-sm text-left" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
+            <p className="font-semibold mb-1">📎 Next step: Attach your file</p>
+            <p>Send this command to the bot chat:</p>
+            <code className="block mt-1 p-2 rounded-lg text-xs" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }}>
+              /attach {created.id}
+            </code>
+            <p className="mt-1">Then reply with the file you want to deliver to buyers.</p>
+          </div>
+        )}
+
         <p className="text-sm text-tg-hint mb-4">
           Share the command <code className="font-mono">/buy {created.id}</code> or share the bot link for people to purchase.
         </p>
@@ -99,6 +133,27 @@ export default function CreateProduct() {
       </div>
     );
   }
+
+  const contentTypes = [
+    { key: 'text', label: '📝 Text' },
+    { key: 'link', label: '🔗 Link' },
+    { key: 'message', label: '💬 Message' },
+    { key: 'file', label: '📎 File' },
+  ];
+
+  const contentPlaceholder = {
+    text: 'The secret content buyers will receive...',
+    link: 'https://...',
+    message: 'The message buyers will receive...',
+    file: 'Description or instructions for the file content...',
+  };
+
+  const contentLabel = {
+    text: 'Content (delivered after purchase)',
+    link: 'URL (delivered after purchase)',
+    message: 'Message (delivered after purchase)',
+    file: 'Description (the actual file is attached via /attach command)',
+  };
 
   return (
     <div className="p-4 max-w-lg mx-auto">
@@ -145,27 +200,33 @@ export default function CreateProduct() {
         <div>
           <label className="block text-sm text-tg-hint mb-1">Content Type</label>
           <div className="grid grid-cols-2 gap-2">
-            {['text', 'link', 'message'].map(type => (
-              <button key={type} type="button" onClick={() => setContentType(type)}
-                className="p-2 rounded-xl text-sm font-medium capitalize"
+            {contentTypes.map(({ key, label }) => (
+              <button key={key} type="button" onClick={() => setContentType(key)}
+                className="p-2 rounded-xl text-sm font-medium"
                 style={{
-                  backgroundColor: contentType === type ? 'var(--tg-theme-button-color, #2481cc)' : 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
-                  color: contentType === type ? 'var(--tg-theme-button-text-color, #fff)' : 'inherit'
+                  backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
+                  color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'inherit'
                 }}>
-                {type === 'text' ? '📝 Text' : type === 'link' ? '🔗 Link' : '💬 Message'}
+                {label}
               </button>
             ))}
           </div>
         </div>
 
+        {contentType === 'file' && (
+          <div className="p-3 rounded-xl text-sm" style={{ backgroundColor: '#e8f4fd', color: '#1a73e8' }}>
+            📎 For file products, enter a description below. After creating, use <code className="font-mono">/attach &lt;product_id&gt;</code> in the bot chat to upload the actual file.
+          </div>
+        )}
+
         <div>
           <label className="block text-sm text-tg-hint mb-1">
-            {contentType === 'link' ? 'URL (delivered after purchase)' : 'Content (delivered after purchase)'}
+            {contentLabel[contentType]}
           </label>
           <textarea value={content} onChange={e => setContent(e.target.value)} required rows={4}
             className="w-full p-3 rounded-xl border-none outline-none resize-none"
             style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}
-            placeholder={contentType === 'link' ? 'https://...' : 'The secret content buyers will receive...'} />
+            placeholder={contentPlaceholder[contentType]} />
         </div>
 
         <button type="submit" disabled={loading || !user}
