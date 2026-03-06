@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
 import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
-import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats } from '@/lib/db';
+import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, getProductRaw, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews } from '@/lib/db';
 import { validateInitData } from '@/lib/validate';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -25,6 +26,9 @@ export async function GET(req) {
   if (productId) {
     const product = await getProduct(productId);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    // Increment view counter
+    await incrementViews(productId);
 
     // Don't expose content unless authenticated buyer has purchased
     const purchased = authenticatedBuyerId ? await hasPurchased(productId, authenticatedBuyerId) : false;
@@ -67,6 +71,12 @@ export async function POST(req) {
   const username = initData.user.username || null;
   const displayName = initData.user.first_name || null;
 
+  // Rate limit: 10 products per hour per user
+  const { limited } = checkRateLimit(`create:${creatorId}`, 10);
+  if (limited) {
+    return NextResponse.json({ error: 'Rate limit exceeded. Max 10 products per hour.' }, { status: 429 });
+  }
+
   const { title, description, price_stars, content_type, content } = body;
 
   if (!title || !price_stars || !content_type || !content) {
@@ -89,9 +99,9 @@ export async function POST(req) {
     return NextResponse.json({ error: `Price must be ${MIN_PRICE_STARS}-${MAX_PRICE_STARS} Stars` }, { status: 400 });
   }
 
-  const validTypes = ['text', 'link', 'message'];
+  const validTypes = ['text', 'link', 'message', 'file'];
   if (!validTypes.includes(content_type)) {
-    return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message, file' }, { status: 400 });
   }
 
   // Validate link content is a proper URL
@@ -115,4 +125,86 @@ export async function POST(req) {
     console.error('Create product error:', err);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
+}
+
+// DELETE — soft-delete a product (requires valid Telegram initData)
+export async function DELETE(req) {
+  const { searchParams } = new URL(req.url);
+  const productId = searchParams.get('product_id');
+  const initDataParam = searchParams.get('init_data');
+
+  if (!productId) {
+    return NextResponse.json({ error: 'product_id required' }, { status: 400 });
+  }
+
+  const initData = validateInitData(initDataParam);
+  if (!initData || !initData.user?.id) {
+    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  }
+
+  const creatorId = String(initData.user.id);
+  const deleted = await softDeleteProduct(productId, creatorId);
+
+  if (!deleted) {
+    return NextResponse.json({ error: 'Product not found or not owned by you' }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
+
+// PATCH — update a product (requires valid Telegram initData)
+export async function PATCH(req) {
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const initData = validateInitData(body.init_data);
+  if (!initData || !initData.user?.id) {
+    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  }
+
+  const creatorId = String(initData.user.id);
+  const { product_id, title, description, price_stars } = body;
+
+  if (!product_id) {
+    return NextResponse.json({ error: 'product_id required' }, { status: 400 });
+  }
+
+  // Validate inputs if provided
+  const updates = {};
+  if (title !== undefined) {
+    if (String(title).length > MAX_TITLE_LENGTH) {
+      return NextResponse.json({ error: `Title must be ${MAX_TITLE_LENGTH} characters or less` }, { status: 400 });
+    }
+    updates.title = String(title);
+  }
+  if (description !== undefined) {
+    if (String(description).length > MAX_DESCRIPTION_LENGTH) {
+      return NextResponse.json({ error: `Description must be ${MAX_DESCRIPTION_LENGTH} characters or less` }, { status: 400 });
+    }
+    updates.description = String(description);
+  }
+  if (price_stars !== undefined) {
+    const price = parseInt(price_stars);
+    if (isNaN(price) || price < MIN_PRICE_STARS || price > MAX_PRICE_STARS) {
+      return NextResponse.json({ error: `Price must be ${MIN_PRICE_STARS}-${MAX_PRICE_STARS} Stars` }, { status: 400 });
+    }
+    updates.price_stars = price;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
+  }
+
+  const product = await updateProduct(product_id, creatorId, updates);
+  if (!product) {
+    return NextResponse.json({ error: 'Product not found or not owned by you' }, { status: 404 });
+  }
+
+  // Strip sensitive fields
+  const safeProduct = { ...product, content: undefined, file_id: undefined };
+  return NextResponse.json({ product: safeProduct });
 }
