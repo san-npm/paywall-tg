@@ -27,8 +27,10 @@ export async function GET(req) {
     const product = await getProduct(productId);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // Increment view counter
-    await incrementViews(productId);
+    // Increment view counter (skip if viewer is the creator)
+    if (!authenticatedBuyerId || authenticatedBuyerId !== product.creator_id) {
+      await incrementViews(productId);
+    }
 
     // Don't expose content unless authenticated buyer has purchased
     const purchased = authenticatedBuyerId ? await hasPurchased(productId, authenticatedBuyerId) : false;
@@ -127,23 +129,28 @@ export async function POST(req) {
   }
 }
 
-// DELETE — soft-delete a product (requires valid Telegram initData)
+// DELETE — soft-delete a product (requires valid Telegram initData in body)
 export async function DELETE(req) {
-  const { searchParams } = new URL(req.url);
-  const productId = searchParams.get('product_id');
-  const initDataParam = searchParams.get('init_data');
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
 
-  if (!productId) {
+  const { product_id, init_data } = body;
+
+  if (!product_id) {
     return NextResponse.json({ error: 'product_id required' }, { status: 400 });
   }
 
-  const initData = validateInitData(initDataParam);
+  const initData = validateInitData(init_data);
   if (!initData || !initData.user?.id) {
     return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
   }
 
   const creatorId = String(initData.user.id);
-  const deleted = await softDeleteProduct(productId, creatorId);
+  const deleted = await softDeleteProduct(product_id, creatorId);
 
   if (!deleted) {
     return NextResponse.json({ error: 'Product not found or not owned by you' }, { status: 404 });

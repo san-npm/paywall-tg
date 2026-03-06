@@ -69,12 +69,14 @@ export default function Home() {
     if (!confirm(`Delete "${productTitle}"? This cannot be undone.`)) return;
 
     const tg = window.Telegram?.WebApp;
-    const initData = tg?.initData || '';
+    const iData = tg?.initData || '';
     setDeleting(productId);
 
     try {
-      const res = await fetch(`/api/products?product_id=${productId}&init_data=${encodeURIComponent(initData)}`, {
+      const res = await fetch('/api/products', {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId, init_data: iData }),
       });
       if (res.ok) {
         setProducts(prev => prev.filter(p => p.id !== productId));
@@ -155,6 +157,9 @@ export default function Home() {
                   window.open(url);
                 }} className="text-xs px-3 py-1 rounded-lg" style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}>
                   Share
+                </button>
+                <button onClick={() => navigator.clipboard?.writeText(p.id)} className="text-xs px-3 py-1 rounded-lg border" style={{ borderColor: 'var(--tg-theme-hint-color, #ccc)' }}>
+                  📋 ID
                 </button>
                 <a href={`/edit/${p.id}`} className="text-xs px-3 py-1 rounded-lg border inline-block" style={{ borderColor: 'var(--tg-theme-hint-color, #ccc)' }}>
                   ✏️ Edit
