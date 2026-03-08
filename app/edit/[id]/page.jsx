@@ -47,7 +47,9 @@ export default function EditProduct() {
     }
 
     // Fetch product data
-    fetch(`/api/products?product_id=${id}${iData ? `&init_data=${encodeURIComponent(iData)}` : ''}`)
+    fetch(`/api/products?product_id=${id}`, {
+      headers: iData ? { 'x-telegram-init-data': iData } : {}
+    })
       .then(r => r.json())
       .then(data => {
         if (data.error) {

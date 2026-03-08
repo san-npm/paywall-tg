@@ -37,7 +37,7 @@ export async function POST(req) {
   const buyerId = String(initData.user.id);
 
   // Rate limit: 30 invoices per hour per user
-  const { limited } = checkRateLimit(`invoice:${buyerId}`, 30);
+  const { limited } = await checkRateLimit(`invoice:${buyerId}`, 30);
   if (limited) {
     return NextResponse.json({ error: 'Too many purchase attempts. Please wait.' }, { status: 429 });
   }

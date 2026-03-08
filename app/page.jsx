@@ -53,7 +53,9 @@ export default function Home() {
 
     if (u && initData) {
       setUser(u);
-      fetch(`/api/products?creator_id=${u.id}&init_data=${encodeURIComponent(initData)}`)
+      fetch(`/api/products?creator_id=${u.id}`, {
+        headers: { 'x-telegram-init-data': initData }
+      })
         .then(r => r.json())
         .then(data => {
           setProducts(data.products || []);
