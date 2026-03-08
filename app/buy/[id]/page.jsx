@@ -41,7 +41,9 @@ export default function BuyProduct() {
       setInitData(iData);
     }
 
-    fetch(`/api/products?product_id=${id}${iData ? `&init_data=${encodeURIComponent(iData)}` : ''}`)
+    fetch(`/api/products?product_id=${id}`, {
+      headers: iData ? { 'x-telegram-init-data': iData } : {}
+    })
       .then(r => r.json())
       .then(data => {
         if (data.error) {
@@ -80,7 +82,9 @@ export default function BuyProduct() {
           if (status === 'paid') {
             // Refresh to show purchased content
             setLoading(true);
-            fetch(`/api/products?product_id=${id}&init_data=${encodeURIComponent(initData)}`)
+            fetch(`/api/products?product_id=${id}`, {
+              headers: { 'x-telegram-init-data': initData }
+            })
               .then(r => r.json())
               .then(d => {
                 if (!d.error) {

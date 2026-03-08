@@ -13,11 +13,13 @@ export async function GET(req) {
   const creatorId = searchParams.get('creator_id');
   const productId = searchParams.get('product_id');
   const initDataParam = searchParams.get('init_data');
+  const initDataHeader = req.headers.get('x-telegram-init-data');
+  const initDataRaw = initDataHeader || initDataParam;
 
   // Validate buyer identity from initData to prevent content gate bypass
   let authenticatedBuyerId = null;
-  if (initDataParam) {
-    const parsed = validateInitData(initDataParam);
+  if (initDataRaw) {
+    const parsed = validateInitData(initDataRaw);
     if (parsed?.user?.id) {
       authenticatedBuyerId = String(parsed.user.id);
     }
@@ -74,7 +76,7 @@ export async function POST(req) {
   const displayName = initData.user.first_name || null;
 
   // Rate limit: 10 products per hour per user
-  const { limited } = checkRateLimit(`create:${creatorId}`, 10);
+  const { limited } = await checkRateLimit(`create:${creatorId}`, 10);
   if (limited) {
     return NextResponse.json({ error: 'Rate limit exceeded. Max 10 products per hour.' }, { status: 429 });
   }
