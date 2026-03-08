@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
-  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct
+  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown } from '@/lib/validate';
 
@@ -24,7 +24,21 @@ export async function POST(req) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
+
+  // Idempotency guard: ignore duplicate Telegram update deliveries
+  if (body?.update_id !== undefined && body?.update_id !== null) {
+    const firstSeen = await markUpdateProcessed(body.update_id);
+    if (!firstSeen) {
+      return NextResponse.json({ ok: true });
+    }
+  }
+
   const b = getBot();
 
   try {
