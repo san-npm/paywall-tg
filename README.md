@@ -146,9 +146,8 @@ paywall-tg/
 │   └── globals.css             # Tailwind + Telegram theme vars
 ├── lib/
 │   ├── config.js               # Environment vars + constants
-│   ├── db.js                   # SQLite database layer
+│   ├── db.js                   # Turso/libSQL database layer
 │   └── validate.js             # Telegram auth + initData validation
-├── data/                       # SQLite database storage
 ├── .env.example                # Environment variable template
 └── package.json
 ```
@@ -171,7 +170,7 @@ paywall-tg/
 - Authenticated via Telegram `initData` HMAC signature
 - Validates title, price, content type, and content length
 
-### Database Schema (SQLite)
+### Database Schema (Turso/libSQL)
 
 | Table | Purpose |
 |-------|---------|

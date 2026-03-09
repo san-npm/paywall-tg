@@ -8,6 +8,8 @@ on:
 jobs:
   npm-audit:
     runs-on: ubuntu-latest
+    # npm advisory endpoint can be intermittently blocked in some networks;
+    # OSV scan below remains required and acts as a deterministic fallback.
     continue-on-error: true
     steps:
       - name: Checkout
