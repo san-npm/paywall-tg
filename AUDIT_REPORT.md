@@ -42,6 +42,12 @@ Scope: full repository (`app/**`, `lib/**`, docs, build/dependency checks)
 - Added CI workflow for `npm audit --omit=dev`.
 - Added OSV lockfile scan as a fallback scanner in the same workflow.
 
+### 5) Additional auth hardening (future auth_date + timing-safe webhook secret)
+
+**Fix implemented:**
+- Rejects `initData.auth_date` values too far in the future (30s skew max).
+- Uses timing-safe compare for webhook secret header as well.
+
 ## Remaining Constraint
 
 - Local `npm audit` can still fail in this containerized/proxied environment (HTTP 403 on npm advisory endpoint).
