@@ -44,8 +44,8 @@ Scope: full repository (`app/**`, `lib/**`, docs, build/dependency checks)
 
 ### A) Replay window may be too strict for Telegram Mini App sessions
 
-- `validateInitData` currently enforces a 5-minute max age.
-- This may reject legitimate sessions after app idle/resume unless frontend refreshes initData often.
+- `validateInitData` now uses configurable max age via `INIT_DATA_MAX_AGE_SECONDS` (default 900s).
+- Tune this per deployment risk tolerance (shorter = stricter anti-replay, longer = better UX).
 - Status: Fixed by adding `INIT_DATA_MAX_AGE_SECONDS` as a configurable env var (default 900s).
 
 ### B) Timing-safe compare for hash validation is not used
