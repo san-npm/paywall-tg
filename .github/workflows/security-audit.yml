@@ -1,0 +1,39 @@
+name: Security Audit
+
+on:
+  push:
+    branches: ["main", "master", "work"]
+  pull_request:
+
+jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit (prod deps)
+        run: npm audit --omit=dev
+
+  osv-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run OSV scanner on lockfile
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: |-
+            --lockfile=package-lock.json
+            --format=table
