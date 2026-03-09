@@ -86,7 +86,8 @@ Edit `.env`:
 BOT_TOKEN=your_bot_token_here          # From @BotFather
 WEBHOOK_SECRET=your_random_secret      # Any random string for webhook verification
 WEBAPP_URL=https://your-app.vercel.app # Your deployed URL
-DB_PATH=./data/paywall.db             # SQLite database path
+TURSO_DATABASE_URL=libsql://your-db.turso.io
+TURSO_AUTH_TOKEN=your_turso_auth_token
 ```
 
 ### 4. Deploy to Vercel
@@ -123,7 +124,8 @@ Send `/start` to your bot in Telegram.
 | `BOT_TOKEN` | Yes | — | Telegram bot token from @BotFather |
 | `WEBHOOK_SECRET` | Yes | — | Random string for webhook signature verification |
 | `WEBAPP_URL` | Yes | `https://paywall-tg.vercel.app` | Your deployed URL |
-| `DB_PATH` | No | `./data/paywall.db` | SQLite database file path |
+| `TURSO_DATABASE_URL` | Yes | — | Turso/libSQL database URL (`libsql://...`) |
+| `TURSO_AUTH_TOKEN` | Yes | — | Turso auth token |
 
 ---
 
@@ -246,7 +248,7 @@ Price range: **1 — 10,000 Stars** per product.
 - **Next.js 16** — App Router with SSR
 - **React 18** — UI
 - **grammY** — Telegram Bot API
-- **better-sqlite3** — SQLite with WAL mode
+- **@libsql/client** — Turso/libSQL database client
 - **@twa-dev/sdk** — Telegram Mini App SDK
 - **Tailwind CSS 3.4** — styling with Telegram theme variables
 - **uuid** — product ID generation
