@@ -74,3 +74,11 @@ Scope: full repository (`app/**`, `lib/**`, docs, build/dependency checks)
    - initData auth failures
 2. Add a lightweight lint/test script in `package.json` for CI.
 3. Add structured logging around webhook payment/refund branches.
+
+
+## Merge-Conflict Resolution Note
+
+The audit/doc/workflow files were normalized to single-source canonical versions to reduce merge ambiguity:
+- `.github/workflows/security-audit.yml`
+- `AUDIT_REPORT.md`
+- `README.md`
