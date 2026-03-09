@@ -53,9 +53,11 @@ Scope: full repository (`app/**`, `lib/**`, docs, build/dependency checks)
 - Local `npm audit` can still fail in this containerized/proxied environment (HTTP 403 on npm advisory endpoint).
 - CI is the source of truth for dependency vulnerability gates in this repo.
 
-## Merge-Conflict Resolution Note
+## Suggested Next Steps
 
-These files were normalized to canonical, conflict-free versions:
-- `.github/workflows/security-audit.yml`
-- `AUDIT_REPORT.md`
-- `README.md`
+1. Add minimal automated tests for:
+   - refund flow (stats + `sales_count` rollback)
+   - content gating on `/api/products?product_id=...`
+   - initData auth failures
+2. Add a lightweight lint/test script in `package.json` for CI.
+3. Add structured logging around webhook payment/refund branches.
