@@ -8,6 +8,7 @@ on:
 jobs:
   npm-audit:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,3 +24,16 @@ jobs:
 
       - name: Run npm audit (prod deps)
         run: npm audit --omit=dev
+
+  osv-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run OSV scanner on lockfile
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: |-
+            --lockfile=package-lock.json
+            --format=table

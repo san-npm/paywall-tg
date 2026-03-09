@@ -88,6 +88,7 @@ WEBHOOK_SECRET=your_random_secret      # Any random string for webhook verificat
 WEBAPP_URL=https://your-app.vercel.app # Your deployed URL
 TURSO_DATABASE_URL=libsql://your-db.turso.io
 TURSO_AUTH_TOKEN=your_turso_auth_token
+INIT_DATA_MAX_AGE_SECONDS=900
 ```
 
 ### 4. Deploy to Vercel
@@ -126,6 +127,7 @@ Send `/start` to your bot in Telegram.
 | `WEBAPP_URL` | Yes | `https://paywall-tg.vercel.app` | Your deployed URL |
 | `TURSO_DATABASE_URL` | Yes | — | Turso/libSQL database URL (`libsql://...`) |
 | `TURSO_AUTH_TOKEN` | Yes | — | Turso auth token |
+| `INIT_DATA_MAX_AGE_SECONDS` | No | `900` | Max allowed age (seconds) for Telegram Mini App `initData` |
 
 ---
 
@@ -144,9 +146,8 @@ paywall-tg/
 │   └── globals.css             # Tailwind + Telegram theme vars
 ├── lib/
 │   ├── config.js               # Environment vars + constants
-│   ├── db.js                   # SQLite database layer
+│   ├── db.js                   # Turso/libSQL database layer
 │   └── validate.js             # Telegram auth + initData validation
-├── data/                       # SQLite database storage
 ├── .env.example                # Environment variable template
 └── package.json
 ```
@@ -169,7 +170,7 @@ paywall-tg/
 - Authenticated via Telegram `initData` HMAC signature
 - Validates title, price, content type, and content length
 
-### Database Schema (SQLite)
+### Database Schema (Turso/libSQL)
 
 | Table | Purpose |
 |-------|---------|
@@ -208,6 +209,8 @@ Price range: **1 — 10,000 Stars** per product.
 ---
 
 ## Security
+
+Dependency audit is enforced in CI via `npm audit --omit=dev` and OSV lockfile scanning.
 
 - **Telegram initData validation** — HMAC-SHA256 signature verification on all Mini App requests
 - **Webhook verification** — `x-telegram-bot-api-secret-token` header checked before processing
