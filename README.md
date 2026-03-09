@@ -212,7 +212,6 @@ Price range: **1 — 10,000 Stars** per product.
 
 Dependency audit is enforced in CI via `npm audit --omit=dev` and OSV lockfile scanning.
 
-
 - **Telegram initData validation** — HMAC-SHA256 signature verification on all Mini App requests
 - **Webhook verification** — `x-telegram-bot-api-secret-token` header checked before processing
 - **Content gating** — product content never sent in list endpoints, only after verified purchase
