@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --site-bg: #0b1220;
-  --site-bg-elevated: #111b2f;
-  --site-bg-card: #16233d;
-  --site-border: #284061;
+  --site-bg: #1a0630;
+  --site-bg-elevated: #220b3e;
+  --site-bg-card: #2b1452;
+  --site-border: #5a2f86;
   --site-text: #eef6ff;
   --site-text-muted: #bfd2e9;
   --site-text-dim: #8fa8c6;
-  --site-accent: #ff4fd8;
+  --site-accent: #ff48d1;
   --site-accent-hover: #e843c6;
-  --site-accent-2: #22d3ee;
-  --site-accent-3: #f59e0b;
+  --site-accent-2: #57e4ff;
+  --site-accent-3: #ffc447;
   --site-accent-4: #8b5cf6;
 
   --surface: var(--tg-theme-secondary-bg-color, #f3f5f7);
@@ -238,9 +238,11 @@ html { scroll-behavior: smooth; }
 
 .emoji-float {
   position: absolute;
-  font-size: clamp(22px, 2.8vw, 38px);
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,.28));
+  width: clamp(38px, 4.2vw, 68px);
+  height: auto;
+  filter: drop-shadow(0 14px 18px rgba(0,0,0,.38));
   animation: emojiBob 8s ease-in-out infinite;
+  transform-style: preserve-3d;
   user-select: none;
 }
 
@@ -257,4 +259,18 @@ html { scroll-behavior: smooth; }
   25% { transform: translateY(-8px) rotate(-4deg) scale(1.04); }
   50% { transform: translateY(-14px) rotate(3deg) scale(1.07); }
   75% { transform: translateY(-7px) rotate(-2deg) scale(1.03); }
+}
+
+
+.site-rainbow-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 72, 209, 0.22), transparent 32%),
+    radial-gradient(circle at 85% 12%, rgba(87, 228, 255, 0.2), transparent 34%),
+    radial-gradient(circle at 20% 75%, rgba(255, 196, 71, 0.18), transparent 35%),
+    radial-gradient(circle at 82% 82%, rgba(126, 58, 242, 0.20), transparent 35%),
+    linear-gradient(120deg, #17052b, #240a46 45%, #120422 100%);
 }
