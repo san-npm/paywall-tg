@@ -230,7 +230,7 @@ html { scroll-behavior: smooth; }
 
 
 .emoji-cloud-global {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
