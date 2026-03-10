@@ -31,7 +31,7 @@ function SparklineIcon() {
 export default function Home() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
-  const [products, setProducts] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [ready, setReady] = useState(false);
   const [deleting, setDeleting] = useState(null);
 
@@ -54,7 +54,7 @@ export default function Home() {
       })
         .then(r => r.json())
         .then(data => {
-          setProducts(data.products || []);
+          setOffers(data.products || []);
           setStats(data.stats);
         })
         .finally(() => setReady(true));
@@ -63,21 +63,21 @@ export default function Home() {
     }
   }, []);
 
-  const handleDelete = async (productId, productTitle) => {
-    if (!confirm(`Delete "${productTitle}"? This cannot be undone.`)) return;
+  const handleDelete = async (offerId, offerTitle) => {
+    if (!confirm(`Delete "${offerTitle}"? This cannot be undone.`)) return;
 
     const tg = window.Telegram?.WebApp;
     const iData = tg?.initData || '';
-    setDeleting(productId);
+    setDeleting(offerId);
 
     try {
       const res = await fetch('/api/products', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ product_id: productId, init_data: iData }),
+        body: JSON.stringify({ product_id: offerId, init_data: iData }),
       });
       if (res.ok) {
-        setProducts(prev => prev.filter(p => p.id !== productId));
+        setOffers(prev => prev.filter(p => p.id !== offerId));
         if (stats) setStats(prev => ({ ...prev, products: Math.max(0, prev.products - 1) }));
       }
     } catch {
@@ -121,7 +121,7 @@ export default function Home() {
 
       {!user && (
         <section className="glass-card text-sm">
-          <p className="font-semibold mb-1">Open this inside Telegram to manage products.</p>
+          <p className="font-semibold mb-1">Open this inside Telegram to manage offers.</p>
           <p className="text-tg-hint">Preview works in browser, but publishing and sales tracking require Telegram auth.</p>
         </section>
       )}
@@ -129,7 +129,7 @@ export default function Home() {
       {user && stats && (
         <section className="grid sm:grid-cols-3 gap-3">
           <article className="glass-card">
-            <p className="text-xs text-tg-hint">Products</p>
+            <p className="text-xs text-tg-hint">Offers</p>
             <p className="text-2xl font-semibold">{stats.products}</p>
           </article>
           <article className="glass-card">
@@ -147,13 +147,13 @@ export default function Home() {
         href="/create"
         className="primary-btn"
       >
-        Create a product
+        Create an offer
       </a>
 
-      {products.length > 0 ? (
+      {offers.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Your products</h2>
-          {products.map((p) => (
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Your offers</h2>
+          {offers.map((p) => (
             <article key={p.id} className="glass-card">
               <div className="flex justify-between items-start gap-3">
                 <div>
@@ -200,8 +200,8 @@ export default function Home() {
         </section>
       ) : user ? (
         <section className="glass-card text-center py-10">
-          <h2 className="font-semibold text-lg">No products yet</h2>
-          <p className="text-tg-hint text-sm mt-1">Create your first product and share it in your Telegram channel.</p>
+          <h2 className="font-semibold text-lg">No offers yet</h2>
+          <p className="text-tg-hint text-sm mt-1">Create your first offer and share it in your Telegram channel.</p>
         </section>
       ) : null}
     </main>

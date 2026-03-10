@@ -2,17 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mini App + website shared tokens */
 :root {
-  --site-bg: #0a0a0b;
-  --site-bg-elevated: #111113;
-  --site-bg-card: #161618;
-  --site-border: #232326;
-  --site-text: #e4e4e7;
-  --site-text-muted: #71717a;
-  --site-text-dim: #52525b;
-  --site-accent: #2AABEE;
-  --site-accent-hover: #1d95d2;
+  --site-bg: #0f0c1b;
+  --site-bg-elevated: #17112a;
+  --site-bg-card: #1e1635;
+  --site-border: #332a52;
+  --site-text: #f6f2ff;
+  --site-text-muted: #c3b7e6;
+  --site-text-dim: #9186b5;
+  --site-accent: #7c5cff;
+  --site-accent-hover: #6d4ef3;
 
   --surface: var(--tg-theme-secondary-bg-color, #f3f5f7);
   --surface-strong: color-mix(in srgb, var(--surface) 82%, #ffffff);
@@ -35,8 +34,69 @@ body {
 }
 
 html { scroll-behavior: smooth; }
-::selection { background: rgba(42, 171, 238, 0.3); color: #fff; }
+::selection { background: rgba(124, 92, 255, 0.35); color: #fff; }
 
+/* Website revamp helpers */
+.site-orb { position: absolute; border-radius: 9999px; filter: blur(48px); pointer-events: none; }
+.site-orb-a { width: 260px; height: 260px; background: rgba(124, 92, 255, 0.28); top: -80px; right: 4%; }
+.site-orb-b { width: 220px; height: 220px; background: rgba(53, 208, 177, 0.18); bottom: -70px; left: 8%; }
+
+.site-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--site-accent);
+  color: white;
+  font-weight: 700;
+  padding: 12px 18px;
+  text-decoration: none;
+}
+.site-cta-primary:hover { background: var(--site-accent-hover); }
+
+.site-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--site-border);
+  color: var(--site-text-muted);
+  font-weight: 600;
+  padding: 12px 18px;
+  text-decoration: none;
+}
+.site-cta-secondary:hover { color: var(--site-text); border-color: color-mix(in srgb, var(--site-border) 50%, white); }
+
+.site-chip {
+  background: var(--site-bg-card);
+  border: 1px solid var(--site-border);
+  border-radius: 12px;
+  padding: 12px;
+}
+.site-chip-label { font-size: 11px; color: var(--site-text-dim); text-transform: uppercase; letter-spacing: .05em; margin: 0; }
+.site-chip-value { font-size: 18px; font-weight: 800; margin: 2px 0 0; color: var(--site-text); }
+
+.site-panel {
+  background: var(--site-bg-card);
+  border: 1px solid var(--site-border);
+  border-radius: 16px;
+  padding: 16px;
+}
+.site-step {
+  background: var(--site-bg-card);
+  border: 1px solid var(--site-border);
+  border-radius: 14px;
+  padding: 14px;
+}
+.site-step-n {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--site-accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  margin-bottom: 8px;
+}
+
+/* Mini app blocks */
 .glass-card {
   background: var(--surface-strong);
   border: 1px solid var(--border);
