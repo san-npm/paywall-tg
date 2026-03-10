@@ -66,21 +66,6 @@ export default function HomePageClient() {
         <div className="site-orb site-orb-c" />
 
 
-      <div className="emoji-cloud" aria-hidden="true">
-        {[
-          ['e1','🦞'],['e2','🍆'],['e3','🍑'],['e4','🌈'],['e5','🤑'],['e6','🫰'],['e7','💎']
-        ].map(([cls, em]) => (
-          <img
-            key={cls}
-            className={`emoji-float ${cls}`}
-            src={`https://emojicdn.elk.sh/${encodeURIComponent(em)}?style=apple`}
-            alt=""
-            loading="lazy"
-            decoding="async"
-          />
-        ))}
-      </div>
-
         <div className="max-w-5xl mx-auto relative">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-site-border bg-site-card text-site-muted mb-6">
             <span className="w-2 h-2 rounded-full bg-site-accent" /> {t.heroBadge}
