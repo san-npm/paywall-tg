@@ -29,7 +29,7 @@ export default function FeesPage() {
             <p className="text-xl font-semibold mb-2">goes to you</p>
             <p className="text-site-muted text-sm">
               Telegram takes a flat 5% on Stars transactions.<br />
-              PayGate charges nothing extra.
+              Platform fee is fixed at 5% total.
             </p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function FeesPage() {
               { q: 'When do I get paid?', a: 'Stars are credited to your Telegram balance immediately after each sale. Withdrawal to fiat currency follows Telegram\'s payout schedule.' },
               { q: 'How do I withdraw Stars?', a: 'Telegram provides withdrawal options for creators through the Stars program. Check your Telegram Stars balance in the app settings.' },
               { q: 'What currency are Stars worth?', a: 'Stars have a value set by Telegram. The exchange rate is visible in the Telegram app when buying or withdrawing Stars.' },
-              { q: 'Is there a minimum sale amount?', a: 'You can price products from 1 to 10,000 Stars. There\'s no minimum, but very low prices (1-5 Stars) may not be practical for all content types.' },
+              { q: 'Is there a minimum sale amount?', a: 'You can price offers from 1 to 50,000 Stars. There\'s no minimum, but very low prices (1-5 Stars) may not be practical for all content types.' },
             ].map((faq, i) => (
               <div key={i} className="p-5 rounded-xl border border-site-border bg-site-card">
                 <h3 className="font-bold mb-2">{faq.q}</h3>

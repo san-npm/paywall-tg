@@ -55,7 +55,7 @@ export default function HomePage() {
           <div className="grid sm:grid-cols-3 gap-3 mt-10 max-w-3xl">
             <div className="site-chip">
               <p className="site-chip-label">Platform fee</p>
-              <p className="site-chip-value">2.5%</p>
+              <p className="site-chip-value">5%</p>
             </div>
             <div className="site-chip">
               <p className="site-chip-label">Max content length</p>
@@ -98,6 +98,29 @@ export default function HomePage() {
             <Link href="https://t.me/PayGateBot" className="site-cta-primary inline-flex">
               Launch your first paid content
             </Link>
+          </div>
+        </div>
+      </section>
+
+
+
+      <section className="px-4 py-16 border-t border-site-border">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Built for every creator lane</h2>
+          <p className="text-site-muted mb-8">Pick your format, drop it in chat, and monetize without acting like a corporate store owner.</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { role: 'Coach', niche: 'templates + private drops' },
+              { role: 'Designer', niche: 'Notion packs + assets' },
+              { role: 'Trader', niche: 'signals + premium notes' },
+              { role: 'Creator', niche: 'files + paid messages' },
+            ].map((item) => (
+              <article key={item.role} className="creator-bubble-card">
+                <div className="creator-bubble-avatar" aria-hidden="true">{item.role.slice(0,1)}</div>
+                <p className="font-semibold text-lg">{item.role}</p>
+                <p className="text-sm text-site-muted mt-1">{item.niche}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>

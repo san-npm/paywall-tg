@@ -106,7 +106,7 @@ export default function Home() {
         <div className="grid sm:grid-cols-3 gap-2 mt-4">
           <div className="mini-stat">
             <p className="mini-stat-label">Platform fee</p>
-            <p className="mini-stat-value">2.5%</p>
+            <p className="mini-stat-value">5%</p>
           </div>
           <div className="mini-stat">
             <p className="mini-stat-label">Max price</p>
