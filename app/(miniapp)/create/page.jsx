@@ -3,23 +3,13 @@ import { useState, useEffect } from 'react';
 
 function CreateSkeleton() {
   return (
-    <div className="p-4 max-w-lg mx-auto animate-pulse">
-      <div className="h-7 w-48 rounded-lg mb-4" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-      <div className="space-y-4">
-        {[1, 2, 3].map(i => (
-          <div key={i}>
-            <div className="h-4 w-20 rounded mb-1" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-            <div className="h-12 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-          </div>
-        ))}
-        <div className="grid grid-cols-2 gap-2">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-10 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-          ))}
-        </div>
-        <div className="h-24 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-        <div className="h-12 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-      </div>
+    <div className="p-4 max-w-2xl mx-auto animate-pulse">
+      <div className="hero-card h-24 mb-4" />
+      <div className="glass-card h-14 mb-3" />
+      <div className="glass-card h-14 mb-3" />
+      <div className="glass-card h-14 mb-3" />
+      <div className="glass-card h-28 mb-3" />
+      <div className="glass-card h-12" />
     </div>
   );
 }
@@ -42,7 +32,9 @@ export default function CreateProduct() {
       tg.ready();
       tg.expand();
       tg.BackButton.show();
-      tg.BackButton.onClick(() => window.location.href = '/');
+      tg.BackButton.onClick(() => {
+        window.location.href = '/';
+      });
       const u = tg.initDataUnsafe?.user;
       if (u) setUser(u);
     }
@@ -57,14 +49,15 @@ export default function CreateProduct() {
       setError('Open this page inside Telegram to create products.');
       return;
     }
+
     if (!title || !price || !content) {
       setError('Please fill in all required fields.');
       return;
     }
 
-    const priceNum = parseInt(price);
-    if (isNaN(priceNum) || priceNum < 1 || priceNum > 10000) {
-      setError('Price must be between 1 and 10,000 Stars.');
+    const priceNum = Number.parseInt(price, 10);
+    if (Number.isNaN(priceNum) || priceNum < 1 || priceNum > 50000) {
+      setError('Price must be between 1 and 50,000 Stars.');
       return;
     }
 
@@ -83,158 +76,180 @@ export default function CreateProduct() {
           content,
         }),
       });
+
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to create product');
+        setError(data.error || 'Failed to create product.');
       } else if (data.product) {
         setCreated(data.product);
       }
-    } catch (err) {
-      setError('Network error — please try again.');
+    } catch {
+      setError('Network error. Please try again.');
     }
+
     setLoading(false);
   };
 
-  if (!ready) {
-    return <CreateSkeleton />;
-  }
+  if (!ready) return <CreateSkeleton />;
 
   if (created) {
     return (
-      <div className="p-4 max-w-lg mx-auto text-center">
-        <div className="text-5xl mb-4">✅</div>
-        <h1 className="text-xl font-bold mb-2">Product Created!</h1>
-        <p className="text-tg-hint mb-4">{created.title} — ⭐ {created.price_stars} Stars</p>
+      <main className="p-4 max-w-2xl mx-auto space-y-4">
+        <section className="hero-card text-center">
+          <h1 className="text-2xl font-bold">Product created</h1>
+          <p className="text-sm text-tg-hint mt-1">{created.title} · {created.price_stars} Stars</p>
+        </section>
 
-        <div className="p-3 rounded-xl mb-4" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-          <p className="text-xs text-tg-hint mb-1">Product ID</p>
-          <p className="font-mono font-bold text-lg">{created.id}</p>
-        </div>
+        <section className="glass-card text-center">
+          <p className="text-xs text-tg-hint uppercase tracking-wide">Product ID</p>
+          <p className="font-mono text-lg font-semibold mt-1 break-all">{created.id}</p>
+        </section>
 
         {created.content_type === 'file' && (
-          <div className="p-3 rounded-xl mb-4 text-sm text-left" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
-            <p className="font-semibold mb-1">📎 Next step: Attach your file</p>
-            <p>Send this command to the bot chat:</p>
-            <code className="block mt-1 p-2 rounded-lg text-xs" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }}>
-              /attach {created.id}
-            </code>
-            <p className="mt-1">Then reply with the file you want to deliver to buyers.</p>
-          </div>
+          <section className="glass-card text-sm">
+            <p className="font-semibold">Next step: attach your file</p>
+            <p className="text-tg-hint mt-1">Send this command in the bot chat, then upload your file as a reply.</p>
+            <code className="block mt-2 p-2 rounded-lg" style={{ background: 'var(--surface)' }}>/attach {created.id}</code>
+          </section>
         )}
 
-        <p className="text-sm text-tg-hint mb-4">
-          Share the command <code className="font-mono">/buy {created.id}</code> or share the bot link for people to purchase.
-        </p>
+        <section className="glass-card text-sm">
+          <p className="font-semibold">Share this to sell now</p>
+          <p className="text-tg-hint mt-1">Use <code>/buy {created.id}</code> in Telegram posts, DMs, or channel announcements.</p>
+        </section>
 
-        <a href="/" className="block w-full text-center py-3 px-4 rounded-xl font-semibold"
-          style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}>
-          Back to Dashboard
-        </a>
-      </div>
+        <a href="/" className="primary-btn">Back to dashboard</a>
+      </main>
     );
   }
 
   const contentTypes = [
-    { key: 'text', label: '📝 Text' },
-    { key: 'link', label: '🔗 Link' },
-    { key: 'message', label: '💬 Message' },
-    { key: 'file', label: '📎 File' },
+    { key: 'text', label: 'Text' },
+    { key: 'link', label: 'Link' },
+    { key: 'message', label: 'Message' },
+    { key: 'file', label: 'File' },
   ];
 
   const contentPlaceholder = {
-    text: 'The secret content buyers will receive...',
-    link: 'https://...',
-    message: 'The message buyers will receive...',
-    file: 'Description or instructions for the file content...',
+    text: 'The full content buyers receive after purchase.',
+    link: 'https://your-resource-link.com',
+    message: 'The private message buyers will unlock.',
+    file: 'Describe what the buyer gets. Upload file after creation using /attach command.',
   };
 
   const contentLabel = {
-    text: 'Content (delivered after purchase)',
-    link: 'URL (delivered after purchase)',
-    message: 'Message (delivered after purchase)',
-    file: 'Description (the actual file is attached via /attach command)',
+    text: 'Content to deliver',
+    link: 'URL to unlock',
+    message: 'Message to deliver',
+    file: 'File description',
   };
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold mb-4">📦 Create Product</h1>
+    <main className="p-4 max-w-2xl mx-auto space-y-4">
+      <section className="hero-card">
+        <h1 className="text-2xl font-bold">Create a product your audience can buy in seconds</h1>
+        <p className="text-sm text-tg-hint mt-1">Optimized for creators: lower fee, higher limits, faster checkout.</p>
+      </section>
 
       {!user && (
-        <div className="mb-4 p-3 rounded-xl text-sm text-center" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
-          ⚠️ Open inside Telegram to create products. You can preview the form here.
-        </div>
+        <section className="glass-card text-sm">
+          <p className="font-semibold">Telegram required to publish</p>
+          <p className="text-tg-hint mt-1">You can preview this form in browser, but creation needs Telegram authentication.</p>
+        </section>
       )}
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#f8d7da', color: '#842029' }}>
+        <section className="glass-card text-sm" style={{ borderColor: '#fca5a5', color: '#b91c1c', background: '#fff1f2' }}>
           {error}
-        </div>
+        </section>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm text-tg-hint mb-1">Title</label>
-          <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
-            className="w-full p-3 rounded-xl border-none outline-none"
-            style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}
-            placeholder="My awesome guide" />
-        </div>
-
-        <div>
-          <label className="block text-sm text-tg-hint mb-1">Description (optional, visible before purchase)</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
-            className="w-full p-3 rounded-xl border-none outline-none"
-            style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}
-            placeholder="A short teaser..." />
-        </div>
-
-        <div>
-          <label className="block text-sm text-tg-hint mb-1">Price (Stars) ⭐</label>
-          <input type="number" min="1" max="10000" value={price} onChange={e => setPrice(e.target.value)} required
-            className="w-full p-3 rounded-xl border-none outline-none"
-            style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}
-            placeholder="50" />
-          {price && !isNaN(parseInt(price)) && <p className="text-xs text-tg-hint mt-1">{parseInt(price)} Telegram Stars</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm text-tg-hint mb-1">Content Type</label>
-          <div className="grid grid-cols-2 gap-2">
-            {contentTypes.map(({ key, label }) => (
-              <button key={key} type="button" onClick={() => setContentType(key)}
-                className="p-2 rounded-xl text-sm font-medium"
-                style={{
-                  backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
-                  color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'inherit'
-                }}>
-                {label}
-              </button>
-            ))}
+        <section className="glass-card space-y-4">
+          <div>
+            <label className="block text-sm text-tg-hint mb-1">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              maxLength={140}
+              className="w-full p-3 rounded-xl border-none outline-none"
+              style={{ backgroundColor: 'var(--surface)' }}
+              placeholder="Example: Viral Hook Swipe File for Coaches"
+            />
           </div>
-        </div>
 
-        {contentType === 'file' && (
-          <div className="p-3 rounded-xl text-sm" style={{ backgroundColor: '#e8f4fd', color: '#1a73e8' }}>
-            📎 For file products, enter a description below. After creating, use <code className="font-mono">/attach &lt;product_id&gt;</code> in the bot chat to upload the actual file.
+          <div>
+            <label className="block text-sm text-tg-hint mb-1">Description (optional)</label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={500}
+              className="w-full p-3 rounded-xl border-none outline-none"
+              style={{ backgroundColor: 'var(--surface)' }}
+              placeholder="What buyers get and why it helps them."
+            />
           </div>
-        )}
 
-        <div>
-          <label className="block text-sm text-tg-hint mb-1">
-            {contentLabel[contentType]}
-          </label>
-          <textarea value={content} onChange={e => setContent(e.target.value)} required rows={4}
-            className="w-full p-3 rounded-xl border-none outline-none resize-none"
-            style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}
-            placeholder={contentPlaceholder[contentType]} />
-        </div>
+          <div>
+            <label className="block text-sm text-tg-hint mb-1">Price (Stars)</label>
+            <input
+              type="number"
+              min="1"
+              max="50000"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              required
+              className="w-full p-3 rounded-xl border-none outline-none"
+              style={{ backgroundColor: 'var(--surface)' }}
+              placeholder="49"
+            />
+            <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 50,000 Stars.</p>
+          </div>
 
-        <button type="submit" disabled={loading || !user}
-          className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
-          style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}>
-          {loading ? 'Creating...' : '✨ Create Product'}
+          <div>
+            <label className="block text-sm text-tg-hint mb-1">Content type</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {contentTypes.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setContentType(key)}
+                  className="chip-btn"
+                  style={{
+                    backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : 'var(--surface)',
+                    color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'inherit',
+                    borderColor: contentType === key ? 'transparent' : 'var(--border)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-tg-hint mb-1">{contentLabel[contentType]}</label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              rows={5}
+              maxLength={10000}
+              className="w-full p-3 rounded-xl border-none outline-none resize-none"
+              style={{ backgroundColor: 'var(--surface)' }}
+              placeholder={contentPlaceholder[contentType]}
+            />
+            <p className="text-xs text-tg-hint mt-1">Supports up to 10,000 characters.</p>
+          </div>
+        </section>
+
+        <button type="submit" disabled={loading || !user} className="primary-btn disabled:opacity-50">
+          {loading ? 'Creating product...' : 'Create product'}
         </button>
       </form>
-    </div>
+    </main>
   );
 }

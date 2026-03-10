@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { v4 as uuid } from 'uuid';
-import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT } from '@/lib/config';
+import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, MAX_TITLE_LENGTH, MAX_CONTENT_LENGTH } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
   getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed
@@ -223,18 +223,18 @@ export async function POST(req) {
         const title = priceMatch[2].trim();
         const content = priceMatch[3].trim();
 
-        if (price < 1 || price > 10000) {
-          await b.api.sendMessage(chatId, '\u274C Price must be between 1 and 10,000 Stars');
+        if (price < 1 || price > MAX_PRICE_STARS) {
+          await b.api.sendMessage(chatId, `\u274C Price must be between 1 and ${MAX_PRICE_STARS.toLocaleString()} Stars`);
           return NextResponse.json({ ok: true });
         }
 
-        if (title.length > 100) {
-          await b.api.sendMessage(chatId, '\u274C Title must be 100 characters or less');
+        if (title.length > MAX_TITLE_LENGTH) {
+          await b.api.sendMessage(chatId, `\u274C Title must be ${MAX_TITLE_LENGTH} characters or less`);
           return NextResponse.json({ ok: true });
         }
 
-        if (content.length > 3800) {
-          await b.api.sendMessage(chatId, '\u274C Content must be 3800 characters or less');
+        if (content.length > MAX_CONTENT_LENGTH) {
+          await b.api.sendMessage(chatId, `\u274C Content must be ${MAX_CONTENT_LENGTH} characters or less`);
           return NextResponse.json({ ok: true });
         }
 

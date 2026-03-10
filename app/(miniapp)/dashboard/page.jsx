@@ -3,33 +3,28 @@ import { useEffect, useState } from 'react';
 
 function DashboardSkeleton() {
   return (
-    <div className="p-4 max-w-lg mx-auto animate-pulse">
-      <div className="text-center mb-6">
-        <div className="h-8 w-36 mx-auto rounded-lg mb-1" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-        <div className="h-4 w-52 mx-auto rounded-lg" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+    <div className="p-4 max-w-2xl mx-auto animate-pulse">
+      <div className="glass-card h-40 mb-4" />
+      <div className="grid sm:grid-cols-3 gap-3 mb-4">
+        <div className="glass-card h-24" />
+        <div className="glass-card h-24" />
+        <div className="glass-card h-24" />
       </div>
-      <div className="p-4 rounded-xl mb-6" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-        <div className="h-4 w-24 rounded mb-2" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }} />
-        <div className="h-5 w-32 rounded mb-3" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }} />
-        <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="text-center">
-              <div className="h-6 w-10 mx-auto rounded mb-1" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }} />
-              <div className="h-3 w-14 mx-auto rounded" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }} />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="h-12 rounded-xl mb-4" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      <div className="glass-card h-14 mb-4" />
       <div className="space-y-3">
-        {[1, 2].map(i => (
-          <div key={i} className="p-3 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-            <div className="h-5 w-40 rounded mb-2" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }} />
-            <div className="h-4 w-28 rounded" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }} />
-          </div>
-        ))}
+        <div className="glass-card h-24" />
+        <div className="glass-card h-24" />
       </div>
     </div>
+  );
+}
+
+function SparklineIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" aria-hidden="true">
+      <path d="M3 16.5L8 11.5L12 14.5L20 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20 10V6H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -43,6 +38,7 @@ export default function Home() {
   useEffect(() => {
     let u = null;
     let initData = '';
+
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
       tg.ready();
@@ -82,109 +78,132 @@ export default function Home() {
       });
       if (res.ok) {
         setProducts(prev => prev.filter(p => p.id !== productId));
-        if (stats) setStats(prev => ({ ...prev, products: prev.products - 1 }));
+        if (stats) setStats(prev => ({ ...prev, products: Math.max(0, prev.products - 1) }));
       }
     } catch {
-      // silently fail
+      // no-op
     }
+
     setDeleting(null);
   };
 
-  if (!ready) {
-    return <DashboardSkeleton />;
-  }
+  if (!ready) return <DashboardSkeleton />;
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold mb-1">⚡ PayGate</h1>
-        <p className="text-tg-hint text-sm">Sell digital content in Telegram</p>
-      </div>
+    <main className="p-4 max-w-2xl mx-auto space-y-4">
+      <section className="hero-card">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-tg-hint mb-2">Built for creators</p>
+            <h1 className="text-2xl sm:text-3xl font-bold leading-tight">Sell content in Telegram with less friction</h1>
+            <p className="text-sm text-tg-hint mt-2 max-w-prose">
+              Lower platform fee, higher limits, and instant delivery after payment. No storefront complexity.
+            </p>
+          </div>
+          <div className="hero-badge" aria-hidden="true"><SparklineIcon /></div>
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-2 mt-4">
+          <div className="mini-stat">
+            <p className="mini-stat-label">Platform fee</p>
+            <p className="mini-stat-value">2.5%</p>
+          </div>
+          <div className="mini-stat">
+            <p className="mini-stat-label">Max price</p>
+            <p className="mini-stat-value">50k Stars</p>
+          </div>
+          <div className="mini-stat">
+            <p className="mini-stat-label">Max content</p>
+            <p className="mini-stat-value">10k chars</p>
+          </div>
+        </div>
+      </section>
 
       {!user && (
-        <div className="mb-6 p-4 rounded-xl text-center" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-          <p className="text-sm text-tg-hint">Open this app inside Telegram to manage your products.</p>
-          <p className="text-xs text-tg-hint mt-2">Running outside Telegram — limited functionality.</p>
-        </div>
+        <section className="glass-card text-sm">
+          <p className="font-semibold mb-1">Open this inside Telegram to manage products.</p>
+          <p className="text-tg-hint">Preview works in browser, but publishing and sales tracking require Telegram auth.</p>
+        </section>
       )}
 
-      {user && (
-        <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-          <p className="text-sm text-tg-hint mb-1">Welcome back,</p>
-          <p className="font-semibold">{user.first_name}</p>
-          {stats && (
-            <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-              <div>
-                <p className="text-lg font-bold">{stats.products}</p>
-                <p className="text-xs text-tg-hint">Products</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold">{stats.sales}</p>
-                <p className="text-xs text-tg-hint">Sales</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold">⭐ {stats.totalStars}</p>
-                <p className="text-xs text-tg-hint">Earned</p>
-              </div>
-            </div>
-          )}
-        </div>
+      {user && stats && (
+        <section className="grid sm:grid-cols-3 gap-3">
+          <article className="glass-card">
+            <p className="text-xs text-tg-hint">Products</p>
+            <p className="text-2xl font-semibold">{stats.products}</p>
+          </article>
+          <article className="glass-card">
+            <p className="text-xs text-tg-hint">Sales</p>
+            <p className="text-2xl font-semibold">{stats.sales}</p>
+          </article>
+          <article className="glass-card">
+            <p className="text-xs text-tg-hint">Earnings</p>
+            <p className="text-2xl font-semibold">{stats.totalStars} <span className="text-sm font-medium">Stars</span></p>
+          </article>
+        </section>
       )}
 
-      <a href="/create" className="block w-full text-center py-3 px-4 rounded-xl font-semibold mb-4"
-        style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}>
-        + Create Product
+      <a
+        href="/create"
+        className="primary-btn"
+      >
+        Create a product
       </a>
 
       {products.length > 0 ? (
-        <div className="space-y-3">
-          <h2 className="font-semibold text-sm text-tg-hint uppercase">Your Products</h2>
-          {products.map(p => (
-            <div key={p.id} className="p-3 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-              <div className="flex justify-between items-start">
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Your products</h2>
+          {products.map((p) => (
+            <article key={p.id} className="glass-card">
+              <div className="flex justify-between items-start gap-3">
                 <div>
-                  <p className="font-semibold">{p.title}</p>
-                  <p className="text-sm text-tg-hint">{p.content_type} · {p.sales_count} sales{p.views ? ` · ${p.views} views` : ''}</p>
+                  <p className="font-semibold text-base">{p.title}</p>
+                  <p className="text-sm text-tg-hint">
+                    {p.content_type} · {p.sales_count} sales{p.views ? ` · ${p.views} views` : ''}
+                  </p>
                 </div>
-                <span className="font-bold">⭐ {p.price_stars}</span>
+                <span className="price-pill">{p.price_stars} Stars</span>
               </div>
-              <div className="mt-2 flex gap-2 flex-wrap">
-                <button onClick={() => {
-                  const tg = window.Telegram?.WebApp;
-                  const botUsername = tg?.initDataUnsafe?.bot?.username || '';
-                  const buyLink = botUsername
-                    ? `https://t.me/${botUsername}?start=buy_${p.id}`
-                    : `/buy/${p.id}`;
-                  const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ⭐${p.price_stars} Stars`)}`;
-                  window.open(url);
-                }} className="text-xs px-3 py-1 rounded-lg" style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}>
+
+              <div className="mt-3 flex gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    const tg = window.Telegram?.WebApp;
+                    const botUsername = tg?.initDataUnsafe?.bot?.username || '';
+                    const buyLink = botUsername
+                      ? `https://t.me/${botUsername}?start=buy_${p.id}`
+                      : `/buy/${p.id}`;
+                    const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ${p.price_stars} Stars`)}`;
+                    window.open(url);
+                  }}
+                  className="chip-btn chip-primary"
+                >
                   Share
                 </button>
-                <button onClick={() => navigator.clipboard?.writeText(p.id)} className="text-xs px-3 py-1 rounded-lg border" style={{ borderColor: 'var(--tg-theme-hint-color, #ccc)' }}>
-                  📋 ID
+                <button
+                  onClick={() => navigator.clipboard?.writeText(p.id)}
+                  className="chip-btn"
+                >
+                  Copy ID
                 </button>
-                <a href={`/edit/${p.id}`} className="text-xs px-3 py-1 rounded-lg border inline-block" style={{ borderColor: 'var(--tg-theme-hint-color, #ccc)' }}>
-                  ✏️ Edit
-                </a>
+                <a href={`/edit/${p.id}`} className="chip-btn inline-block">Edit</a>
                 <button
                   onClick={() => handleDelete(p.id, p.title)}
                   disabled={deleting === p.id}
-                  className="text-xs px-3 py-1 rounded-lg disabled:opacity-50"
-                  style={{ backgroundColor: '#f8d7da', color: '#842029' }}
+                  className="chip-btn chip-danger disabled:opacity-50"
                 >
-                  {deleting === p.id ? '...' : '🗑️ Delete'}
+                  {deleting === p.id ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
-            </div>
+            </article>
           ))}
-        </div>
+        </section>
       ) : user ? (
-        <div className="text-center py-8 text-tg-hint">
-          <p className="text-4xl mb-2">📦</p>
-          <p>No products yet</p>
-          <p className="text-sm">Create your first digital product!</p>
-        </div>
+        <section className="glass-card text-center py-10">
+          <h2 className="font-semibold text-lg">No products yet</h2>
+          <p className="text-tg-hint text-sm mt-1">Create your first product and share it in your Telegram channel.</p>
+        </section>
       ) : null}
-    </div>
+    </main>
   );
 }

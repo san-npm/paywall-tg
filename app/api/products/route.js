@@ -75,10 +75,10 @@ export async function POST(req) {
   const username = initData.user.username || null;
   const displayName = initData.user.first_name || null;
 
-  // Rate limit: 10 products per hour per user
-  const { limited } = await checkRateLimit(`create:${creatorId}`, 10);
+  // Rate limit: creator-friendly burst limit
+  const { limited } = await checkRateLimit(`create:${creatorId}`, 30);
   if (limited) {
-    return NextResponse.json({ error: 'Rate limit exceeded. Max 10 products per hour.' }, { status: 429 });
+    return NextResponse.json({ error: 'Rate limit exceeded. Max 30 products per hour.' }, { status: 429 });
   }
 
   const { title, description, price_stars, content_type, content } = body;
