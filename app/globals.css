@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --site-bg: #182230;
-  --site-bg-elevated: #1e2b3c;
-  --site-bg-card: #27384d;
+  --site-bg: #2e3f56;
+  --site-bg-elevated: #354a64;
+  --site-bg-card: #3e5776;
   --site-border: rgba(220, 238, 255, 0.18);
   --site-text: #f4fbff;
   --site-text-muted: #d6ecf7;
@@ -309,5 +309,5 @@ html { scroll-behavior: smooth; }
     radial-gradient(circle at 88% 12%, rgba(255, 214, 165, 0.28), transparent 36%),
     radial-gradient(circle at 20% 78%, rgba(183, 240, 192, 0.24), transparent 40%),
     radial-gradient(circle at 84% 76%, rgba(255, 209, 220, 0.22), transparent 38%),
-    linear-gradient(130deg, #172333 0%, #203043 40%, #22374b 68%, #1b2d40 100%);
+    linear-gradient(130deg, #30445f 0%, #3a5270 40%, #426084 68%, #375675 100%);
 }
