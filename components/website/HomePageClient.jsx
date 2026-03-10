@@ -26,7 +26,8 @@ export default function HomePageClient() {
 
   useEffect(() => {
     const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-    if (!isDesktop) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!isDesktop || reduceMotion) return;
 
     let raf = null;
     const onMove = (e) => {

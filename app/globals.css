@@ -261,6 +261,18 @@ html { scroll-behavior: smooth; }
   75% { transform: translateY(-7px) rotate(-2deg) scale(1.03); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .site-orb-a, .site-orb-b, .site-orb-c,
+  .emoji-float,
+  .site-cta-primary,
+  .site-panel,
+  .creator-bubble-card {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 
 .site-rainbow-bg {
   position: fixed;
