@@ -1,16 +1,18 @@
-'use client';
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-site-bg text-site-text">
       <div className="text-center max-w-sm">
-        <div className="text-6xl mb-4">🔍</div>
-        <h1 className="text-2xl font-bold mb-2">Page Not Found</h1>
-        <p className="text-tg-hint mb-6">The page you're looking for doesn't exist or has been moved.</p>
-        <a href="/" className="inline-block py-3 px-6 rounded-xl font-semibold"
-          style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}>
-          Go Home
-        </a>
+        <p className="text-6xl font-bold text-site-accent mb-4">404</p>
+        <h1 className="text-2xl font-bold mb-2">Page not found</h1>
+        <p className="text-site-muted mb-6">The page you&rsquo;re looking for doesn&rsquo;t exist or has been moved.</p>
+        <Link
+          href="/"
+          className="inline-block py-3 px-6 rounded-lg font-semibold bg-site-accent text-white hover:bg-site-accent-hover transition-colors"
+        >
+          Go home
+        </Link>
       </div>
     </div>
   );
