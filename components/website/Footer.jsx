@@ -1,6 +1,9 @@
+'use client';
 import Link from 'next/link';
+import { useLang } from './useLang';
 
 export default function Footer() {
+  const { t } = useLang();
   return (
     <footer className="border-t border-site-border bg-site-bg">
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -37,7 +40,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-site-border pt-6 text-sm text-site-dim flex flex-col md:flex-row justify-between gap-2">
-          <p>PayGate — creator-first monetization in Telegram.</p>
+          <p>{t.footerTag}</p>
           <p>Powered by Telegram Stars.</p>
         </div>
       </div>
