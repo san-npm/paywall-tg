@@ -14,7 +14,7 @@ function CreateSkeleton() {
   );
 }
 
-export default function CreateProduct() {
+export default function CreateOffer() {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
   const [title, setTitle] = useState('');
@@ -46,7 +46,7 @@ export default function CreateProduct() {
     setError(null);
 
     if (!user) {
-      setError('Open this page inside Telegram to create products.');
+      setError('Open this page inside Telegram to create offers.');
       return;
     }
 
@@ -79,7 +79,7 @@ export default function CreateProduct() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to create product.');
+        setError(data.error || 'Failed to create offer.');
       } else if (data.product) {
         setCreated(data.product);
       }
@@ -96,12 +96,12 @@ export default function CreateProduct() {
     return (
       <main className="p-4 max-w-2xl mx-auto space-y-4">
         <section className="hero-card text-center">
-          <h1 className="text-2xl font-bold">Product created</h1>
+          <h1 className="text-2xl font-bold">Offer created</h1>
           <p className="text-sm text-tg-hint mt-1">{created.title} · {created.price_stars} Stars</p>
         </section>
 
         <section className="glass-card text-center">
-          <p className="text-xs text-tg-hint uppercase tracking-wide">Product ID</p>
+          <p className="text-xs text-tg-hint uppercase tracking-wide">Offer ID</p>
           <p className="font-mono text-lg font-semibold mt-1 break-all">{created.id}</p>
         </section>
 
@@ -147,7 +147,7 @@ export default function CreateProduct() {
   return (
     <main className="p-4 max-w-2xl mx-auto space-y-4">
       <section className="hero-card">
-        <h1 className="text-2xl font-bold">Create a product your audience can buy in seconds</h1>
+        <h1 className="text-2xl font-bold">Create an offer your audience can buy in seconds</h1>
         <p className="text-sm text-tg-hint mt-1">Optimized for creators: lower fee, higher limits, faster checkout.</p>
       </section>
 
@@ -247,7 +247,7 @@ export default function CreateProduct() {
         </section>
 
         <button type="submit" disabled={loading || !user} className="primary-btn disabled:opacity-50">
-          {loading ? 'Creating product...' : 'Create product'}
+          {loading ? 'Creating offer...' : 'Create offer'}
         </button>
       </form>
     </main>
