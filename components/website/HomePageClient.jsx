@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import EmailCapture from './EmailCapture';
 import { useLang } from './useLang';
+import { useEffect, useState } from 'react';
 
 const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || '/docs#connect-bot';
 
@@ -21,6 +22,26 @@ function Icon({ type }) {
 
 export default function HomePageClient() {
   const { t } = useLang();
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    if (!isDesktop) return;
+
+    let raf = null;
+    const onMove = (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 16;
+      const y = (e.clientY / window.innerHeight - 0.5) * 16;
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setParallax({ x, y }));
+    };
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   const creatorCards = [
     {
@@ -68,8 +89,8 @@ export default function HomePageClient() {
 
       <div className="emoji-cloud" aria-hidden="true">
         {[
-          ['e1','🦞'],['e2','🍆'],['e3','🍑'],['e4','🌈'],['e5','🤑'],['e6','🫰'],['e7','💎']
-        ].map(([cls, em]) => (
+          ['e1','🦞', 1.6],['e2','🍆', 1.1],['e3','🍑', 1.4],['e4','🌈', 0.8],['e5','🤑', 1.3],['e6','🫰', 1.0],['e7','💎', 1.7]
+        ].map(([cls, em, depth]) => (
           <img
             key={cls}
             className={`emoji-float ${cls}`}
@@ -77,6 +98,7 @@ export default function HomePageClient() {
             alt=""
             loading="lazy"
             decoding="async"
+            style={{ transform: `translate3d(${(parallax.x * depth).toFixed(2)}px, ${(parallax.y * depth).toFixed(2)}px, 0)` }}
           />
         ))}
       </div>
