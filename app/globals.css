@@ -241,8 +241,8 @@ html { scroll-behavior: smooth; }
   width: clamp(38px, 4.2vw, 68px);
   height: auto;
   filter: drop-shadow(0 14px 18px rgba(0,0,0,.38));
-  animation: emojiBob 8s ease-in-out infinite;
   transform-style: preserve-3d;
+  transition: transform .25s ease-out;
   user-select: none;
 }
 
