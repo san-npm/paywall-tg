@@ -50,14 +50,15 @@ html { scroll-behavior: smooth; }
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--site-accent), var(--site-accent-2), var(--site-accent-4));
-  color: white;
+  background: linear-gradient(135deg, var(--site-bg-card), var(--site-bg-elevated));
+  color: var(--site-text);
+  border: 1px solid var(--site-border);
   font-weight: 700;
   padding: 12px 18px;
   text-decoration: none;
 }
-.site-cta-primary:hover { background: linear-gradient(135deg, var(--site-accent-hover), var(--site-accent-2), var(--site-accent-4)); transform: translateY(-1px); }
-.site-cta-primary { transition: transform .2s ease, background .2s ease; animation: pulseGlow 3.2s ease-in-out infinite; }
+.site-cta-primary:hover { background: linear-gradient(135deg, var(--site-bg-elevated), var(--site-bg-card)); transform: translateY(-1px); border-color: color-mix(in srgb, var(--site-border) 55%, white); }
+.site-cta-primary { transition: transform .2s ease, background .2s ease, border-color .2s ease; }
 
 .site-cta-secondary {
   display: inline-flex;
