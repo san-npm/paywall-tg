@@ -65,6 +65,17 @@ export default function HomePageClient() {
         <div className="site-orb site-orb-b" />
         <div className="site-orb site-orb-c" />
 
+
+      <div className="emoji-cloud" aria-hidden="true">
+        <span className="emoji-float e1">📈</span>
+        <span className="emoji-float e2">₿</span>
+        <span className="emoji-float e3">🎨</span>
+        <span className="emoji-float e4">🎬</span>
+        <span className="emoji-float e5">💸</span>
+        <span className="emoji-float e6">💬</span>
+        <span className="emoji-float e7">⭐</span>
+      </div>
+
         <div className="max-w-5xl mx-auto relative">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-site-border bg-site-card text-site-muted mb-6">
             <span className="w-2 h-2 rounded-full bg-site-accent" /> {t.heroBadge}
