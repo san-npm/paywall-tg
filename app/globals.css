@@ -229,30 +229,32 @@ html { scroll-behavior: smooth; }
 }
 
 
-.emoji-cloud {
-  position: absolute;
+.emoji-cloud-global {
+  position: fixed;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
+  z-index: 0;
 }
 
-.emoji-float {
+.emoji-float-global {
   position: absolute;
-  width: clamp(38px, 4.2vw, 68px);
+  width: clamp(34px, 3.6vw, 62px);
   height: auto;
-  filter: drop-shadow(0 14px 18px rgba(0,0,0,.38));
+  filter: drop-shadow(0 12px 16px rgba(0,0,0,.35));
   transform-style: preserve-3d;
-  animation: emojiBob 9s ease-in-out infinite;
+  animation: emojiBob 10s ease-in-out infinite;
   user-select: none;
+  opacity: .9;
 }
 
-.e1 { top: 8%; left: 6%; animation-delay: .2s; }
-.e2 { top: 18%; right: 8%; animation-delay: 1.2s; }
-.e3 { top: 42%; left: 4%; animation-delay: 2.1s; }
-.e4 { top: 58%; right: 6%; animation-delay: .8s; }
-.e5 { top: 74%; left: 12%; animation-delay: 1.7s; }
-.e6 { top: 30%; left: 48%; animation-delay: 2.8s; }
-.e7 { top: 68%; right: 30%; animation-delay: 3.1s; }
+.ge1 { top: 9%; left: 4%; animation-delay: .2s; }
+.ge2 { top: 21%; right: 5%; animation-delay: 1.2s; }
+.ge3 { top: 39%; left: 2%; animation-delay: 2.1s; }
+.ge4 { top: 56%; right: 4%; animation-delay: .8s; }
+.ge5 { top: 74%; left: 9%; animation-delay: 1.7s; }
+.ge6 { top: 33%; left: 50%; animation-delay: 2.8s; }
+.ge7 { top: 84%; right: 24%; animation-delay: 3.1s; }
 
 @keyframes emojiBob {
   0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
