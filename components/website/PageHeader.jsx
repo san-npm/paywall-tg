@@ -24,14 +24,14 @@ export function PageCTA({ title, description, primary, primaryHref, secondary, s
   return (
     <section className="py-20 px-4 border-t border-site-border">
       <div className="max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-4">{title || 'Ready to start selling?'}</h2>
-        <p className="text-site-muted mb-8">{description || 'Create your first product in 2 minutes. Free to start.'}</p>
+        <h2 className="text-3xl font-bold mb-4">{title || 'Ready to monetize your content?'}</h2>
+        <p className="text-site-muted mb-8">{description || 'Start in minutes and get paid from your community.'}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href={primaryHref || '/docs#connect-bot'}
             className="px-6 py-3 rounded-lg bg-site-accent text-white font-semibold hover:bg-site-accent-hover transition-colors"
           >
-            {primary || 'Create your first paid product'}
+            {primary || 'Monetize your content'}
           </Link>
           {secondary && (
             <Link

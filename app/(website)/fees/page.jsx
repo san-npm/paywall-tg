@@ -61,7 +61,13 @@ export default function FeesPage() {
         </div>
       </section>
 
-      <PageCTA title="Start monetizing your content" description="Clear pricing, fast setup, and instant Telegram delivery." />
+      <PageCTA
+        title="Start monetizing your content"
+        description="Clear pricing, fast setup, and instant Telegram delivery."
+        primary="Monetize your content"
+        secondary="Create your community"
+        secondaryHref="/use-cases/telegram-paid-content"
+      />
     </>
   );
 }
