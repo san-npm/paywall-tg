@@ -16,7 +16,7 @@ export default function EmailCapture() {
           />
           <button
             type="submit"
-            className="px-5 py-3 rounded-full bg-site-accent text-slate-900 font-semibold text-sm hover:bg-site-accent-hover transition-colors whitespace-nowrap"
+            className="px-5 py-3 rounded-full bg-site-bg text-site-text border border-site-border font-semibold text-sm hover:bg-site-bg/80 transition-colors whitespace-nowrap"
           >
             Get the playbook
           </button>
