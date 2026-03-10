@@ -27,7 +27,7 @@ export default function DocsPage() {
               </h3>
               <div className="ml-9">
                 <p className="text-site-muted text-sm mb-3 leading-relaxed">
-                  Open <Link href="https://t.me/PayGateBot" className="text-site-accent hover:underline">@PayGateBot</Link> in Telegram and tap <strong>Start</strong>.
+                  Open <Link href="/docs#connect-bot" className="text-site-accent hover:underline">@your_bot</Link> in Telegram and tap <strong>Start</strong>.
                   The bot creates your creator account automatically using your Telegram identity.
                 </p>
                 <div className="p-3 rounded-lg border border-site-border bg-site-card text-sm font-mono text-site-muted">
@@ -86,7 +86,7 @@ export default function DocsPage() {
                   Share the product buy link in your channels, groups, or DMs. Anyone who taps it will see the product and can buy with Stars.
                 </p>
                 <div className="p-3 rounded-lg border border-site-border bg-site-card text-sm font-mono text-site-muted mb-3">
-                  https://t.me/PayGateBot?start=buy_&lt;product_id&gt;
+                  /docs#connect-bot?start=buy_&lt;product_id&gt;
                 </div>
                 <p className="text-site-muted text-sm leading-relaxed">
                   You can also use the <strong>Share</strong> button in the dashboard to forward the link with a pre-written message.
