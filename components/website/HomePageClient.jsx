@@ -67,13 +67,18 @@ export default function HomePageClient() {
 
 
       <div className="emoji-cloud" aria-hidden="true">
-        <span className="emoji-float e1">📈</span>
-        <span className="emoji-float e2">₿</span>
-        <span className="emoji-float e3">🎨</span>
-        <span className="emoji-float e4">🎬</span>
-        <span className="emoji-float e5">💸</span>
-        <span className="emoji-float e6">💬</span>
-        <span className="emoji-float e7">⭐</span>
+        {[
+          ['e1','🦞'],['e2','🍆'],['e3','🍑'],['e4','🌈'],['e5','🤑'],['e6','🫰'],['e7','💎']
+        ].map(([cls, em]) => (
+          <img
+            key={cls}
+            className={`emoji-float ${cls}`}
+            src={`https://emojicdn.elk.sh/${encodeURIComponent(em)}?style=apple`}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
+        ))}
       </div>
 
         <div className="max-w-5xl mx-auto relative">
