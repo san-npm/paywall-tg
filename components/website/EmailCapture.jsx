@@ -2,7 +2,7 @@
 
 export default function EmailCapture() {
   return (
-    <section className="py-16 px-4 bg-site-elevated">
+    <section className="py-16 px-4">
       <div className="max-w-2xl mx-auto text-center p-5 md:p-7 newsletter-cloud">
         <h3 className="text-xl font-bold mb-2">Telegram Monetization Playbook</h3>
         <p className="text-site-muted text-sm mb-6">
