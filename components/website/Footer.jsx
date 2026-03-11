@@ -21,6 +21,9 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-site-muted">
               <li><Link href="/use-cases/telegram-paid-content" className="hover:text-site-text">Paid content</Link></li>
               <li><Link href="/use-cases/sell-digital-products-on-telegram" className="hover:text-site-text">Digital drops</Link></li>
+              <li><Link href="/telegram-paywall" className="hover:text-site-text">Telegram paywall</Link></li>
+              <li><Link href="/community-monetization" className="hover:text-site-text">Community monetization</Link></li>
+              <li><Link href="/community-access" className="hover:text-site-text">Community access</Link></li>
             </ul>
           </div>
           <div>

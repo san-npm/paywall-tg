@@ -84,6 +84,11 @@ export default function HomePageClient() {
             <Link href={BOT_URL} className="site-cta-primary">Start in 2 minutes</Link>
             <Link href="/docs" className="site-cta-secondary">See how it works</Link>
           </div>
+          <div className="mt-4 flex flex-wrap gap-3 text-sm">
+            <Link href="/telegram-paywall" className="text-site-accent underline">Telegram paywall</Link>
+            <Link href="/community-monetization" className="text-site-accent underline">Community monetization</Link>
+            <Link href="/community-access" className="text-site-accent underline">Community access</Link>
+          </div>
 
           <div className="grid sm:grid-cols-3 gap-3 mt-10 max-w-3xl">
             <div className="site-chip"><p className="site-chip-label">Platform fee</p><p className="site-chip-value">5%</p></div>
