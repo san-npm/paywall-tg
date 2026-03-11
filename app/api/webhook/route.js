@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
-  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive
+  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId } from '@/lib/validate';
 
@@ -362,6 +362,7 @@ export async function POST(req) {
       else if (text.startsWith('/admin_disable ') || text.startsWith('/admin_enable ')) {
         if (!ADMIN_TELEGRAM_IDS.has(userId)) {
           await b.api.sendMessage(chatId, '\u274C Admin only command.');
+          await logAdminAction(userId, 'toggle_product', 'product', null, 'forbidden');
           return NextResponse.json({ ok: true });
         }
 
@@ -369,10 +370,12 @@ export async function POST(req) {
         const productId = text.slice(enable ? 14 : 15).trim();
         if (!isValidProductId(productId)) {
           await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          await logAdminAction(userId, enable ? 'enable_product' : 'disable_product', 'product', productId, 'invalid_input');
           return NextResponse.json({ ok: true });
         }
 
         const updated = await setProductActive(productId, enable);
+        await logAdminAction(userId, enable ? 'enable_product' : 'disable_product', 'product', productId, updated ? 'ok' : 'not_found');
         await b.api.sendMessage(chatId, updated
           ? `\u2705 Product ${enable ? 'enabled' : 'disabled'}: \`${productId}\``
           : '\u274C Product not found.', { parse_mode: 'MarkdownV2' });

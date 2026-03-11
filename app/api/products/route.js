@@ -2,12 +2,10 @@ import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
 import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews } from '@/lib/db';
-import { validateInitData } from '@/lib/validate';
+import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
-
-const PRODUCT_ID_PATTERN = /^[a-f0-9-]{36}$/i;
 
 // GET — list products for a creator or get single product
 export async function GET(req) {
@@ -28,7 +26,7 @@ export async function GET(req) {
   }
 
   if (productId) {
-    if (!PRODUCT_ID_PATTERN.test(productId)) {
+    if (!isValidProductId(productId)) {
       return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
     }
     const product = await getProduct(productId);
@@ -151,7 +149,7 @@ export async function DELETE(req) {
     return NextResponse.json({ error: 'product_id required' }, { status: 400 });
   }
 
-  if (!PRODUCT_ID_PATTERN.test(String(product_id))) {
+  if (!isValidProductId(String(product_id))) {
     return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
   }
 
@@ -191,7 +189,7 @@ export async function PATCH(req) {
     return NextResponse.json({ error: 'product_id required' }, { status: 400 });
   }
 
-  if (!PRODUCT_ID_PATTERN.test(String(product_id))) {
+  if (!isValidProductId(String(product_id))) {
     return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
   }
 

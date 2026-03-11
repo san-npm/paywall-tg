@@ -128,6 +128,9 @@ Send `/start` to your bot in Telegram.
 | `TURSO_DATABASE_URL` | Yes | — | Turso/libSQL database URL (`libsql://...`) |
 | `TURSO_AUTH_TOKEN` | Yes | — | Turso auth token |
 | `INIT_DATA_MAX_AGE_SECONDS` | No | `900` | Max allowed age (seconds) for Telegram Mini App `initData` |
+| `ADMIN_TELEGRAM_IDS` | No | — | Comma-separated Telegram user IDs allowed to run admin actions |
+| `PROCESSED_UPDATES_TTL_DAYS` | No | `3` | Retention window (days) for processed Telegram update IDs |
+| `PROCESSED_UPDATES_CLEANUP_RATE` | No | `0.05` | Cleanup sampling rate (0-1) for processed update retention |
 
 ---
 

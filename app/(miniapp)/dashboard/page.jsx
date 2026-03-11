@@ -34,6 +34,12 @@ export default function Home() {
   const [offers, setOffers] = useState([]);
   const [ready, setReady] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminActions, setAdminActions] = useState([]);
+  const [toggling, setToggling] = useState(null);
+  const [refundForm, setRefundForm] = useState({ buyer_telegram_id: '', telegram_charge_id: '' });
+  const [adminError, setAdminError] = useState(null);
+  const [adminBusy, setAdminBusy] = useState(false);
 
   useEffect(() => {
     let u = null;
@@ -49,13 +55,19 @@ export default function Home() {
 
     if (u && initData) {
       setUser(u);
-      fetch(`/api/products?creator_id=${u.id}`, {
-        headers: { 'x-telegram-init-data': initData }
-      })
-        .then(r => r.json())
-        .then(data => {
-          setOffers(data.products || []);
-          setStats(data.stats);
+      Promise.all([
+        fetch(`/api/products?creator_id=${u.id}`, {
+          headers: { 'x-telegram-init-data': initData }
+        }).then(r => r.json()),
+        fetch('/api/admin', {
+          headers: { 'x-telegram-init-data': initData }
+        }).then(r => r.json()).catch(() => ({ is_admin: false })),
+      ])
+        .then(([productData, adminData]) => {
+          setOffers(productData.products || []);
+          setStats(productData.stats);
+          setIsAdmin(Boolean(adminData?.is_admin));
+          setAdminActions(Array.isArray(adminData?.actions) ? adminData.actions : []);
         })
         .finally(() => setReady(true));
     } else {
@@ -85,6 +97,46 @@ export default function Home() {
     }
 
     setDeleting(null);
+  };
+
+  const postAdminAction = async (payload) => {
+    const tg = window.Telegram?.WebApp;
+    const iData = tg?.initData || '';
+    const res = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Admin action failed');
+    return data;
+  };
+
+  const toggleOfferActive = async (offerId, enable) => {
+    setAdminError(null);
+    setToggling(offerId);
+    try {
+      await postAdminAction({ action: enable ? 'enable_product' : 'disable_product', product_id: offerId });
+      setOffers(prev => prev.map(p => (p.id === offerId ? { ...p, active: enable ? 1 : 0 } : p)));
+    } catch (err) {
+      setAdminError(err.message);
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  const submitRefund = async (e) => {
+    e.preventDefault();
+    setAdminError(null);
+    setAdminBusy(true);
+    try {
+      await postAdminAction({ action: 'refund_payment', ...refundForm });
+      setRefundForm({ buyer_telegram_id: '', telegram_charge_id: '' });
+    } catch (err) {
+      setAdminError(err.message);
+    } finally {
+      setAdminBusy(false);
+    }
   };
 
   if (!ready) return <DashboardSkeleton />;
@@ -150,6 +202,40 @@ export default function Home() {
         Create an offer
       </a>
 
+      {isAdmin && (
+        <section className="glass-card space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Admin controls</h2>
+          <form onSubmit={submitRefund} className="grid sm:grid-cols-3 gap-2">
+            <input
+              className="chip-btn"
+              placeholder="Buyer Telegram ID"
+              value={refundForm.buyer_telegram_id}
+              onChange={(e) => setRefundForm(prev => ({ ...prev, buyer_telegram_id: e.target.value }))}
+              required
+            />
+            <input
+              className="chip-btn"
+              placeholder="Telegram charge ID"
+              value={refundForm.telegram_charge_id}
+              onChange={(e) => setRefundForm(prev => ({ ...prev, telegram_charge_id: e.target.value }))}
+              required
+            />
+            <button type="submit" className="chip-btn chip-danger disabled:opacity-50" disabled={adminBusy}>
+              {adminBusy ? 'Refunding...' : 'Refund payment'}
+            </button>
+          </form>
+          {adminError && <p className="text-sm text-red-500">{adminError}</p>}
+          {adminActions.length > 0 && (
+            <div className="text-xs text-tg-hint space-y-1">
+              <p className="font-semibold">Recent admin actions</p>
+              {adminActions.slice(0, 5).map((a) => (
+                <p key={a.id}>#{a.id} {a.action} → {a.status}</p>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       {offers.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Your offers</h2>
@@ -161,6 +247,7 @@ export default function Home() {
                   <p className="text-sm text-tg-hint">
                     {p.content_type} · {p.sales_count} sales{p.views ? ` · ${p.views} views` : ''}
                   </p>
+                  {Number(p.active) === 0 && <p className="text-xs text-red-400">Disabled</p>}
                 </div>
                 <span className="price-pill">{p.price_stars} Stars</span>
               </div>
@@ -194,6 +281,15 @@ export default function Home() {
                 >
                   {deleting === p.id ? 'Deleting...' : 'Delete'}
                 </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => toggleOfferActive(p.id, Number(p.active) === 0)}
+                    disabled={toggling === p.id}
+                    className="chip-btn disabled:opacity-50"
+                  >
+                    {toggling === p.id ? 'Working...' : Number(p.active) === 0 ? 'Enable' : 'Disable'}
+                  </button>
+                )}
               </div>
             </article>
           ))}
