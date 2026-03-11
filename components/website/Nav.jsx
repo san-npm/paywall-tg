@@ -15,7 +15,8 @@ export default function Nav() {
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-site-border bg-site-bg/85 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg text-site-text">
-          <span className="text-site-accent">✦</span> Gategram
+          <img src="/Gategram-mascott.svg" alt="Gategram mascot" className="w-7 h-7" />
+          Gategram
         </Link>
 
         <div className="hidden md:flex items-center gap-4 text-sm text-site-muted">

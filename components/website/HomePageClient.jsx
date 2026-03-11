@@ -12,25 +12,25 @@ export default function HomePageClient() {
   const creatorCards = [
     {
       key: 'trading',
-      emoji: '💰',
+      icon: '/Gategram-mascott-trader.svg',
       title: 'Trading creators',
       desc: 'Sell signals, market notes, and private recaps with instant paid access.',
     },
     {
       key: 'crypto',
-      emoji: '💎',
+      icon: '/Gategram-mascott-crypto.svg',
       title: 'Crypto creators',
       desc: 'Drop alpha, token research, and premium updates behind a simple paywall.',
     },
     {
       key: 'artist',
-      emoji: '📸',
+      icon: '/Gategram-mascott-arty.svg',
       title: 'Artists',
       desc: 'Monetize digital drops, packs, and commission slots directly in Telegram.',
     },
     {
       key: 'adult',
-      emoji: '🍑',
+      icon: '/Gategram-mascott-oulala.svg',
       title: 'Adult entertainers',
       desc: 'Offer VIP content safely with paid unlocks and automated delivery.',
     },
@@ -58,8 +58,11 @@ export default function HomePageClient() {
 
 
         <div className="max-w-5xl mx-auto relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-site-border bg-site-card text-site-muted mb-6">
-            <span className="w-2 h-2 rounded-full bg-site-accent" /> {t.heroBadge}
+          <div className="flex items-center gap-3 mb-4">
+            <img src="/Gategram-mascott.svg" alt="Gategram mascot" className="w-12 h-12 md:w-14 md:h-14" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-site-border bg-site-card text-site-muted">
+              <span className="w-2 h-2 rounded-full bg-site-accent" /> {t.heroBadge}
+            </div>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl">
@@ -97,7 +100,9 @@ export default function HomePageClient() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {creatorCards.map((item) => (
               <article key={item.key} className="creator-bubble-card">
-                <div className="creator-icon-wrap" aria-hidden="true">{item.emoji}</div>
+                <div className="creator-icon-wrap" aria-hidden="true">
+                  <img src={item.icon} alt="" className="w-full h-full object-contain" />
+                </div>
                 <p className="font-semibold text-lg">{item.title}</p>
                 <p className="text-sm text-site-muted mt-1">{item.desc}</p>
               </article>
