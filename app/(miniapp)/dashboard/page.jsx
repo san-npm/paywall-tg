@@ -28,6 +28,10 @@ function SparklineIcon() {
   );
 }
 
+function toYmd(d) {
+  return d.toISOString().slice(0, 10);
+}
+
 export default function Home() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
@@ -137,6 +141,29 @@ export default function Home() {
       setAdminError(err.message);
     } finally {
       setAdminBusy(false);
+    }
+  };
+
+  const applyPreset = (preset) => {
+    const now = new Date();
+    const end = toYmd(now);
+
+    if (preset === 'today') {
+      setExportFilters(prev => ({ ...prev, from: end, to: end }));
+      return;
+    }
+
+    if (preset === 'last7') {
+      const start = new Date(now);
+      start.setDate(start.getDate() - 6);
+      setExportFilters(prev => ({ ...prev, from: toYmd(start), to: end }));
+      return;
+    }
+
+    if (preset === 'month') {
+      const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      setExportFilters(prev => ({ ...prev, from: toYmd(start), to: end }));
+      return;
     }
   };
 
@@ -254,6 +281,11 @@ export default function Home() {
             </button>
           </form>
           {adminError && <p className="text-sm text-red-500">{adminError}</p>}
+          <div className="flex gap-2 flex-wrap">
+            <button type="button" className="chip-btn" onClick={() => applyPreset('today')}>Today</button>
+            <button type="button" className="chip-btn" onClick={() => applyPreset('last7')}>Last 7d</button>
+            <button type="button" className="chip-btn" onClick={() => applyPreset('month')}>This month</button>
+          </div>
           <div className="grid sm:grid-cols-4 gap-2">
             <input className="chip-btn" type="date" value={exportFilters.from} onChange={(e) => setExportFilters(prev => ({ ...prev, from: e.target.value }))} />
             <input className="chip-btn" type="date" value={exportFilters.to} onChange={(e) => setExportFilters(prev => ({ ...prev, to: e.target.value }))} />
