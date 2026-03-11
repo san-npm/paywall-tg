@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
 import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
-import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, getProductRaw, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews } from '@/lib/db';
+import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews } from '@/lib/db';
 import { validateInitData } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
+
+const PRODUCT_ID_PATTERN = /^[a-f0-9-]{36}$/i;
 
 // GET — list products for a creator or get single product
 export async function GET(req) {
@@ -26,6 +28,9 @@ export async function GET(req) {
   }
 
   if (productId) {
+    if (!PRODUCT_ID_PATTERN.test(productId)) {
+      return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
+    }
     const product = await getProduct(productId);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
@@ -98,7 +103,7 @@ export async function POST(req) {
     return NextResponse.json({ error: `Content must be ${MAX_CONTENT_LENGTH} characters or less` }, { status: 400 });
   }
 
-  const price = parseInt(price_stars);
+  const price = Number.parseInt(price_stars, 10);
   if (isNaN(price) || price < MIN_PRICE_STARS || price > MAX_PRICE_STARS) {
     return NextResponse.json({ error: `Price must be ${MIN_PRICE_STARS}-${MAX_PRICE_STARS} Stars` }, { status: 400 });
   }
@@ -146,6 +151,10 @@ export async function DELETE(req) {
     return NextResponse.json({ error: 'product_id required' }, { status: 400 });
   }
 
+  if (!PRODUCT_ID_PATTERN.test(String(product_id))) {
+    return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
+  }
+
   const initData = validateInitData(init_data);
   if (!initData || !initData.user?.id) {
     return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
@@ -182,6 +191,10 @@ export async function PATCH(req) {
     return NextResponse.json({ error: 'product_id required' }, { status: 400 });
   }
 
+  if (!PRODUCT_ID_PATTERN.test(String(product_id))) {
+    return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
+  }
+
   // Validate inputs if provided
   const updates = {};
   if (title !== undefined) {
@@ -197,7 +210,7 @@ export async function PATCH(req) {
     updates.description = String(description);
   }
   if (price_stars !== undefined) {
-    const price = parseInt(price_stars);
+    const price = Number.parseInt(price_stars, 10);
     if (isNaN(price) || price < MIN_PRICE_STARS || price > MAX_PRICE_STARS) {
       return NextResponse.json({ error: `Price must be ${MIN_PRICE_STARS}-${MAX_PRICE_STARS} Stars` }, { status: 400 });
     }

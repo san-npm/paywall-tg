@@ -7,6 +7,8 @@ import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
+const PRODUCT_ID_PATTERN = /^[a-f0-9-]{36}$/i;
+
 let bot;
 function getBot() {
   if (!bot) bot = new Bot(BOT_TOKEN);
@@ -44,6 +46,10 @@ export async function POST(req) {
 
   if (!product_id) {
     return NextResponse.json({ error: 'product_id required' }, { status: 400 });
+  }
+
+  if (!PRODUCT_ID_PATTERN.test(String(product_id))) {
+    return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
   }
 
   // Get product
