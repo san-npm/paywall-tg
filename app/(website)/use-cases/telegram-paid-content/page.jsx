@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Telegram Paid Content — Monetize Your Channel with PayGate',
-  description: 'Monetize your Telegram channel or group with paid content. Native Stars payments, instant delivery, no external links. 95/5 split.',
-};
+export const metadata = buildPageMetadata({
+  title: 'Telegram Paid Content Monetization',
+  description: 'Monetize Telegram channels and groups with paid content, community access, and native Stars checkout.',
+  path: '/use-cases/telegram-paid-content',
+  keywords: ['telegram paid content', 'community access monetization'],
+});
 
 export default function TelegramPaidContent() {
   const useCases = [

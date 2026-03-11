@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'LemonSqueezy Alternative for Telegram — PayGate',
-  description: 'Sell on Telegram without LemonSqueezy\'s external checkout. Native Stars payments, instant delivery, no merchant account needed.',
-};
+export const metadata = buildPageMetadata({
+  title: 'LemonSqueezy Alternative for Telegram',
+  description: 'Switch from external checkout to native Telegram monetization for paid communities and digital access.',
+  path: '/alternatives/lemon-squeezy-telegram',
+  keywords: ['lemonsqueezy alternative telegram', 'telegram community monetization'],
+});
 
 export default function LemonSqueezyAlternative() {
   return (

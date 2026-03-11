@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'PayGate vs InviteMember — Telegram Monetization Comparison',
-  description: 'Compare PayGate and InviteMember for selling on Telegram. Native Stars checkout vs external payment links. See which converts better.',
-};
+export const metadata = buildPageMetadata({
+  title: 'PayGate vs InviteMember for Telegram Monetization',
+  description: 'Telegram paywall comparison: native Stars checkout vs external flows for paid community access and channel monetization.',
+  path: '/vs/invitemember',
+  keywords: ['invitemember alternative', 'telegram community access tools'],
+});
 
 export default function VsInviteMember() {
   const rows = [
