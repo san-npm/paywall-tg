@@ -139,6 +139,29 @@ export default function Home() {
     }
   };
 
+  const exportCsv = async (kind) => {
+    setAdminError(null);
+    try {
+      const tg = window.Telegram?.WebApp;
+      const iData = tg?.initData || '';
+      const res = await fetch(`/api/admin?format=csv&kind=${encodeURIComponent(kind)}&limit=5000`, {
+        headers: { 'x-telegram-init-data': iData }
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${kind}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setAdminError(err.message || 'Export failed');
+    }
+  };
+
   if (!ready) return <DashboardSkeleton />;
 
   return (
@@ -225,6 +248,10 @@ export default function Home() {
             </button>
           </form>
           {adminError && <p className="text-sm text-red-500">{adminError}</p>}
+          <div className="flex gap-2 flex-wrap">
+            <button type="button" className="chip-btn" onClick={() => exportCsv('actions')}>Export actions CSV</button>
+            <button type="button" className="chip-btn" onClick={() => exportCsv('purchases')}>Export purchases CSV</button>
+          </div>
           {adminActions.length > 0 && (
             <div className="text-xs text-tg-hint space-y-1">
               <p className="font-semibold">Recent admin actions</p>

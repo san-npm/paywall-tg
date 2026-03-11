@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { ADMIN_TELEGRAM_IDS, BOT_TOKEN } from '@/lib/config';
 import { validateInitData, isValidProductId } from '@/lib/validate';
-import { setProductActive, logAdminAction, getAdminActions, getPurchaseByChargeId, markPurchaseRefundedByChargeId } from '@/lib/db';
+import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -20,12 +20,45 @@ function getAdminId(req) {
   return userId;
 }
 
+function toCsv(rows) {
+  if (!rows.length) return '';
+  const headers = Object.keys(rows[0]);
+  const esc = (v) => {
+    const s = v == null ? '' : String(v);
+    if (/[,"\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  };
+  const lines = [headers.join(',')];
+  for (const row of rows) lines.push(headers.map(h => esc(row[h])).join(','));
+  return `${lines.join('\n')}\n`;
+}
+
 export async function GET(req) {
   const adminId = getAdminId(req);
   if (!adminId) return NextResponse.json({ is_admin: false }, { status: 200 });
 
-  const actions = await getAdminActions(20);
-  return NextResponse.json({ is_admin: true, actions });
+  const { searchParams } = new URL(req.url);
+  const format = String(searchParams.get('format') || 'json');
+  const kind = String(searchParams.get('kind') || 'actions');
+  const limit = Number.parseInt(searchParams.get('limit') || '1000', 10);
+
+  const rows = kind === 'purchases'
+    ? await getPurchaseExports(limit)
+    : await getAdminActions(limit);
+
+  if (format === 'csv') {
+    const csv = toCsv(rows);
+    const filename = `${kind}-${new Date().toISOString().slice(0, 10)}.csv`;
+    return new NextResponse(csv, {
+      status: 200,
+      headers: {
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': `attachment; filename="${filename}"`,
+      },
+    });
+  }
+
+  return NextResponse.json({ is_admin: true, kind, rows, actions: kind === 'actions' ? rows : undefined });
 }
 
 export async function POST(req) {
