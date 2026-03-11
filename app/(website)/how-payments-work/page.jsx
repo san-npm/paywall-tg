@@ -12,7 +12,7 @@ export default function HowPaymentsWork() {
   const steps = [
     ['Buyer taps your link', 'They see your title, price, and content teaser in Telegram.'],
     ['Buyer pays in Stars', 'Telegram handles payment with its native Stars checkout.'],
-    ['Payment is confirmed', 'PayGate receives confirmation and verifies the purchase.'],
+    ['Payment is confirmed', 'Gategram receives confirmation and verifies the purchase.'],
     ['Content unlocks instantly', 'Your text, link, or file is delivered right away in chat.'],
     ['You get paid', 'You keep 95% of each sale after the 5% platform fee.'],
   ];
@@ -41,7 +41,7 @@ export default function HowPaymentsWork() {
 
       <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6">What PayGate does not do</h2>
+          <h2 className="text-2xl font-bold mb-6">What Gategram does not do</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
               'Does not store card details',

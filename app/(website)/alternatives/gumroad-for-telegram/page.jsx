@@ -16,15 +16,15 @@ export default function GumroadAlternative() {
     },
     {
       title: 'Gumroad takes 10% + payment processing',
-      desc: 'Gumroad\'s fee is 10% of every sale, plus Stripe\'s ~2.9% + 30c. On a $10 product, you lose $1.30+. PayGate\'s 95/5 split means you keep significantly more, especially on smaller digital products.',
+      desc: 'Gumroad\'s fee is 10% of every sale, plus Stripe\'s ~2.9% + 30c. On a $10 product, you lose $1.30+. Gategram\'s 95/5 split means you keep significantly more, especially on smaller digital products.',
     },
     {
       title: 'Gumroad delivery is email-based',
-      desc: 'After purchase, Gumroad emails the content. Your buyer has to check their inbox, find the email, click the download link. With PayGate, the content is delivered as a Telegram message the instant payment clears.',
+      desc: 'After purchase, Gumroad emails the content. Your buyer has to check their inbox, find the email, click the download link. With Gategram, the content is delivered as a Telegram message the instant payment clears.',
     },
     {
       title: 'Gumroad wasn\'t built for Telegram',
-      desc: 'Gumroad is a general-purpose storefront. It works fine for Twitter/X audiences. But for Telegram creators, it adds unnecessary friction. PayGate is built specifically for the Telegram ecosystem.',
+      desc: 'Gumroad is a general-purpose storefront. It works fine for Twitter/X audiences. But for Telegram creators, it adds unnecessary friction. Gategram is built specifically for the Telegram ecosystem.',
     },
   ];
 
@@ -33,7 +33,7 @@ export default function GumroadAlternative() {
       <PageHeader
         badge="Alternative"
         title={<>The Gumroad alternative for <span className="text-site-accent">Telegram</span> creators</>}
-        description="Gumroad works for Twitter. For Telegram, you need native checkout. PayGate lets your buyers purchase without ever leaving the chat."
+        description="Gumroad works for Twitter. For Telegram, you need native checkout. Gategram lets your buyers purchase without ever leaving the chat."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -56,7 +56,7 @@ export default function GumroadAlternative() {
           <div className="rounded-xl border border-site-border overflow-hidden">
             <div className="grid grid-cols-3 text-sm font-semibold bg-site-card">
               <div className="p-4 text-site-dim"></div>
-              <div className="p-4 text-site-accent">PayGate</div>
+              <div className="p-4 text-site-accent">Gategram</div>
               <div className="p-4 text-site-dim">Gumroad</div>
             </div>
             {[

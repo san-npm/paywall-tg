@@ -74,7 +74,7 @@ export default function TelegramPaidContent() {
               </ul>
             </div>
             <div className="p-5 rounded-xl border border-site-accent/30 bg-site-bg" style={{ boxShadow: '0 0 20px rgba(42, 171, 238, 0.05)' }}>
-              <h3 className="font-bold mb-2 text-site-accent">PayGate (native Stars)</h3>
+              <h3 className="font-bold mb-2 text-site-accent">Gategram (native Stars)</h3>
               <ul className="space-y-2 text-sm text-site-muted">
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Buyer stays in Telegram</li>
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Native payment dialog</li>

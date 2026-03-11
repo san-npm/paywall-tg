@@ -21,7 +21,7 @@ export default function TelegramPaywallPage() {
         <div className="max-w-3xl mx-auto space-y-4 text-sm text-site-muted">
           <p>
             A <strong className="text-site-text">Telegram paywall</strong> should do three things well: keep checkout in-app,
-            deliver content instantly, and make pricing clear. PayGate is built for that exact flow.
+            deliver content instantly, and make pricing clear. Gategram is built for that exact flow.
           </p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Native Telegram Stars checkout</li>

@@ -14,7 +14,7 @@ export default function SecurityPage() {
       <PageHeader
         badge="Trust"
         title="Security & webhook validation"
-        description="PayGate takes a security-first approach. Every webhook is validated, every transaction is verified, and we never touch payment credentials."
+        description="Gategram takes a security-first approach. Every webhook is validated, every transaction is verified, and we never touch payment credentials."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -39,7 +39,7 @@ export default function SecurityPage() {
             <div className="p-5 rounded-xl border border-site-border bg-site-card">
               <h3 className="font-bold mb-2">Payment amount verification</h3>
               <p className="text-sm text-site-muted leading-relaxed">
-                Before confirming any pre_checkout_query, PayGate verifies the payment amount matches the product&rsquo;s price in the database.
+                Before confirming any pre_checkout_query, Gategram verifies the payment amount matches the product&rsquo;s price in the database.
                 This prevents manipulation of the payment amount between the invoice creation and checkout confirmation.
               </p>
             </div>
@@ -54,11 +54,11 @@ export default function SecurityPage() {
             {[
               {
                 title: 'Minimal data collection',
-                desc: 'PayGate stores only what\'s needed: Telegram user IDs, product metadata, and transaction records. We don\'t collect emails, phone numbers, or personal data beyond what Telegram provides.',
+                desc: 'Gategram stores only what\'s needed: Telegram user IDs, product metadata, and transaction records. We don\'t collect emails, phone numbers, or personal data beyond what Telegram provides.',
               },
               {
                 title: 'No payment credentials',
-                desc: 'All payment processing happens through Telegram\'s Stars system. PayGate never sees, stores, or processes credit card numbers, bank details, or payment credentials.',
+                desc: 'All payment processing happens through Telegram\'s Stars system. Gategram never sees, stores, or processes credit card numbers, bank details, or payment credentials.',
               },
               {
                 title: 'Content isolation',
@@ -83,7 +83,7 @@ export default function SecurityPage() {
           <h2 className="text-2xl font-bold mb-8">Infrastructure</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
-              { title: 'HTTPS everywhere', desc: 'All communication between Telegram, PayGate, and users is encrypted with TLS.' },
+              { title: 'HTTPS everywhere', desc: 'All communication between Telegram, Gategram, and users is encrypted with TLS.' },
               { title: 'Input validation', desc: 'All user inputs are validated and sanitized before processing to prevent injection attacks.' },
               { title: 'UUID product IDs', desc: 'Product IDs are cryptographically random UUIDs, not sequential integers. This prevents enumeration attacks.' },
               { title: 'Dependency auditing', desc: 'Dependencies are regularly audited for known vulnerabilities using automated security scanning.' },

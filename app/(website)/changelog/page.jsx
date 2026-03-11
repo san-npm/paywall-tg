@@ -2,7 +2,7 @@ import PageHeader from '../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'PayGate Changelog',
+  title: 'Gategram Changelog',
   description: 'Latest Telegram paywall and community monetization updates, releases, and improvements.',
   path: '/changelog',
   keywords: ['telegram monetization updates'],
