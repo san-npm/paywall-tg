@@ -5,19 +5,6 @@ import { useLang } from './useLang';
 
 const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || '/docs#connect-bot';
 
-function Icon({ type }) {
-  const paths = {
-    trading: 'M4 16l4-4 3 2 6-7M4 20h16',
-    crypto: 'M12 3v18M8 7.5c1-1 2.2-1.5 4-1.5 2.6 0 4 1.2 4 3 0 4-8 2-8 6 0 1.8 1.4 3 4 3 1.8 0 3-.5 4-1.5',
-    artist: 'M5 12a7 7 0 1114 0c0 2-1.2 3-3 3h-1.2c-.8 0-1.3.5-1.3 1.3 0 .9-.8 1.7-1.7 1.7H9.6A4.6 4.6 0 015 13.4V12z',
-    adult: 'M12 21s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.6-7 10-7 10z',
-  };
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d={paths[type]} strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 export default function HomePageClient() {
   const { t } = useLang();
@@ -25,21 +12,25 @@ export default function HomePageClient() {
   const creatorCards = [
     {
       key: 'trading',
+      emoji: '💰',
       title: 'Trading creators',
       desc: 'Sell signals, market notes, and private recaps with instant paid access.',
     },
     {
       key: 'crypto',
+      emoji: '💎',
       title: 'Crypto creators',
       desc: 'Drop alpha, token research, and premium updates behind a simple paywall.',
     },
     {
       key: 'artist',
+      emoji: '📸',
       title: 'Artists',
       desc: 'Monetize digital drops, packs, and commission slots directly in Telegram.',
     },
     {
       key: 'adult',
+      emoji: '🍑',
       title: 'Adult entertainers',
       desc: 'Offer VIP content safely with paid unlocks and automated delivery.',
     },
@@ -106,7 +97,7 @@ export default function HomePageClient() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {creatorCards.map((item) => (
               <article key={item.key} className="creator-bubble-card">
-                <div className="creator-icon-wrap"><Icon type={item.key} /></div>
+                <div className="creator-icon-wrap" aria-hidden="true">{item.emoji}</div>
                 <p className="font-semibold text-lg">{item.title}</p>
                 <p className="text-sm text-site-muted mt-1">{item.desc}</p>
               </article>

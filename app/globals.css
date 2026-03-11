@@ -267,15 +267,17 @@ html { scroll-behavior: smooth; }
 }
 
 .creator-icon-wrap {
-  width: 42px;
-  height: 42px;
+  width: 56px;
+  height: 56px;
   border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: white;
   margin-bottom: 10px;
-  background: linear-gradient(135deg, var(--site-accent), #a855f7, #ec4899);
+  font-size: 2rem;
+  line-height: 1;
+  background: transparent;
+  animation: emojiGlow 2.8s ease-in-out infinite;
 }
 
 .newsletter-soft {
@@ -306,6 +308,11 @@ html { scroll-behavior: smooth; }
 @keyframes pulseGlow {
   0%, 100% { box-shadow: 0 0 0 rgba(124, 58, 237, 0); }
   50% { box-shadow: 0 0 18px rgba(124, 58, 237, 0.20); }
+}
+
+@keyframes emojiGlow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(255, 180, 80, 0)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(255, 180, 80, 0.55)); }
 }
 
 /* ────────────────────────────────
@@ -354,7 +361,8 @@ html { scroll-behavior: smooth; }
   .emoji-float-global,
   .site-cta-primary,
   .site-panel,
-  .creator-bubble-card {
+  .creator-bubble-card,
+  .creator-icon-wrap {
     animation: none !important;
     transition: none !important;
     transform: none !important;
