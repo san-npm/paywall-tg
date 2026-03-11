@@ -88,6 +88,16 @@ export default function TelegramPaidContent() {
         </div>
       </section>
 
+      <section className="py-12 px-4 border-b border-site-border">
+        <div className="max-w-3xl mx-auto site-panel text-sm text-site-muted">
+          <p className="font-semibold text-site-text mb-2">References</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><a className="text-site-accent underline" href="https://core.telegram.org/bots/payments-stars" target="_blank" rel="noopener noreferrer">Telegram Stars payments documentation</a></li>
+            <li><a className="text-site-accent underline" href="https://baymard.com/lists/cart-abandonment-rate" target="_blank" rel="noopener noreferrer">Baymard checkout abandonment and friction benchmarks</a></li>
+          </ul>
+        </div>
+      </section>
+
       <PageCTA
         title="Start monetizing your Telegram content"
         description="Your audience is already in Telegram. Meet them where they are."
