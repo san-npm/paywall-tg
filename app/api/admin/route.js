@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { ADMIN_TELEGRAM_IDS, BOT_TOKEN } from '@/lib/config';
 import { validateInitData, isValidProductId } from '@/lib/validate';
-import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId, getPayoutQueue, createPayoutsFromUnassigned, markPayoutPaid } from '@/lib/db';
+import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId, getPayoutQueue, createPayoutsFromUnassigned, markPayoutPaid, getPayoutDetails, getMonthlyReconciliation } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -47,14 +47,17 @@ export async function GET(req) {
   const to = toRaw ? `${toRaw} 23:59:59` : undefined;
   const creator_id = searchParams.get('creator_id') || undefined;
   const refunded = searchParams.get('refunded') || undefined;
+  const payout_id = searchParams.get('payout_id') || undefined;
 
-  const filters = { limit, from, to, creator_id, refunded };
+  const filters = { limit, from, to, creator_id, refunded, payout_id };
 
   const rows = kind === 'purchases'
     ? await getPurchaseExports(filters)
     : kind === 'payouts'
       ? (await getPayoutQueue()).payouts
-      : await getAdminActions(filters);
+      : kind === 'reconciliation'
+        ? await getMonthlyReconciliation({ from, to })
+        : await getAdminActions(filters);
 
   if (format === 'csv') {
     const csv = toCsv(rows);
@@ -70,6 +73,10 @@ export async function GET(req) {
 
   if (kind === 'payouts' && format !== 'csv') {
     const queue = await getPayoutQueue();
+    if (payout_id) {
+      const details = await getPayoutDetails(Number(payout_id));
+      return NextResponse.json({ is_admin: true, kind, filters, ...queue, details });
+    }
     return NextResponse.json({ is_admin: true, kind, filters, ...queue });
   }
 
