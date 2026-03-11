@@ -3,6 +3,11 @@ import { CORE_KEYWORDS, SITE_URL } from '@/lib/seo';
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
+  icons: {
+    icon: '/Gategram-icon.png',
+    apple: '/Gategram-icon.png',
+    shortcut: '/Gategram-icon.png',
+  },
   title: {
     default: 'Gategram — Telegram Paywall & Community Monetization',
     template: '%s | Gategram',
