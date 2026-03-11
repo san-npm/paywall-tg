@@ -163,6 +163,10 @@ paywall-tg/
   - `kind=actions|purchases`
   - `format=json|csv`
   - `limit=<1..5000>`
+  - `from=YYYY-MM-DD`
+  - `to=YYYY-MM-DD`
+  - `creator_id=<telegram_id>` (purchases only)
+  - `refunded=all|no|only` (purchases only)
 
 **`POST /api/admin`** — Admin actions
 - `enable_product` / `disable_product`

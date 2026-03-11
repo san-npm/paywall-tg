@@ -40,6 +40,7 @@ export default function Home() {
   const [refundForm, setRefundForm] = useState({ buyer_telegram_id: '', telegram_charge_id: '' });
   const [adminError, setAdminError] = useState(null);
   const [adminBusy, setAdminBusy] = useState(false);
+  const [exportFilters, setExportFilters] = useState({ from: '', to: '', creator_id: '', refunded: 'all' });
 
   useEffect(() => {
     let u = null;
@@ -144,7 +145,12 @@ export default function Home() {
     try {
       const tg = window.Telegram?.WebApp;
       const iData = tg?.initData || '';
-      const res = await fetch(`/api/admin?format=csv&kind=${encodeURIComponent(kind)}&limit=5000`, {
+      const params = new URLSearchParams({ format: 'csv', kind, limit: '5000' });
+      if (exportFilters.from) params.set('from', exportFilters.from);
+      if (exportFilters.to) params.set('to', exportFilters.to);
+      if (exportFilters.creator_id) params.set('creator_id', exportFilters.creator_id);
+      if (exportFilters.refunded && exportFilters.refunded !== 'all') params.set('refunded', exportFilters.refunded);
+      const res = await fetch(`/api/admin?${params.toString()}`, {
         headers: { 'x-telegram-init-data': iData }
       });
       if (!res.ok) throw new Error('Export failed');
@@ -248,6 +254,16 @@ export default function Home() {
             </button>
           </form>
           {adminError && <p className="text-sm text-red-500">{adminError}</p>}
+          <div className="grid sm:grid-cols-4 gap-2">
+            <input className="chip-btn" type="date" value={exportFilters.from} onChange={(e) => setExportFilters(prev => ({ ...prev, from: e.target.value }))} />
+            <input className="chip-btn" type="date" value={exportFilters.to} onChange={(e) => setExportFilters(prev => ({ ...prev, to: e.target.value }))} />
+            <input className="chip-btn" placeholder="Creator ID (optional)" value={exportFilters.creator_id} onChange={(e) => setExportFilters(prev => ({ ...prev, creator_id: e.target.value }))} />
+            <select className="chip-btn" value={exportFilters.refunded} onChange={(e) => setExportFilters(prev => ({ ...prev, refunded: e.target.value }))}>
+              <option value="all">All</option>
+              <option value="no">Non-refunded</option>
+              <option value="only">Refunded only</option>
+            </select>
+          </div>
           <div className="flex gap-2 flex-wrap">
             <button type="button" className="chip-btn" onClick={() => exportCsv('actions')}>Export actions CSV</button>
             <button type="button" className="chip-btn" onClick={() => exportCsv('purchases')}>Export purchases CSV</button>

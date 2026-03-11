@@ -41,10 +41,18 @@ export async function GET(req) {
   const format = String(searchParams.get('format') || 'json');
   const kind = String(searchParams.get('kind') || 'actions');
   const limit = Number.parseInt(searchParams.get('limit') || '1000', 10);
+  const fromRaw = searchParams.get('from') || undefined;
+  const toRaw = searchParams.get('to') || undefined;
+  const from = fromRaw ? `${fromRaw} 00:00:00` : undefined;
+  const to = toRaw ? `${toRaw} 23:59:59` : undefined;
+  const creator_id = searchParams.get('creator_id') || undefined;
+  const refunded = searchParams.get('refunded') || undefined;
+
+  const filters = { limit, from, to, creator_id, refunded };
 
   const rows = kind === 'purchases'
-    ? await getPurchaseExports(limit)
-    : await getAdminActions(limit);
+    ? await getPurchaseExports(filters)
+    : await getAdminActions(filters);
 
   if (format === 'csv') {
     const csv = toCsv(rows);
@@ -58,7 +66,7 @@ export async function GET(req) {
     });
   }
 
-  return NextResponse.json({ is_admin: true, kind, rows, actions: kind === 'actions' ? rows : undefined });
+  return NextResponse.json({ is_admin: true, kind, filters, rows, actions: kind === 'actions' ? rows : undefined });
 }
 
 export async function POST(req) {
