@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { v4 as uuid } from 'uuid';
-import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, MAX_TITLE_LENGTH, MAX_CONTENT_LENGTH } from '@/lib/config';
+import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
-  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed
+  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive
 } from '@/lib/db';
-import { verifyWebhookSecret, escapeMarkdown } from '@/lib/validate';
+import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId } from '@/lib/validate';
 
 export const runtime = 'nodejs';
 
-const PRODUCT_ID_PATTERN = /^[a-f0-9-]{36}$/i;
 
 let bot;
 function getBot() {
@@ -49,19 +48,27 @@ export async function POST(req) {
       const query = body.pre_checkout_query;
       const productId = String(query.invoice_payload || '');
       const buyerId = String(query.from.id);
-      if (!PRODUCT_ID_PATTERN.test(productId)) {
+      if (!isValidProductId(productId)) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Invalid product.' });
         return NextResponse.json({ ok: true });
       }
       const product = await getProduct(productId);
 
-      // Validate product exists and price matches
+      // Validate product exists and price/currency match
       if (!product) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Product no longer available.' });
         return NextResponse.json({ ok: true });
       }
+      if (query.currency !== TELEGRAM_CURRENCY) {
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Unsupported payment currency.' });
+        return NextResponse.json({ ok: true });
+      }
       if (query.total_amount !== product.price_stars) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Price has changed. Please try again.' });
+        return NextResponse.json({ ok: true });
+      }
+      if (product.creator_id === buyerId) {
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You cannot buy your own product.' });
         return NextResponse.json({ ok: true });
       }
       // Prevent duplicate purchase
@@ -79,7 +86,7 @@ export async function POST(req) {
       const refund = body.message.refunded_payment;
       const buyerId = String(body.message.from.id);
       const productId = String(refund.invoice_payload || '');
-      if (!PRODUCT_ID_PATTERN.test(productId)) {
+      if (!isValidProductId(productId)) {
         return NextResponse.json({ ok: true });
       }
 
@@ -105,13 +112,21 @@ export async function POST(req) {
       const payment = body.message.successful_payment;
       const buyerId = String(body.message.from.id);
       const productId = String(payment.invoice_payload || '');
-      if (!PRODUCT_ID_PATTERN.test(productId)) {
+      if (!isValidProductId(productId)) {
         return NextResponse.json({ ok: true });
       }
       const product = await getProduct(productId);
 
       if (product) {
-        // Verify payment amount matches product price
+        // Verify payment payload integrity before delivery
+        if (payment.currency !== TELEGRAM_CURRENCY) {
+          console.error('Payment currency mismatch', { expected: TELEGRAM_CURRENCY, got: payment.currency });
+          return NextResponse.json({ ok: true });
+        }
+        if (!payment.telegram_payment_charge_id) {
+          console.error('Missing payment charge id');
+          return NextResponse.json({ ok: true });
+        }
         if (payment.total_amount !== product.price_stars) {
           console.error('Payment amount mismatch', { expected: product.price_stars, got: payment.total_amount });
           return NextResponse.json({ ok: true });
@@ -223,33 +238,20 @@ export async function POST(req) {
 
       // /new <price> <title> | <content>
       else if (text.startsWith('/new ')) {
-        const parts = text.slice(5);
-        const priceMatch = parts.match(/^(\d+)\s+(.+?)\s*\|\s*(.+)$/s);
+        const parsed = parseNewCommand(text);
 
-        if (!priceMatch) {
-          await b.api.sendMessage(chatId, '\u274C Format: `/new <price> <title> | <content>`', { parse_mode: 'MarkdownV2' });
+        if (!parsed.ok) {
+          const map = {
+            format: '\u274C Format: `/new <price> <title> | <content>`',
+            price: `\u274C Price must be between 1 and ${MAX_PRICE_STARS.toLocaleString()} Stars`,
+            title: '\u274C Invalid title (empty or too long).',
+            content: '\u274C Invalid content (empty or too long).',
+          };
+          await b.api.sendMessage(chatId, map[parsed.error] || map.format, { parse_mode: 'MarkdownV2' });
           return NextResponse.json({ ok: true });
         }
 
-        const price = parseInt(priceMatch[1]);
-        const title = priceMatch[2].trim();
-        const content = priceMatch[3].trim();
-
-        if (price < 1 || price > MAX_PRICE_STARS) {
-          await b.api.sendMessage(chatId, `\u274C Price must be between 1 and ${MAX_PRICE_STARS.toLocaleString()} Stars`);
-          return NextResponse.json({ ok: true });
-        }
-
-        if (title.length > MAX_TITLE_LENGTH) {
-          await b.api.sendMessage(chatId, `\u274C Title must be ${MAX_TITLE_LENGTH} characters or less`);
-          return NextResponse.json({ ok: true });
-        }
-
-        if (content.length > MAX_CONTENT_LENGTH) {
-          await b.api.sendMessage(chatId, `\u274C Content must be ${MAX_CONTENT_LENGTH} characters or less`);
-          return NextResponse.json({ ok: true });
-        }
-
+        const { price, title, content } = parsed.value;
         await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
         const id = uuid();
         await createProduct(id, userId, title, '', price, 'text', content, null);
@@ -267,7 +269,7 @@ export async function POST(req) {
       // /attach <product_id> — prompts creator to send a file
       else if (text.startsWith('/attach ')) {
         const productId = text.slice(8).trim();
-        if (!PRODUCT_ID_PATTERN.test(productId)) {
+        if (!isValidProductId(productId)) {
           await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
           return NextResponse.json({ ok: true });
         }
@@ -301,7 +303,7 @@ export async function POST(req) {
       // /start buy_<id> (deep link)
       else if (text.startsWith('/start buy_')) {
         const productId = text.slice(11).trim();
-        if (!PRODUCT_ID_PATTERN.test(productId)) {
+        if (!isValidProductId(productId)) {
           await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
           return NextResponse.json({ ok: true });
         }
@@ -322,7 +324,7 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, 'XTR', [
+        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
         ]);
       }
@@ -330,7 +332,7 @@ export async function POST(req) {
       // /buy <id>
       else if (text.startsWith('/buy ')) {
         const productId = text.slice(5).trim();
-        if (!PRODUCT_ID_PATTERN.test(productId)) {
+        if (!isValidProductId(productId)) {
           await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
           return NextResponse.json({ ok: true });
         }
@@ -351,9 +353,29 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, 'XTR', [
+        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
         ]);
+      }
+
+      // /admin_disable <id> and /admin_enable <id>
+      else if (text.startsWith('/admin_disable ') || text.startsWith('/admin_enable ')) {
+        if (!ADMIN_TELEGRAM_IDS.has(userId)) {
+          await b.api.sendMessage(chatId, '\u274C Admin only command.');
+          return NextResponse.json({ ok: true });
+        }
+
+        const enable = text.startsWith('/admin_enable ');
+        const productId = text.slice(enable ? 14 : 15).trim();
+        if (!isValidProductId(productId)) {
+          await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          return NextResponse.json({ ok: true });
+        }
+
+        const updated = await setProductActive(productId, enable);
+        await b.api.sendMessage(chatId, updated
+          ? `\u2705 Product ${enable ? 'enabled' : 'disabled'}: \`${productId}\``
+          : '\u274C Product not found.', { parse_mode: 'MarkdownV2' });
       }
 
       // /products

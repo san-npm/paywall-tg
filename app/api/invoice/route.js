@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
-import { BOT_TOKEN } from '@/lib/config';
+import { BOT_TOKEN, TELEGRAM_CURRENCY } from '@/lib/config';
 import { getProduct, hasPurchased } from '@/lib/db';
-import { validateInitData } from '@/lib/validate';
+import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
-
-const PRODUCT_ID_PATTERN = /^[a-f0-9-]{36}$/i;
 
 let bot;
 function getBot() {
@@ -48,7 +46,7 @@ export async function POST(req) {
     return NextResponse.json({ error: 'product_id required' }, { status: 400 });
   }
 
-  if (!PRODUCT_ID_PATTERN.test(String(product_id))) {
+  if (!isValidProductId(product_id)) {
     return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
   }
 
@@ -74,7 +72,7 @@ export async function POST(req) {
       product.title,
       product.description || 'Digital content',
       product_id, // payload
-      'XTR', // Telegram Stars
+      TELEGRAM_CURRENCY, // Telegram Stars
       [{ label: product.title, amount: product.price_stars }]
     );
 
