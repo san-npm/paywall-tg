@@ -48,6 +48,7 @@ export default function Home() {
   const [payoutQueue, setPayoutQueue] = useState([]);
   const [payouts, setPayouts] = useState([]);
   const [payoutCreatorId, setPayoutCreatorId] = useState('');
+  const [selectedPayout, setSelectedPayout] = useState(null);
 
   useEffect(() => {
     let u = null;
@@ -182,6 +183,21 @@ export default function Home() {
     const data = await res.json().catch(() => ({}));
     setPayoutQueue(Array.isArray(data?.pending) ? data.pending : []);
     setPayouts(Array.isArray(data?.payouts) ? data.payouts : []);
+  };
+
+  const loadPayoutDetails = async (payoutId) => {
+    setAdminError(null);
+    const tg = window.Telegram?.WebApp;
+    const iData = tg?.initData || '';
+    const res = await fetch(`/api/admin?kind=payouts&payout_id=${encodeURIComponent(String(payoutId))}`, {
+      headers: { 'x-telegram-init-data': iData }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setAdminError('Failed to load payout details');
+      return;
+    }
+    setSelectedPayout(data?.details || null);
   };
 
   const createPayouts = async () => {
@@ -343,6 +359,7 @@ export default function Home() {
             <button type="button" className="chip-btn" onClick={() => exportCsv('actions')}>Export actions CSV</button>
             <button type="button" className="chip-btn" onClick={() => exportCsv('purchases')}>Export purchases CSV</button>
             <button type="button" className="chip-btn" onClick={() => exportCsv('payouts')}>Export payouts CSV</button>
+            <button type="button" className="chip-btn chip-primary" onClick={() => exportCsv('reconciliation')}>Export reconciliation CSV</button>
           </div>
 
           <div className="space-y-2">
@@ -365,11 +382,24 @@ export default function Home() {
                 {payouts.slice(0, 10).map((p) => (
                   <div key={p.id} className="flex items-center gap-2 flex-wrap">
                     <span>#{p.id} · {p.creator_id} · {p.amount_stars} Stars · {p.status}</span>
+                    <button type="button" className="chip-btn" onClick={() => loadPayoutDetails(p.id)}>Details</button>
                     {p.status !== 'paid' && (
                       <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutPaid(p.id)}>Mark paid</button>
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {selectedPayout?.payout && (
+              <div className="text-xs text-tg-hint space-y-1">
+                <p className="font-semibold">Payout #{selectedPayout.payout.id} details</p>
+                <p>Creator: {selectedPayout.payout.creator_id} · Amount: {selectedPayout.payout.amount_stars} · Status: {selectedPayout.payout.status}</p>
+                {Array.isArray(selectedPayout.purchases) && selectedPayout.purchases.length > 0 ? (
+                  selectedPayout.purchases.slice(0, 20).map((row) => (
+                    <p key={row.id}>purchase #{row.id} · product {row.product_id} · buyer {row.buyer_telegram_id} · share {row.creator_share}</p>
+                  ))
+                ) : <p>No purchases attached.</p>}
               </div>
             )}
           </div>
