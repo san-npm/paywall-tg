@@ -1,10 +1,13 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import Link from 'next/link';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Sell Digital Products on Telegram — PayGate',
-  description: 'Sell ebooks, templates, courses, guides, and any digital product directly inside Telegram. Native Stars checkout, instant delivery, 95/5 split.',
-};
+export const metadata = buildPageMetadata({
+  title: 'Sell Digital Products on Telegram',
+  description: 'Sell ebooks, files, templates, and premium content with a Telegram paywall and instant Stars-based checkout.',
+  path: '/use-cases/sell-digital-products-on-telegram',
+  keywords: ['sell digital products telegram', 'telegram creator monetization'],
+});
 
 export default function SellDigitalProducts() {
   const products = [

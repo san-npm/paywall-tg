@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Docs — Get Started Fast',
-  description: 'Quick guide to start selling paid content in Telegram with PayGate.',
-};
+export const metadata = buildPageMetadata({
+  title: 'Telegram Paywall Documentation',
+  description: 'Step-by-step docs to set up a Telegram paywall and monetize your community access with Stars payments.',
+  path: '/docs',
+  keywords: ['telegram paywall docs', 'telegram stars setup'],
+});
 
 export default function DocsPage() {
   return (

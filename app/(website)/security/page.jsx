@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Security & Webhook Validation — PayGate',
-  description: 'How PayGate validates Telegram webhooks, secures transactions, and protects creator and buyer data.',
-};
+export const metadata = buildPageMetadata({
+  title: 'Telegram Paywall Security & Webhook Validation',
+  description: 'Security architecture for Telegram monetization: webhook verification, auth validation, and transaction safeguards.',
+  path: '/security',
+  keywords: ['telegram webhook security', 'telegram payment security'],
+});
 
 export default function SecurityPage() {
   return (

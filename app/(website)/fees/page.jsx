@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Fees — Clear and Simple',
-  description: 'PayGate takes a flat 5% platform fee. No monthly fees, no hidden costs.',
-};
+export const metadata = buildPageMetadata({
+  title: 'Telegram Paywall Pricing & Fees',
+  description: 'Transparent Telegram monetization pricing: 5% fee, no monthly cost. Keep 95% of community paywall revenue.',
+  path: '/fees',
+  keywords: ['telegram monetization pricing', 'community monetization fees'],
+});
 
 export default function FeesPage() {
   const examples = [10, 50, 100, 500, 1000];

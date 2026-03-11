@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'How Payments Work — Simple Flow',
-  description: 'See exactly what happens when someone buys your paid content in Telegram.',
-};
+export const metadata = buildPageMetadata({
+  title: 'How Telegram Paywall Payments Work',
+  description: 'Understand the Telegram Stars payment flow for paid communities and instant content delivery.',
+  path: '/how-payments-work',
+  keywords: ['telegram stars flow', 'telegram paid community checkout'],
+});
 
 export default function HowPaymentsWork() {
   const steps = [

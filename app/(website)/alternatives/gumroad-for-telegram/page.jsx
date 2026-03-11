@@ -1,9 +1,12 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
+import { buildPageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Best Gumroad Alternative for Telegram Creators — PayGate',
-  description: 'Sell digital products to your Telegram audience without sending them to Gumroad. Native checkout, instant delivery, 95/5 split.',
-};
+export const metadata = buildPageMetadata({
+  title: 'Best Gumroad Alternative for Telegram Creators',
+  description: 'Alternative to Gumroad for Telegram creators: native community monetization and Telegram Stars checkout.',
+  path: '/alternatives/gumroad-for-telegram',
+  keywords: ['gumroad alternative telegram', 'telegram paywall alternative'],
+});
 
 export default function GumroadAlternative() {
   const reasons = [
