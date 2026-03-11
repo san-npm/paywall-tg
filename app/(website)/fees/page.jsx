@@ -10,6 +10,7 @@ export const metadata = buildPageMetadata({
 
 export default function FeesPage() {
   const examples = [10, 50, 100, 500, 1000];
+  const feeFor = (stars) => Math.ceil(stars * 0.05);
 
   return (
     <>
@@ -24,7 +25,7 @@ export default function FeesPage() {
           <div className="site-panel">
             <p className="text-6xl font-extrabold text-site-accent">95%</p>
             <p className="text-lg font-semibold mt-1">goes to you</p>
-            <p className="text-site-muted text-sm mt-2">Flat 5% platform fee on each successful sale.</p>
+            <p className="text-site-muted text-sm mt-2">Flat 5% platform fee on each successful sale (rounded up to whole Stars).</p>
           </div>
         </div>
       </section>
@@ -41,8 +42,8 @@ export default function FeesPage() {
             {examples.map((stars, i) => (
               <div key={stars} className={`grid grid-cols-3 text-sm ${i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}`}>
                 <div className="p-4">{stars} Stars</div>
-                <div className="p-4 text-site-dim">{Math.round(stars * 0.05)} Stars</div>
-                <div className="p-4 font-semibold">{Math.round(stars * 0.95)} Stars</div>
+                <div className="p-4 text-site-dim">{feeFor(stars)} Stars</div>
+                <div className="p-4 font-semibold">{stars - feeFor(stars)} Stars</div>
               </div>
             ))}
           </div>
