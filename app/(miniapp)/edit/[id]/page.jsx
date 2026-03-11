@@ -76,8 +76,8 @@ export default function EditProduct() {
     }
 
     const priceNum = parseInt(price);
-    if (isNaN(priceNum) || priceNum < 1 || priceNum > 10000) {
-      setError('Price must be between 1 and 10,000 Stars.');
+    if (isNaN(priceNum) || priceNum < 1 || priceNum > 50000) {
+      setError('Price must be between 1 and 50,000 Stars.');
       return;
     }
 
@@ -179,7 +179,7 @@ export default function EditProduct() {
 
         <div>
           <label className="block text-sm text-tg-hint mb-1">Price (Stars) ⭐</label>
-          <input type="number" min="1" max="10000" value={price} onChange={e => setPrice(e.target.value)} required
+          <input type="number" min="1" max="50000" value={price} onChange={e => setPrice(e.target.value)} required
             className="w-full p-3 rounded-xl border-none outline-none"
             style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
         </div>

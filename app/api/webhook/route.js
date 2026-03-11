@@ -10,6 +10,8 @@ import { verifyWebhookSecret, escapeMarkdown } from '@/lib/validate';
 
 export const runtime = 'nodejs';
 
+const PRODUCT_ID_PATTERN = /^[a-f0-9-]{36}$/i;
+
 let bot;
 function getBot() {
   if (!bot) bot = new Bot(BOT_TOKEN);
@@ -45,8 +47,12 @@ export async function POST(req) {
     // Handle pre_checkout_query (must respond within 10 seconds)
     if (body.pre_checkout_query) {
       const query = body.pre_checkout_query;
-      const productId = query.invoice_payload;
+      const productId = String(query.invoice_payload || '');
       const buyerId = String(query.from.id);
+      if (!PRODUCT_ID_PATTERN.test(productId)) {
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Invalid product.' });
+        return NextResponse.json({ ok: true });
+      }
       const product = await getProduct(productId);
 
       // Validate product exists and price matches
@@ -72,7 +78,10 @@ export async function POST(req) {
     if (body.message?.refunded_payment) {
       const refund = body.message.refunded_payment;
       const buyerId = String(body.message.from.id);
-      const productId = refund.invoice_payload;
+      const productId = String(refund.invoice_payload || '');
+      if (!PRODUCT_ID_PATTERN.test(productId)) {
+        return NextResponse.json({ ok: true });
+      }
 
       const marked = await markPurchaseRefunded(productId, buyerId);
 
@@ -95,7 +104,10 @@ export async function POST(req) {
     if (body.message?.successful_payment) {
       const payment = body.message.successful_payment;
       const buyerId = String(body.message.from.id);
-      const productId = payment.invoice_payload;
+      const productId = String(payment.invoice_payload || '');
+      if (!PRODUCT_ID_PATTERN.test(productId)) {
+        return NextResponse.json({ ok: true });
+      }
       const product = await getProduct(productId);
 
       if (product) {
@@ -255,6 +267,10 @@ export async function POST(req) {
       // /attach <product_id> — prompts creator to send a file
       else if (text.startsWith('/attach ')) {
         const productId = text.slice(8).trim();
+        if (!PRODUCT_ID_PATTERN.test(productId)) {
+          await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          return NextResponse.json({ ok: true });
+        }
         const product = await getProductRaw(productId);
 
         if (!product) {
@@ -285,6 +301,10 @@ export async function POST(req) {
       // /start buy_<id> (deep link)
       else if (text.startsWith('/start buy_')) {
         const productId = text.slice(11).trim();
+        if (!PRODUCT_ID_PATTERN.test(productId)) {
+          await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          return NextResponse.json({ ok: true });
+        }
         const product = await getProduct(productId);
 
         if (!product) {
@@ -310,6 +330,10 @@ export async function POST(req) {
       // /buy <id>
       else if (text.startsWith('/buy ')) {
         const productId = text.slice(5).trim();
+        if (!PRODUCT_ID_PATTERN.test(productId)) {
+          await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          return NextResponse.json({ ok: true });
+        }
         const product = await getProduct(productId);
 
         if (!product) {
@@ -374,7 +398,7 @@ export async function POST(req) {
       const fileId = body.message.document.file_id;
 
       // Extract product ID from the /attach reply
-      const match = replyText.match(/Product ID:\s*([a-f0-9-]+)/i);
+      const match = replyText.match(/Product ID:\s*([a-f0-9-]{36})/i);
       if (match) {
         const productId = match[1];
         const product = await getProductRaw(productId);
