@@ -157,6 +157,17 @@ paywall-tg/
 
 ### API Routes
 
+**`GET /api/admin`** — Admin status, logs, and CSV exports
+- Requires `x-telegram-init-data` for an admin user from `ADMIN_TELEGRAM_IDS`
+- Query params:
+  - `kind=actions|purchases`
+  - `format=json|csv`
+  - `limit=<1..5000>`
+
+**`POST /api/admin`** — Admin actions
+- `enable_product` / `disable_product`
+- `refund_payment` (Telegram Stars refund + internal ledger update)
+
 **`POST /api/webhook`** — Telegram bot webhook
 - Processes commands (`/start`, `/create`, `/buy`, etc.)
 - Handles `pre_checkout_query` (validates product + price)
