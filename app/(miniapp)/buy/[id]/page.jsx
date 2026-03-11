@@ -2,6 +2,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+
+function safeExternalUrl(url) {
+  try {
+    const parsed = new URL(String(url));
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.toString();
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function BuySkeleton() {
   return (
     <div className="p-4 max-w-lg mx-auto animate-pulse">
@@ -102,7 +113,7 @@ export default function BuyProduct() {
         });
       } else {
         // Fallback: open in new window
-        window.open(data.invoice_url, '_blank');
+        window.open(data.invoice_url, '_blank', 'noopener,noreferrer');
         setBuying(false);
       }
     } catch {
@@ -157,9 +168,11 @@ export default function BuyProduct() {
           <p className="text-lg font-semibold mb-2">✅ Already purchased!</p>
           {product.content && (
             <div className="mt-3 p-3 rounded-lg text-left" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }}>
-              {product.content_type === 'link' ? (
-                <a href={product.content} target="_blank" rel="noopener" className="text-tg-link underline">{product.content}</a>
-              ) : (
+              {product.content_type === 'link' ? (() => {
+                const safeLink = safeExternalUrl(product.content);
+                if (!safeLink) return <p className="text-tg-hint">Invalid link content.</p>;
+                return <a href={safeLink} target="_blank" rel="noopener noreferrer" className="text-tg-link underline">{safeLink}</a>;
+              })() : (
                 <p className="whitespace-pre-wrap">{product.content}</p>
               )}
             </div>
