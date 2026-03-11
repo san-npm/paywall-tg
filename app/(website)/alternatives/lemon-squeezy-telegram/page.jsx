@@ -19,7 +19,7 @@ export default function LemonSqueezyAlternative() {
 
       <section className="py-16 px-4 border-b border-site-border">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-8 text-center">Why PayGate instead of LemonSqueezy for Telegram</h2>
+          <h2 className="text-2xl font-bold mb-8 text-center">Why Gategram instead of LemonSqueezy for Telegram</h2>
           <div className="space-y-4">
             {[
               {
@@ -28,15 +28,15 @@ export default function LemonSqueezyAlternative() {
               },
               {
                 title: 'Native checkout vs hosted pages',
-                desc: 'LemonSqueezy gives you a hosted checkout page or an embed. For Telegram users, that means leaving the app. PayGate\'s Stars checkout is a native Telegram dialog — no redirect, no page load, no friction.',
+                desc: 'LemonSqueezy gives you a hosted checkout page or an embed. For Telegram users, that means leaving the app. Gategram\'s Stars checkout is a native Telegram dialog — no redirect, no page load, no friction.',
               },
               {
                 title: 'Better economics for small products',
-                desc: 'LemonSqueezy takes 5% + 50c per transaction. On a $3 product, that\'s 67c (22%). With PayGate\'s flat 5% via Stars, you pay 15c. The math gets better on every small sale.',
+                desc: 'LemonSqueezy takes 5% + 50c per transaction. On a $3 product, that\'s 67c (22%). With Gategram\'s flat 5% via Stars, you pay 15c. The math gets better on every small sale.',
               },
               {
                 title: 'Instant delivery without webhooks',
-                desc: 'With LemonSqueezy, you need to configure webhooks or use their API to deliver content. PayGate handles delivery automatically — content goes to the buyer as a Telegram message the moment they pay.',
+                desc: 'With LemonSqueezy, you need to configure webhooks or use their API to deliver content. Gategram handles delivery automatically — content goes to the buyer as a Telegram message the moment they pay.',
               },
             ].map((item, i) => (
               <div key={i} className="p-6 rounded-xl border border-site-border bg-site-card">
@@ -54,7 +54,7 @@ export default function LemonSqueezyAlternative() {
           <div className="rounded-xl border border-site-border overflow-hidden">
             <div className="grid grid-cols-3 text-sm font-semibold bg-site-card">
               <div className="p-4 text-site-dim"></div>
-              <div className="p-4 text-site-accent">PayGate</div>
+              <div className="p-4 text-site-accent">Gategram</div>
               <div className="p-4 text-site-dim">LemonSqueezy</div>
             </div>
             {[
@@ -81,7 +81,7 @@ export default function LemonSqueezyAlternative() {
           <h2 className="text-2xl font-bold mb-4">When to use LemonSqueezy instead</h2>
           <p className="text-site-muted text-sm leading-relaxed max-w-xl mx-auto">
             If you sell SaaS subscriptions, need advanced tax compliance, or your audience isn&rsquo;t primarily on Telegram — LemonSqueezy is the better tool.
-            PayGate is specifically built for creators who sell to a Telegram audience and want the highest possible conversion rate.
+            Gategram is specifically built for creators who sell to a Telegram audience and want the highest possible conversion rate.
           </p>
         </div>
       </section>

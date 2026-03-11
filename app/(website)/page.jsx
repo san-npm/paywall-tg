@@ -12,7 +12,7 @@ export default function HomePage() {
   const softwareSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'PayGate',
+    name: 'Gategram',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Telegram Mini App',
     description: 'Telegram paywall and community monetization app for paid content and access using Telegram Stars.',
@@ -39,10 +39,10 @@ export default function HomePage() {
       },
       {
         '@type': 'Question',
-        name: 'How does community monetization work with PayGate?',
+        name: 'How does community monetization work with Gategram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Creators create paid offers, share buy links, and buyers complete checkout in Telegram. PayGate automates payment validation and delivery.',
+          text: 'Creators create paid offers, share buy links, and buyers complete checkout in Telegram. Gategram automates payment validation and delivery.',
         },
       },
     ],

@@ -200,7 +200,7 @@ export async function POST(req) {
       if (text === '/start') {
         await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
         await b.api.sendMessage(chatId,
-          `\u{1F44B} Welcome to *PayGate*\\!\n\nSell digital content directly in Telegram\\.\n\n` +
+          `\u{1F44B} Welcome to *Gategram*\\!\n\nSell digital content directly in Telegram\\.\n\n` +
           `\u{1F4E6} /create \\— Create a new product\n` +
           `\u{1F4CA} /dashboard \\— View your stats\n` +
           `\u{1F4CB} /products \\— List your products\n` +
@@ -211,7 +211,7 @@ export async function POST(req) {
             parse_mode: 'MarkdownV2',
             reply_markup: {
               inline_keyboard: [[
-                { text: '\u{1F680} Open PayGate', web_app: { url: WEBAPP_URL } }
+                { text: '\u{1F680} Open Gategram', web_app: { url: WEBAPP_URL } }
               ]]
             }
           }

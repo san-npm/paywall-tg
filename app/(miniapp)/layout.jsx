@@ -1,7 +1,7 @@
 import Script from 'next/script';
 
 export const metadata = {
-  title: 'PayGate — Dashboard',
+  title: 'Gategram — Dashboard',
   description: 'Manage your digital products on Telegram.',
 };
 

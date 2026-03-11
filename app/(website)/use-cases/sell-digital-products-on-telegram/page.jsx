@@ -51,7 +51,7 @@ export default function SellDigitalProducts() {
               <p className="text-sm text-site-muted">They tap the link. A browser opens. They see a checkout page from a service they don&rsquo;t recognize. They need to create an account, enter their email, add a credit card. Half of them close the tab.</p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
-              <h3 className="font-bold mb-1 text-green-400">With PayGate: buyer taps Buy inside Telegram</h3>
+              <h3 className="font-bold mb-1 text-green-400">With Gategram: buyer taps Buy inside Telegram</h3>
               <p className="text-sm text-site-muted">The native Stars payment dialog appears. One tap to confirm. Content delivered as a message instantly. No browser, no account creation, no credit card form. The buyer never left the conversation.</p>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function SellDigitalProducts() {
           <h2 className="text-2xl font-bold mb-8 text-center">How to start selling in 2 minutes</h2>
           <ol className="space-y-4">
             {[
-              { step: '1', title: 'Open the PayGate bot', desc: 'Tap "Create your first product" below. The bot opens inside Telegram.' },
+              { step: '1', title: 'Open the Gategram bot', desc: 'Tap "Create your first product" below. The bot opens inside Telegram.' },
               { step: '2', title: 'Set your product details', desc: 'Title, price in Stars, and paste your content (text, link, or upload a file).' },
               { step: '3', title: 'Share the buy link', desc: 'Drop it in your channel, group, or DMs. Anyone who taps it gets the native purchase flow.' },
               { step: '4', title: 'Get paid', desc: 'Stars land in your balance. You keep 95%. Telegram takes 5%.' },

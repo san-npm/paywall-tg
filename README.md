@@ -1,4 +1,4 @@
-# PayGate
+# Gategram
 
 Telegram Mini App for selling digital content with Telegram Stars payments. Creators set a price, buyers pay with Stars, content is delivered instantly.
 
@@ -124,7 +124,7 @@ Send `/start` to your bot in Telegram.
 |----------|----------|---------|-------------|
 | `BOT_TOKEN` | Yes | — | Telegram bot token from @BotFather |
 | `WEBHOOK_SECRET` | Yes | — | Random string for webhook signature verification |
-| `WEBAPP_URL` | Yes | `https://paywall-tg.vercel.app` | Your deployed URL |
+| `WEBAPP_URL` | Yes | `https://gategram.app` | Your deployed URL |
 | `TURSO_DATABASE_URL` | Yes | — | Turso/libSQL database URL (`libsql://...`) |
 | `TURSO_AUTH_TOKEN` | Yes | — | Turso auth token |
 | `INIT_DATA_MAX_AGE_SECONDS` | No | `900` | Max allowed age (seconds) for Telegram Mini App `initData` |

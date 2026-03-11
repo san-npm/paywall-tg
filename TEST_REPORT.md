@@ -1,4 +1,4 @@
-# PayGate — Bug Fix & Build Report
+# Gategram — Bug Fix & Build Report
 
 ## Build Status: ✅ PASSING
 

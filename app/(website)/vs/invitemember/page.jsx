@@ -2,7 +2,7 @@ import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'PayGate vs InviteMember for Telegram Monetization',
+  title: 'Gategram vs InviteMember for Telegram Monetization',
   description: 'Telegram paywall comparison: native Stars checkout vs external flows for paid community access and channel monetization.',
   path: '/vs/invitemember',
   keywords: ['invitemember alternative', 'telegram community access tools'],
@@ -26,8 +26,8 @@ export default function VsInviteMember() {
     <>
       <PageHeader
         badge="Comparison"
-        title={<>PayGate vs <span className="text-site-muted">InviteMember</span></>}
-        description="InviteMember sends your buyers to an external Stripe checkout. PayGate keeps everything inside Telegram with native Stars payments."
+        title={<>Gategram vs <span className="text-site-muted">InviteMember</span></>}
+        description="InviteMember sends your buyers to an external Stripe checkout. Gategram keeps everything inside Telegram with native Stars payments."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -35,7 +35,7 @@ export default function VsInviteMember() {
           <div className="rounded-xl border border-site-border overflow-hidden">
             <div className="grid grid-cols-3 text-sm font-semibold bg-site-card">
               <div className="p-4 text-site-dim"></div>
-              <div className="p-4 text-site-accent">PayGate</div>
+              <div className="p-4 text-site-accent">Gategram</div>
               <div className="p-4 text-site-dim">InviteMember</div>
             </div>
             {rows.map((row, i) => (
@@ -51,11 +51,11 @@ export default function VsInviteMember() {
 
       <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6 text-center">When to choose PayGate over InviteMember</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center">When to choose Gategram over InviteMember</h2>
           <div className="space-y-4">
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1">You sell one-time digital products</h3>
-              <p className="text-sm text-site-muted">InviteMember is built for recurring subscriptions. If you sell individual products — guides, templates, files, access codes — PayGate is purpose-built for that.</p>
+              <p className="text-sm text-site-muted">InviteMember is built for recurring subscriptions. If you sell individual products — guides, templates, files, access codes — Gategram is purpose-built for that.</p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1">Your buyers are mobile-first</h3>
@@ -63,7 +63,7 @@ export default function VsInviteMember() {
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1">You want maximum conversion</h3>
-              <p className="text-sm text-site-muted">Every redirect kills conversion. InviteMember opens a browser for checkout. PayGate keeps the entire flow inside Telegram. Less friction = more completed sales.</p>
+              <p className="text-sm text-site-muted">Every redirect kills conversion. InviteMember opens a browser for checkout. Gategram keeps the entire flow inside Telegram. Less friction = more completed sales.</p>
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function VsInviteMember() {
 
       <PageCTA
         title="Try the native Telegram checkout"
-        description="See why creators switch from InviteMember to PayGate. Live in 2 minutes."
+        description="See why creators switch from InviteMember to Gategram. Live in 2 minutes."
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />
