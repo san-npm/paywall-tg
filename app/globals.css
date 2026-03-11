@@ -312,11 +312,11 @@ html { scroll-behavior: smooth; }
    Emoji background
 ──────────────────────────────── */
 .emoji-cloud-global {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 20;
+  z-index: 11;
 }
 
 .emoji-float-global {
