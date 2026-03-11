@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { ADMIN_TELEGRAM_IDS, BOT_TOKEN } from '@/lib/config';
 import { validateInitData, isValidProductId } from '@/lib/validate';
-import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId } from '@/lib/db';
+import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId, getPayoutQueue, createPayoutsFromUnassigned, markPayoutPaid } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -52,7 +52,9 @@ export async function GET(req) {
 
   const rows = kind === 'purchases'
     ? await getPurchaseExports(filters)
-    : await getAdminActions(filters);
+    : kind === 'payouts'
+      ? (await getPayoutQueue()).payouts
+      : await getAdminActions(filters);
 
   if (format === 'csv') {
     const csv = toCsv(rows);
@@ -64,6 +66,11 @@ export async function GET(req) {
         'content-disposition': `attachment; filename="${filename}"`,
       },
     });
+  }
+
+  if (kind === 'payouts' && format !== 'csv') {
+    const queue = await getPayoutQueue();
+    return NextResponse.json({ is_admin: true, kind, filters, ...queue });
   }
 
   return NextResponse.json({ is_admin: true, kind, filters, rows, actions: kind === 'actions' ? rows : undefined });
@@ -125,6 +132,24 @@ export async function POST(req) {
       console.error('refund_payment failed:', err);
       return NextResponse.json({ error: 'Refund failed' }, { status: 500 });
     }
+  }
+
+  if (action === 'payout_create') {
+    const creatorId = body.creator_id ? String(body.creator_id) : null;
+    const created = await createPayoutsFromUnassigned(creatorId);
+    await logAdminAction(adminId, action, 'payout', creatorId, 'ok', { created: created.length });
+    return NextResponse.json({ ok: true, created });
+  }
+
+  if (action === 'payout_mark_paid') {
+    const payoutId = Number(body.payout_id);
+    if (!Number.isFinite(payoutId) || payoutId <= 0) {
+      return NextResponse.json({ error: 'Valid payout_id required' }, { status: 400 });
+    }
+    const ok = await markPayoutPaid(payoutId);
+    await logAdminAction(adminId, action, 'payout', String(payoutId), ok ? 'ok' : 'not_found');
+    if (!ok) return NextResponse.json({ error: 'Payout not found or already paid' }, { status: 404 });
+    return NextResponse.json({ ok: true });
   }
 
   return NextResponse.json({ error: 'Unsupported action' }, { status: 400 });

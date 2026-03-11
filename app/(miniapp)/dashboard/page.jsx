@@ -45,6 +45,9 @@ export default function Home() {
   const [adminError, setAdminError] = useState(null);
   const [adminBusy, setAdminBusy] = useState(false);
   const [exportFilters, setExportFilters] = useState({ from: '', to: '', creator_id: '', refunded: 'all' });
+  const [payoutQueue, setPayoutQueue] = useState([]);
+  const [payouts, setPayouts] = useState([]);
+  const [payoutCreatorId, setPayoutCreatorId] = useState('');
 
   useEffect(() => {
     let u = null;
@@ -67,12 +70,17 @@ export default function Home() {
         fetch('/api/admin', {
           headers: { 'x-telegram-init-data': initData }
         }).then(r => r.json()).catch(() => ({ is_admin: false })),
+        fetch('/api/admin?kind=payouts', {
+          headers: { 'x-telegram-init-data': initData }
+        }).then(r => r.json()).catch(() => ({ pending: [], payouts: [] })),
       ])
-        .then(([productData, adminData]) => {
+        .then(([productData, adminData, payoutData]) => {
           setOffers(productData.products || []);
           setStats(productData.stats);
           setIsAdmin(Boolean(adminData?.is_admin));
           setAdminActions(Array.isArray(adminData?.actions) ? adminData.actions : []);
+          setPayoutQueue(Array.isArray(payoutData?.pending) ? payoutData.pending : []);
+          setPayouts(Array.isArray(payoutData?.payouts) ? payoutData.payouts : []);
         })
         .finally(() => setReady(true));
     } else {
@@ -164,6 +172,41 @@ export default function Home() {
       const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
       setExportFilters(prev => ({ ...prev, from: toYmd(start), to: end }));
       return;
+    }
+  };
+
+  const refreshPayouts = async () => {
+    const tg = window.Telegram?.WebApp;
+    const iData = tg?.initData || '';
+    const res = await fetch('/api/admin?kind=payouts', { headers: { 'x-telegram-init-data': iData } });
+    const data = await res.json().catch(() => ({}));
+    setPayoutQueue(Array.isArray(data?.pending) ? data.pending : []);
+    setPayouts(Array.isArray(data?.payouts) ? data.payouts : []);
+  };
+
+  const createPayouts = async () => {
+    setAdminError(null);
+    setAdminBusy(true);
+    try {
+      await postAdminAction({ action: 'payout_create', creator_id: payoutCreatorId || undefined });
+      await refreshPayouts();
+    } catch (err) {
+      setAdminError(err.message || 'Payout create failed');
+    } finally {
+      setAdminBusy(false);
+    }
+  };
+
+  const markPayoutPaid = async (payoutId) => {
+    setAdminError(null);
+    setAdminBusy(true);
+    try {
+      await postAdminAction({ action: 'payout_mark_paid', payout_id: payoutId });
+      await refreshPayouts();
+    } catch (err) {
+      setAdminError(err.message || 'Mark paid failed');
+    } finally {
+      setAdminBusy(false);
     }
   };
 
@@ -299,6 +342,36 @@ export default function Home() {
           <div className="flex gap-2 flex-wrap">
             <button type="button" className="chip-btn" onClick={() => exportCsv('actions')}>Export actions CSV</button>
             <button type="button" className="chip-btn" onClick={() => exportCsv('purchases')}>Export purchases CSV</button>
+            <button type="button" className="chip-btn" onClick={() => exportCsv('payouts')}>Export payouts CSV</button>
+          </div>
+
+          <div className="space-y-2">
+            <p className="font-semibold text-sm">Payout queue</p>
+            <div className="flex gap-2 flex-wrap">
+              <input className="chip-btn" placeholder="Creator ID (optional)" value={payoutCreatorId} onChange={(e) => setPayoutCreatorId(e.target.value)} />
+              <button type="button" className="chip-btn" disabled={adminBusy} onClick={createPayouts}>{adminBusy ? 'Working...' : 'Create pending payouts'}</button>
+            </div>
+            {payoutQueue.length > 0 ? (
+              <div className="text-xs text-tg-hint space-y-1">
+                {payoutQueue.slice(0, 10).map((q) => (
+                  <p key={`${q.creator_id}-${q.amount_stars}`}>creator {q.creator_id}: {q.amount_stars} Stars ({q.purchase_count} sales)</p>
+                ))}
+              </div>
+            ) : <p className="text-xs text-tg-hint">No unassigned payouts.</p>}
+
+            {payouts.length > 0 && (
+              <div className="text-xs text-tg-hint space-y-1">
+                <p className="font-semibold">Recent payouts</p>
+                {payouts.slice(0, 10).map((p) => (
+                  <div key={p.id} className="flex items-center gap-2 flex-wrap">
+                    <span>#{p.id} · {p.creator_id} · {p.amount_stars} Stars · {p.status}</span>
+                    {p.status !== 'paid' && (
+                      <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutPaid(p.id)}>Mark paid</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           {adminActions.length > 0 && (
             <div className="text-xs text-tg-hint space-y-1">

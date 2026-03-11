@@ -160,7 +160,7 @@ paywall-tg/
 **`GET /api/admin`** — Admin status, logs, and CSV exports
 - Requires `x-telegram-init-data` for an admin user from `ADMIN_TELEGRAM_IDS`
 - Query params:
-  - `kind=actions|purchases`
+  - `kind=actions|purchases|payouts`
   - `format=json|csv`
   - `limit=<1..5000>`
   - `from=YYYY-MM-DD`
@@ -171,6 +171,8 @@ paywall-tg/
 **`POST /api/admin`** — Admin actions
 - `enable_product` / `disable_product`
 - `refund_payment` (Telegram Stars refund + internal ledger update)
+- `payout_create` (creates pending payout rows from unassigned creator shares)
+- `payout_mark_paid` (marks payout as paid)
 
 **`POST /api/webhook`** — Telegram bot webhook
 - Processes commands (`/start`, `/create`, `/buy`, etc.)
