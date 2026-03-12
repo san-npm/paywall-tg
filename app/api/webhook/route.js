@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { v4 as uuid } from 'uuid';
-import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY } from '@/lib/config';
+import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_STRIPE } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
   getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction
@@ -330,16 +330,18 @@ export async function POST(req) {
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
         ]);
-        await b.api.sendMessage(chatId,
-          'Or pay by card:',
-          {
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: '💳 Pay with card (Stripe)', web_app: { url: `${WEBAPP_URL}/buy/${productId}` } }],
-              ],
-            },
-          }
-        );
+        if (ENABLE_STRIPE) {
+          await b.api.sendMessage(chatId,
+            'Or pay by card:',
+            {
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '💳 Pay with card (Stripe)', web_app: { url: `${WEBAPP_URL}/buy/${productId}` } }],
+                ],
+              },
+            }
+          );
+        }
       }
 
       // /buy <id>
@@ -369,16 +371,18 @@ export async function POST(req) {
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
         ]);
-        await b.api.sendMessage(chatId,
-          'Or pay by card:',
-          {
-            reply_markup: {
-              inline_keyboard: [
-                [{ text: '💳 Pay with card (Stripe)', web_app: { url: `${WEBAPP_URL}/buy/${productId}` } }],
-              ],
-            },
-          }
-        );
+        if (ENABLE_STRIPE) {
+          await b.api.sendMessage(chatId,
+            'Or pay by card:',
+            {
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '💳 Pay with card (Stripe)', web_app: { url: `${WEBAPP_URL}/buy/${productId}` } }],
+                ],
+              },
+            }
+          );
+        }
       }
 
       // /admin_disable <id> and /admin_enable <id>

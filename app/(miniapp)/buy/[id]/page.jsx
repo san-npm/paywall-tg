@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import { ENABLE_STRIPE } from '@/lib/config';
 
 
 function safeExternalUrl(url) {
@@ -186,7 +187,7 @@ export default function BuyProduct() {
 
   const paymentMethods = String(product.payment_methods || 'stars,stripe').split(',').map(v => v.trim().toLowerCase());
   const canPayStars = paymentMethods.includes('stars');
-  const canPayStripe = paymentMethods.includes('stripe');
+  const canPayStripe = ENABLE_STRIPE && paymentMethods.includes('stripe');
 
   return (
     <div className="p-4 max-w-lg mx-auto">

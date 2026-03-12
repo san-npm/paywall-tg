@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { STRIPE_SECRET_KEY, WEBAPP_URL } from '@/lib/config';
+import { ENABLE_STRIPE, STRIPE_SECRET_KEY, WEBAPP_URL } from '@/lib/config';
 import { getProduct, hasPurchased } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
@@ -10,6 +10,9 @@ export const runtime = 'nodejs';
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 export async function POST(req) {
+  if (!ENABLE_STRIPE) {
+    return NextResponse.json({ error: 'Card payments are temporarily disabled' }, { status: 403 });
+  }
   if (!stripe) {
     return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
   }

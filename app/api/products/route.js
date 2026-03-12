@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
-import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
+import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
@@ -130,7 +130,9 @@ export async function POST(req) {
     .map((v) => String(v).trim().toLowerCase())
     .filter((v) => v === 'stars' || v === 'stripe');
   const uniqueMethods = [...new Set(allowedMethods)];
-  const effectiveMethods = uniqueMethods.length ? uniqueMethods : ['stars', 'stripe'];
+  const effectiveMethods = ENABLE_STRIPE
+    ? (uniqueMethods.length ? uniqueMethods : ['stars', 'stripe'])
+    : ['stars'];
 
   const usdCents = Number.isFinite(Number(price_usd_cents))
     ? Math.max(50, Math.round(Number(price_usd_cents)))

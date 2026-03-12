@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
-import { BOT_TOKEN, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY } from '@/lib/config';
+import { BOT_TOKEN, ENABLE_STRIPE, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY } from '@/lib/config';
 import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
 
@@ -45,6 +45,7 @@ async function deliverAndNotify(product, buyerId, creatorShareCents, currency) {
 }
 
 export async function GET(req) {
+  if (!ENABLE_STRIPE) return NextResponse.json({ error: 'Card payments are temporarily disabled' }, { status: 403 });
   if (!stripe) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
 
   const { searchParams } = new URL(req.url);
