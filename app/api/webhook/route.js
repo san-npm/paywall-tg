@@ -330,6 +330,16 @@ export async function POST(req) {
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
         ]);
+        await b.api.sendMessage(chatId,
+          'Or pay by card:',
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: '💳 Pay with card (Stripe)', web_app: { url: `${WEBAPP_URL}/buy/${productId}` } }],
+              ],
+            },
+          }
+        );
       }
 
       // /buy <id>
@@ -359,6 +369,16 @@ export async function POST(req) {
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
         ]);
+        await b.api.sendMessage(chatId,
+          'Or pay by card:',
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: '💳 Pay with card (Stripe)', web_app: { url: `${WEBAPP_URL}/buy/${productId}` } }],
+              ],
+            },
+          }
+        );
       }
 
       // /admin_disable <id> and /admin_enable <id>
