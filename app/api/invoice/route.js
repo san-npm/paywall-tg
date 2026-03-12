@@ -56,6 +56,11 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   }
 
+  const methods = String(product.payment_methods || 'stars,stripe').split(',').map(v => v.trim().toLowerCase());
+  if (!methods.includes('stars')) {
+    return NextResponse.json({ error: 'Stars payments are disabled for this product' }, { status: 400 });
+  }
+
   // Can't buy your own product
   if (product.creator_id === buyerId) {
     return NextResponse.json({ error: "You can't buy your own product" }, { status: 400 });

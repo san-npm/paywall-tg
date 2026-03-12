@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
-import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
+import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
@@ -84,7 +84,7 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Rate limit exceeded. Max 30 products per hour.' }, { status: 429 });
   }
 
-  const { title, description, price_stars, content_type, content } = body;
+  const { title, description, price_stars, content_type, content, price_usd_cents, price_eur_cents, payment_methods } = body;
 
   if (!title || !price_stars || !content_type || !content) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -123,6 +123,22 @@ export async function POST(req) {
     }
   }
 
+  const requestedMethods = Array.isArray(payment_methods)
+    ? payment_methods
+    : String(payment_methods || 'stars,stripe').split(',');
+  const allowedMethods = requestedMethods
+    .map((v) => String(v).trim().toLowerCase())
+    .filter((v) => v === 'stars' || v === 'stripe');
+  const uniqueMethods = [...new Set(allowedMethods)];
+  const effectiveMethods = uniqueMethods.length ? uniqueMethods : ['stars', 'stripe'];
+
+  const usdCents = Number.isFinite(Number(price_usd_cents))
+    ? Math.max(50, Math.round(Number(price_usd_cents)))
+    : Math.max(50, Math.round(price * DEFAULT_USD_PER_STAR * 100));
+  const eurCents = Number.isFinite(Number(price_eur_cents))
+    ? Math.max(50, Math.round(Number(price_eur_cents)))
+    : Math.max(50, Math.round(price * DEFAULT_EUR_PER_STAR * 100));
+
   try {
     await getOrCreateCreator(creatorId, username, displayName);
 
@@ -135,7 +151,19 @@ export async function POST(req) {
     }
 
     const id = uuid();
-    const product = await createProduct(id, creatorId, String(title), String(description || ''), price, content_type, String(content), null);
+    const product = await createProduct(
+      id,
+      creatorId,
+      String(title),
+      String(description || ''),
+      price,
+      content_type,
+      String(content),
+      null,
+      usdCents,
+      eurCents,
+      effectiveMethods.join(','),
+    );
     return NextResponse.json({ product });
   } catch (err) {
     console.error('Create product error:', err);
