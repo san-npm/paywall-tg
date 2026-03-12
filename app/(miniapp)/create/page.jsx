@@ -184,8 +184,8 @@ export default function CreateOffer() {
         )}
 
         <section className="glass-card text-sm">
-          <p className="font-semibold">Share this to sell now</p>
-          <p className="text-tg-hint mt-1">Use <code>/buy {created.id}</code> in Telegram posts, DMs, or channel announcements.</p>
+          <p className="font-semibold">Share command</p>
+          <p className="text-tg-hint mt-1">Use <code>/buy {created.id}</code> in Telegram posts, DMs, or channel messages.</p>
         </section>
 
         <a href="/" className="primary-btn">Back to dashboard</a>
@@ -217,31 +217,31 @@ export default function CreateOffer() {
   return (
     <main className="p-4 max-w-2xl mx-auto space-y-4">
       <section className="hero-card">
-        <h1 className="text-2xl font-bold">Create an offer your audience can buy in seconds</h1>
-        <p className="text-sm text-tg-hint mt-1">Optimized for creators: lower fee, higher limits, faster checkout.</p>
+        <h1 className="text-2xl font-bold">Create product</h1>
+        <p className="text-sm text-tg-hint mt-1">Publish a paid product for Telegram Stars or card checkout.</p>
       </section>
 
       {!user && (
         <section className="glass-card text-sm">
-          <p className="font-semibold">Telegram required to publish</p>
-          <p className="text-tg-hint mt-1">You can preview this form in browser, but creation needs Telegram authentication.</p>
+          <p className="font-semibold">Open in Telegram to publish</p>
+          <p className="text-tg-hint mt-1">This preview works in browser, but product creation requires Telegram auth.</p>
         </section>
       )}
 
       {user && (
         <section className="glass-card text-sm">
           {termsLoading ? (
-            <p className="text-tg-hint">Checking Creator Terms acceptance...</p>
+            <p className="text-tg-hint">Checking Creator Terms...</p>
           ) : termsAccepted ? (
-            <p className="text-green-700">✅ Creator Terms accepted. You can publish products.</p>
+            <p className="text-green-700">Creator Terms accepted. Publishing is enabled.</p>
           ) : (
             <div className="space-y-2">
-              <p className="font-semibold">Creator Terms acceptance required</p>
-              <p className="text-tg-hint">Before publishing, you must accept the Creator Terms (monthly payouts, fee split, invoice requirement).</p>
+              <p className="font-semibold">Creator Terms required</p>
+              <p className="text-tg-hint">Accept terms once to publish products and receive payouts.</p>
               <div className="flex gap-2 flex-wrap">
-                <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read Terms</a>
+                <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read terms</a>
                 <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
-                  {termsSubmitting ? 'Accepting...' : 'I Accept Creator Terms'}
+                  {termsSubmitting ? 'Accepting...' : 'Accept terms'}
                 </button>
               </div>
             </div>
@@ -265,7 +265,7 @@ export default function CreateOffer() {
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={140}
-              className="w-full p-3 rounded-xl border-none outline-none"
+              className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
               style={{ backgroundColor: 'var(--surface)' }}
               placeholder="Example: Viral Hook Swipe File for Coaches"
             />
@@ -278,7 +278,7 @@ export default function CreateOffer() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={500}
-              className="w-full p-3 rounded-xl border-none outline-none"
+              className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
               style={{ backgroundColor: 'var(--surface)' }}
               placeholder="What buyers get and why it helps them."
             />
@@ -293,7 +293,7 @@ export default function CreateOffer() {
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               required
-              className="w-full p-3 rounded-xl border-none outline-none"
+              className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
               style={{ backgroundColor: 'var(--surface)' }}
               placeholder="49"
             />
@@ -309,7 +309,7 @@ export default function CreateOffer() {
                 step="0.01"
                 value={priceEur}
                 onChange={(e) => setPriceEur(e.target.value)}
-                className="w-full p-3 rounded-xl border-none outline-none"
+                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
                 style={{ backgroundColor: 'var(--surface)' }}
                 placeholder="4.99"
               />
@@ -322,7 +322,7 @@ export default function CreateOffer() {
                 step="0.01"
                 value={priceUsd}
                 onChange={(e) => setPriceUsd(e.target.value)}
-                className="w-full p-3 rounded-xl border-none outline-none"
+                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
                 style={{ backgroundColor: 'var(--surface)' }}
                 placeholder="5.49"
               />
@@ -358,7 +358,7 @@ export default function CreateOffer() {
               required
               rows={5}
               maxLength={10000}
-              className="w-full p-3 rounded-xl border-none outline-none resize-none"
+              className="w-full p-3 rounded-xl border border-black/10 outline-none resize-none focus:ring-2 focus:ring-black/10"
               style={{ backgroundColor: 'var(--surface)' }}
               placeholder={contentPlaceholder[contentType]}
             />
