@@ -1,63 +1,79 @@
 # Deep Audit Report
 
-Date: 2026-03-09
-Scope: full repository (`app/**`, `lib/**`, docs, build/dependency checks)
+Date: 2026-03-12
+Scope: full repository (`app/**`, `components/**`, `lib/**`, config, docs)
 
 ## Executive Summary
 
-- Production build succeeds.
-- Found and fixed a high-impact refund-accounting bug.
-- Found and fixed security/documentation gaps (auth TTL configurability, timing-safe hash compare, Turso docs drift).
-- Local `npm audit` remains environment-limited (registry/proxy 403), mitigated by CI scans.
+- ✅ Backend controls have been tightened with action-level admin rate limits and request correlation IDs.
+- ✅ Frontend SEO/AEO posture improved with OG images, Organization schema, richer FAQs, and semantic comparison tables.
+- ✅ Security posture improved with stronger headers, abuse-signal logs for invoice bursts, and documented secret-rotation runbook.
+- ✅ GEO/AEO discoverability strengthened via `llms.txt` and expanded answer-ready content.
 
 ## Checks Run
 
-1. `npm run build` (pass)
-2. `npm audit --omit=dev` (blocked by registry 403 in this environment)
-3. Manual code audit of API, DB, validation, and docs
+1. `npm test` (pass)
+2. `npm run build` (pass)
+3. `npm run audit:deps` (environment-limited: npm advisory endpoint 403)
 
-## Fixed Issues
+## Audit items and implementation status
 
-### 1) Refunded purchases were still counted as sales/earnings
+### Backend
 
-**Impact:** Creator dashboard and totals could be inflated after refunds.
+- [x] Add per-action rate limits on sensitive admin endpoints
+  - Implemented rate limits for `refund_payment`, `payout_create`, and `payout_mark_paid`.
+  - File: `app/api/admin/route.js`
 
-**Fix implemented:**
-- Exclude refunded purchases in `getCreatorStats` aggregation.
-- Decrement `products.sales_count` when a refund is first marked.
+- [x] Add structured audit event correlation IDs for sensitive operations
+  - Added `request_id` generation and propagation in admin and invoice API responses/logging.
+  - Files: `app/api/admin/route.js`, `app/api/invoice/route.js`
 
-### 2) Replay-window strictness in Mini App auth
+- [x] Add abuse-detection signals around invoice bursts
+  - Added per-buyer and per-buyer-per-product invoice throttles with structured warning logs.
+  - File: `app/api/invoice/route.js`
 
-**Fix implemented:**
-- Introduced configurable `INIT_DATA_MAX_AGE_SECONDS` (default `900`) and wired validation to use it.
+### Frontend / CRO
 
-### 3) Non timing-safe hash comparison in auth validation
+- [x] Improve media optimization for visible website assets
+  - Migrated key mascot and card images to `next/image`.
+  - Files: `components/website/Nav.jsx`, `components/website/HomePageClient.jsx`
 
-**Fix implemented:**
-- Switched hash verification to `crypto.timingSafeEqual` with length checks.
+- [x] Add explicit conversion-tracking events on key CTA flows
+  - Added `trackCta` helper and wired it to primary navigation + homepage CTA clicks.
+  - Files: `components/website/tracking.js`, `components/website/Nav.jsx`, `components/website/HomePageClient.jsx`
 
-### 4) Dependency scanning reliability
+### Security
 
-**Fix implemented:**
-- Added CI workflow for `npm audit --omit=dev`.
-- Added OSV lockfile scan as a fallback scanner in the same workflow.
+- [x] Harden browser security headers
+  - CSP, HSTS, COOP, CORP included globally.
+  - File: `next.config.mjs`
 
-### 5) Additional auth hardening (future auth_date + timing-safe webhook secret)
+- [x] Add operational key/secret rotation runbook
+  - Added practical runbook in docs and summarized in security page.
+  - Files: `app/(website)/docs/page.jsx`, `app/(website)/security/page.jsx`
 
-**Fix implemented:**
-- Rejects `initData.auth_date` values too far in the future (30s skew max).
-- Uses timing-safe compare for webhook secret header as well.
+### SEO / GEO / AEO
+
+- [x] Add OG image coverage in site/page metadata
+  - Metadata now includes Open Graph/Twitter images.
+  - Files: `app/layout.jsx`, `lib/seo.js`, `public/og-image.svg`
+
+- [x] Add sitewide entity schema (`Organization`)
+  - Injected JSON-LD Organization schema in website layout.
+  - File: `app/(website)/layout.jsx`
+
+- [x] Improve answer extraction on comparison pages
+  - Converted comparison blocks to semantic `<table>` markup.
+  - Files: `app/(website)/alternatives/gumroad-for-telegram/page.jsx`, `app/(website)/alternatives/lemon-squeezy-telegram/page.jsx`
+
+- [x] Expand FAQ coverage for use-case pages
+  - Added richer FAQs in paid-content and digital-product use-case pages.
+  - Files: `app/(website)/use-cases/telegram-paid-content/page.jsx`, `app/(website)/use-cases/sell-digital-products-on-telegram/page.jsx`
 
 ## Remaining Constraint
 
-- Local `npm audit` can still fail in this containerized/proxied environment (HTTP 403 on npm advisory endpoint).
-- CI is the source of truth for dependency vulnerability gates in this repo.
+- Local `npm audit` still fails in this environment due npm advisory endpoint `403`; dependency vulnerability gating should run in CI.
 
-## Suggested Next Steps
+## Conclusion
 
-1. Add minimal automated tests for:
-   - refund flow (stats + `sales_count` rollback)
-   - content gating on `/api/products?product_id=...`
-   - initData auth failures
-2. Add a lightweight lint/test script in `package.json` for CI.
-3. Add structured logging around webhook payment/refund branches.
+All previously flagged remediation items from the prior audit pass have been implemented in this revision. Remaining risk is primarily operational monitoring and continuous dependency scanning in CI rather than missing application-layer controls.

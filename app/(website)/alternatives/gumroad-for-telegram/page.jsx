@@ -54,26 +54,32 @@ export default function GumroadAlternative() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold mb-8 text-center">Quick comparison</h2>
           <div className="rounded-xl border border-site-border overflow-hidden">
-            <div className="grid grid-cols-3 text-sm font-semibold bg-site-card">
-              <div className="p-4 text-site-dim"></div>
-              <div className="p-4 text-site-accent">Gategram</div>
-              <div className="p-4 text-site-dim">Gumroad</div>
-            </div>
-            {[
-              { f: 'Built for', p: 'Telegram creators', g: 'General creators (Twitter/X focus)' },
-              { f: 'Checkout', p: 'Native Telegram Stars', g: 'External Gumroad page' },
-              { f: 'Fee', p: '5% (Telegram Stars)', g: '10% + payment processing' },
-              { f: 'Delivery', p: 'Instant in-chat message', g: 'Email with download link' },
-              { f: 'Buyer account', p: 'Not needed', g: 'Required (email)' },
-              { f: 'Setup time', p: '2 minutes', g: '10-15 minutes' },
-              { f: 'Mobile experience', p: 'One-tap Stars payment', g: 'Credit card form in mobile browser' },
-            ].map((row, i) => (
-              <div key={i} className={`grid grid-cols-3 text-sm ${i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}`}>
-                <div className="p-4 text-site-muted font-medium">{row.f}</div>
-                <div className="p-4 text-site-text">{row.p}</div>
-                <div className="p-4 text-site-dim">{row.g}</div>
-              </div>
-            ))}
+            <table className="w-full text-sm">
+              <thead className="bg-site-card">
+                <tr>
+                  <th className="p-4 text-left text-site-dim font-semibold">Feature</th>
+                  <th className="p-4 text-left text-site-accent font-semibold">Gategram</th>
+                  <th className="p-4 text-left text-site-dim font-semibold">Gumroad</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { f: 'Built for', p: 'Telegram creators', g: 'General creators (Twitter/X focus)' },
+                  { f: 'Checkout', p: 'Native Telegram Stars', g: 'External Gumroad page' },
+                  { f: 'Fee', p: '5% (Telegram Stars)', g: '10% + payment processing' },
+                  { f: 'Delivery', p: 'Instant in-chat message', g: 'Email with download link' },
+                  { f: 'Buyer account', p: 'Not needed', g: 'Required (email)' },
+                  { f: 'Setup time', p: '2 minutes', g: '10-15 minutes' },
+                  { f: 'Mobile experience', p: 'One-tap Stars payment', g: 'Credit card form in mobile browser' },
+                ].map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}>
+                    <td className="p-4 text-site-muted font-medium">{row.f}</td>
+                    <td className="p-4 text-site-text">{row.p}</td>
+                    <td className="p-4 text-site-dim">{row.g}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
