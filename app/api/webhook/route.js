@@ -67,7 +67,7 @@ export async function POST(req) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Price has changed. Please try again.' });
         return NextResponse.json({ ok: true });
       }
-      if (product.creator_id === buyerId) {
+      if (String(product.creator_id) === String(buyerId)) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You cannot buy your own product.' });
         return NextResponse.json({ ok: true });
       }
@@ -322,7 +322,7 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        if (product.creator_id === userId) {
+        if (String(product.creator_id) === String(userId)) {
           await b.api.sendMessage(chatId, '\u{1F937} That\'s your own product!');
           return NextResponse.json({ ok: true });
         }
@@ -351,7 +351,7 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        if (product.creator_id === userId) {
+        if (String(product.creator_id) === String(userId)) {
           await b.api.sendMessage(chatId, '\u{1F937} That\'s your own product!');
           return NextResponse.json({ ok: true });
         }
