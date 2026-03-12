@@ -441,6 +441,7 @@ export async function POST(req) {
 
       // /testbuy <id> (no-charge simulation)
       else if (text.startsWith('/testbuy ') || text.startsWith('/testbuy@')) {
+        await b.api.sendMessage(chatId, '🧪 Running test purchase...');
         if (!ENABLE_FAKE_PAYMENTS) {
           await b.api.sendMessage(chatId, '\u274C Test purchases are disabled.');
           return NextResponse.json({ ok: true });
@@ -585,6 +586,12 @@ export async function POST(req) {
     }
   } catch (err) {
     console.error('Webhook error:', err);
+    try {
+      const chatId = body?.message?.chat?.id;
+      if (chatId) {
+        await getBot().api.sendMessage(chatId, `❌ Runtime error: ${err?.message || 'unknown error'}`);
+      }
+    } catch {}
   }
 
   return NextResponse.json({ ok: true });
