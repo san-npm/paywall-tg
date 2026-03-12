@@ -336,8 +336,15 @@ export async function POST(req) {
           }
           await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
           if (product.content_type === 'file') {
-            if (product.file_id) await b.api.sendDocument(chatId, product.file_id);
-            else await b.api.sendMessage(chatId, 'The file for this product is not yet available. Contact the creator.');
+            if (product.file_id) {
+              try {
+                await b.api.sendDocument(chatId, product.file_id);
+              } catch (e) {
+                await b.api.sendMessage(chatId, `⚠️ File delivery failed: ${e?.description || e?.message || 'unknown error'}`);
+              }
+            } else {
+              await b.api.sendMessage(chatId, 'The file for this product is not yet available. Contact the creator.');
+            }
           }
           return NextResponse.json({ ok: true });
         }
@@ -397,8 +404,15 @@ export async function POST(req) {
           }
           await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
           if (product.content_type === 'file') {
-            if (product.file_id) await b.api.sendDocument(chatId, product.file_id);
-            else await b.api.sendMessage(chatId, 'The file for this product is not yet available. Contact the creator.');
+            if (product.file_id) {
+              try {
+                await b.api.sendDocument(chatId, product.file_id);
+              } catch (e) {
+                await b.api.sendMessage(chatId, `⚠️ File delivery failed: ${e?.description || e?.message || 'unknown error'}`);
+              }
+            } else {
+              await b.api.sendMessage(chatId, 'The file for this product is not yet available. Contact the creator.');
+            }
           }
           return NextResponse.json({ ok: true });
         }
