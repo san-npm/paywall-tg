@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { ENABLE_STRIPE } from '@/lib/config';
+import { ENABLE_FAKE_PAYMENTS, ENABLE_STRIPE } from '@/lib/config';
 
 
 function safeExternalUrl(url) {
@@ -45,6 +45,7 @@ export default function BuyProduct() {
   const [checkoutCurrency, setCheckoutCurrency] = useState('EUR');
   const [verifyingStripe, setVerifyingStripe] = useState(false);
   const [stripeVerified, setStripeVerified] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     let u = null;
@@ -171,6 +172,28 @@ export default function BuyProduct() {
     }
   };
 
+  const handleTestPurchase = async () => {
+    if (!user || !initData || testing) return;
+    setTesting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/test-purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ init_data: initData, product_id: id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to simulate purchase');
+      } else {
+        await refreshPurchaseState();
+      }
+    } catch {
+      setError('Network error — please try again.');
+    }
+    setTesting(false);
+  };
+
   if (loading) {
     return <BuySkeleton />;
   }
@@ -285,6 +308,17 @@ export default function BuyProduct() {
                     {buying ? 'Processing...' : `💳 Pay with card (${checkoutCurrency})`}
                   </button>
                 </>
+              )}
+
+              {ENABLE_FAKE_PAYMENTS && (
+                <button
+                  onClick={handleTestPurchase}
+                  disabled={testing}
+                  className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
+                  style={{ backgroundColor: '#7c3aed', color: '#fff' }}
+                >
+                  {testing ? 'Running test...' : '🧪 Test purchase (no charge)'}
+                </button>
               )}
             </div>
           ) : (
