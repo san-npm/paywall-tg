@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 
 
 function safeExternalUrl(url) {
@@ -31,6 +31,8 @@ function BuySkeleton() {
 
 export default function BuyProduct() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
+  const paidStripe = searchParams.get('paid') === 'stripe';
   const [product, setProduct] = useState(null);
   const [purchased, setPurchased] = useState(false);
   const [user, setUser] = useState(null);
@@ -194,6 +196,12 @@ export default function BuyProduct() {
         <p>🛒 {product.sales_count} sales</p>
       </div>
 
+      {paidStripe && !purchased && (
+        <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#ecfdf5', color: '#065f46' }}>
+          ✅ Card payment received. Your content is delivered in Telegram bot chat.
+        </div>
+      )}
+
       {error && (
         <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#f8d7da', color: '#842029' }}>
           {error}
@@ -220,7 +228,7 @@ export default function BuyProduct() {
         </div>
       ) : (
         <div className="text-center">
-          {!user && (
+          {!user && !paidStripe && (
             <div className="mb-3 p-3 rounded-xl text-sm" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
               ⚠️ Open inside Telegram to purchase
             </div>
@@ -257,9 +265,15 @@ export default function BuyProduct() {
             </div>
           ) : (
             <>
-              <p className="text-sm text-tg-hint mb-3">
-                Open this page in Telegram to purchase.
-              </p>
+              {!paidStripe ? (
+                <p className="text-sm text-tg-hint mb-3">
+                  Open this page in Telegram to purchase.
+                </p>
+              ) : (
+                <p className="text-sm text-tg-hint mb-3">
+                  Payment already completed. Return to Telegram to view delivered content.
+                </p>
+              )}
             </>
           )}
           <p className="text-xs text-tg-hint mt-2">
