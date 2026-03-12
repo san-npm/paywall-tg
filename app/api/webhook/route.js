@@ -198,15 +198,19 @@ export async function POST(req) {
 
       // /start command
       if (text === '/start') {
-        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         await b.api.sendMessage(chatId,
-          `\u{1F44B} Welcome to *Gategram*\\!\n\nSell digital content directly in Telegram\\.\n\n` +
-          `\u{1F4E6} /create \\— Create a new product\n` +
-          `\u{1F4CA} /dashboard \\— View your stats\n` +
-          `\u{1F4CB} /products \\— List your products\n` +
-          `\u{1F6D2} /buy \\<id\\> \\— Buy a product\n` +
-          `\u{1F4CE} /attach \\<id\\> \\— Attach a file to a product\n\n` +
-          `Or open the Mini App \u{1F447}`,
+          `\u{1F44B} Welcome to *Gategram*\n\nSell digital products in Telegram\. Get paid in Stars\.\n\n` +
+          `How it works:\n` +
+          `1\\) Create a product\n` +
+          `2\\) Share your buy link\n` +
+          `3\\) Get paid when someone buys\n\n` +
+          `Commands:\n` +
+          `\u{1F4E6} /create \\— Create a product\n` +
+          `\u{1F4CB} /products \\— View your products\n` +
+          `\u{1F4CA} /dashboard \\— View sales and earnings\n` +
+          `\u{1F6D2} /buy \\<product_id\\> \\— Buy a product\n\n` +
+          `Tap *Open Gategram* below to start\.`,
           {
             parse_mode: 'MarkdownV2',
             reply_markup: {
@@ -220,7 +224,7 @@ export async function POST(req) {
 
       // /create command
       else if (text === '/create') {
-        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         await b.api.sendMessage(chatId,
           `\u{1F4E6} *Create a product*\n\nOpen the Mini App to create your product with a nice UI, or use the quick command:\n\n` +
           `\`/new <price_in_stars> <title> | <content>\`\n\n` +
@@ -252,7 +256,7 @@ export async function POST(req) {
         }
 
         const { price, title, content } = parsed.value;
-        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         const id = uuid();
         await createProduct(id, userId, title, '', price, 'text', content, null);
 
