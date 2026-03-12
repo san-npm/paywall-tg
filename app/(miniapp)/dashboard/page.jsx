@@ -52,6 +52,8 @@ export default function Home() {
   const [creatorProfile, setCreatorProfile] = useState(null);
   const [finance, setFinance] = useState(null);
   const [profileSaving, setProfileSaving] = useState(false);
+  const [invoiceForms, setInvoiceForms] = useState({});
+  const [invoiceSubmitting, setInvoiceSubmitting] = useState(null);
 
   useEffect(() => {
     let u = null;
@@ -285,6 +287,40 @@ export default function Home() {
     }
   };
 
+  const submitPayoutInvoice = async (payoutId) => {
+    const form = invoiceForms[payoutId] || {};
+    if (!form.invoice_ref) {
+      setAdminError('Invoice reference is required.');
+      return;
+    }
+    const tg = window.Telegram?.WebApp;
+    const iData = tg?.initData || '';
+    setInvoiceSubmitting(payoutId);
+    setAdminError(null);
+    try {
+      const res = await fetch('/api/creator-payout-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
+        body: JSON.stringify({
+          payout_id: payoutId,
+          invoice_ref: form.invoice_ref,
+          invoice_url: form.invoice_url || '',
+          invoice_notes: form.invoice_notes || '',
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Invoice submit failed');
+
+      const fres = await fetch('/api/creator-finance', { headers: { 'x-telegram-init-data': iData } });
+      const fdata = await fres.json().catch(() => null);
+      if (fdata) setFinance(fdata);
+    } catch (err) {
+      setAdminError(err.message || 'Invoice submit failed');
+    } finally {
+      setInvoiceSubmitting(null);
+    }
+  };
+
   if (!ready) return <DashboardSkeleton />;
 
   return (
@@ -374,10 +410,21 @@ export default function Home() {
             )) : <p>No monthly sales yet.</p>}
           </div>
 
-          <div className="space-y-1 text-xs text-tg-hint">
+          <div className="space-y-2 text-xs text-tg-hint">
             <p className="font-semibold">Recent payouts</p>
             {Array.isArray(finance.payouts) && finance.payouts.length > 0 ? finance.payouts.map((p) => (
-              <p key={p.id}>#{p.id} · ⭐ {p.amount_stars} · {p.status}{p.paid_at ? ` · paid ${p.paid_at}` : ''}</p>
+              <div key={p.id} className="glass-card">
+                <p>#{p.id} · ⭐ {p.amount_stars} · {p.status}{p.paid_at ? ` · paid ${p.paid_at}` : ''}</p>
+                {p.invoice_ref && <p>Invoice: {p.invoice_ref}</p>}
+                {p.invoice_submitted_at && <p>Submitted: {p.invoice_submitted_at}</p>}
+                {p.status === 'pending' && (
+                  <div className="mt-2 grid sm:grid-cols-3 gap-2">
+                    <input className="chip-btn" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
+                    <input className="chip-btn" placeholder="Invoice URL (optional)" value={(invoiceForms[p.id]?.invoice_url || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_url: e.target.value } }))} />
+                    <button type="button" className="chip-btn chip-primary" disabled={invoiceSubmitting === p.id} onClick={() => submitPayoutInvoice(p.id)}>{invoiceSubmitting === p.id ? 'Submitting...' : 'Submit invoice'}</button>
+                  </div>
+                )}
+              </div>
             )) : <p>No payouts yet.</p>}
           </div>
         </section>
