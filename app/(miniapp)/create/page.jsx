@@ -99,7 +99,7 @@ export default function CreateOffer() {
     setError(null);
 
     if (!user) {
-      setError('Open this page inside Telegram to create offers.');
+      setError('Open this page inside Telegram to create a paid creation.');
       return;
     }
 
@@ -166,12 +166,12 @@ export default function CreateOffer() {
     return (
       <main className="p-4 max-w-2xl mx-auto space-y-4">
         <section className="hero-card text-center">
-          <h1 className="text-2xl font-bold">Offer created</h1>
+          <h1 className="text-2xl font-bold">Creation published</h1>
           <p className="text-sm text-tg-hint mt-1">{created.title} · {created.price_stars} Stars</p>
         </section>
 
         <section className="glass-card text-center">
-          <p className="text-xs text-tg-hint uppercase tracking-wide">Offer ID</p>
+          <p className="text-xs text-tg-hint uppercase tracking-wide">Creation ID</p>
           <p className="font-mono text-lg font-semibold mt-1 break-all">{created.id}</p>
         </section>
 
@@ -201,30 +201,47 @@ export default function CreateOffer() {
   ];
 
   const contentPlaceholder = {
-    text: 'The full content buyers receive after purchase.',
+    text: 'Paste exactly what buyers unlock after payment.',
     link: 'https://your-resource-link.com',
-    message: 'The private message buyers will unlock.',
-    file: 'Describe what the buyer gets. Upload file after creation using /attach command.',
+    message: 'Write the private message buyers should receive.',
+    file: 'Describe what buyer gets. After publishing, use /attach to upload the file.',
   };
 
   const contentLabel = {
-    text: 'Content to deliver',
-    link: 'URL to unlock',
-    message: 'Message to deliver',
+    text: 'Unlocked content',
+    link: 'Unlocked URL',
+    message: 'Unlocked message',
     file: 'File description',
   };
 
   return (
     <main className="p-4 max-w-2xl mx-auto space-y-4">
       <section className="hero-card">
-        <h1 className="text-2xl font-bold">Create product</h1>
-        <p className="text-sm text-tg-hint mt-1">Publish a paid product for Telegram Stars or card checkout.</p>
+        <h1 className="text-2xl font-bold">Create a paid creation</h1>
+        <p className="text-sm text-tg-hint mt-1">Turn your content into a sellable creation in under a minute.</p>
+      </section>
+
+      <section className="glass-card text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="mini-stat">
+            <p className="mini-stat-label">Fast setup</p>
+            <p className="mini-stat-value">~60 sec</p>
+          </div>
+          <div className="mini-stat">
+            <p className="mini-stat-label">Payments</p>
+            <p className="mini-stat-value">Stars + Card</p>
+          </div>
+          <div className="mini-stat">
+            <p className="mini-stat-label">Share anywhere</p>
+            <p className="mini-stat-value">/buy link</p>
+          </div>
+        </div>
       </section>
 
       {!user && (
         <section className="glass-card text-sm">
           <p className="font-semibold">Open in Telegram to publish</p>
-          <p className="text-tg-hint mt-1">This preview works in browser, but product creation requires Telegram auth.</p>
+          <p className="text-tg-hint mt-1">This preview works in browser, but publishing a creation requires Telegram auth.</p>
         </section>
       )}
 
@@ -237,7 +254,7 @@ export default function CreateOffer() {
           ) : (
             <div className="space-y-2">
               <p className="font-semibold">Creator Terms required</p>
-              <p className="text-tg-hint">Accept terms once to publish products and receive payouts.</p>
+              <p className="text-tg-hint">Accept terms once to publish creations and receive payouts.</p>
               <div className="flex gap-2 flex-wrap">
                 <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read terms</a>
                 <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
@@ -258,7 +275,12 @@ export default function CreateOffer() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <section className="glass-card space-y-4">
           <div>
-            <label className="block text-sm text-tg-hint mb-1">Title</label>
+            <p className="font-semibold">Creation details</p>
+            <p className="text-xs text-tg-hint mt-1">Clear title + concrete outcome = better conversion.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm text-tg-hint mb-1">Creation title</label>
             <input
               type="text"
               value={title}
@@ -285,7 +307,7 @@ export default function CreateOffer() {
           </div>
 
           <div>
-            <label className="block text-sm text-tg-hint mb-1">Price (Stars)</label>
+            <label className="block text-sm text-tg-hint mb-1">Creation price (Stars)</label>
             <input
               type="number"
               min="1"
@@ -302,7 +324,7 @@ export default function CreateOffer() {
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-sm text-tg-hint mb-1">Card price EUR (optional)</label>
+              <label className="block text-sm text-tg-hint mb-1">Card checkout EUR (optional)</label>
               <input
                 type="number"
                 min="0.5"
@@ -315,7 +337,7 @@ export default function CreateOffer() {
               />
             </div>
             <div>
-              <label className="block text-sm text-tg-hint mb-1">Card price USD (optional)</label>
+              <label className="block text-sm text-tg-hint mb-1">Card checkout USD (optional)</label>
               <input
                 type="number"
                 min="0.5"
@@ -367,7 +389,7 @@ export default function CreateOffer() {
         </section>
 
         <button type="submit" disabled={loading || !user || termsLoading || !termsAccepted} className="primary-btn disabled:opacity-50">
-          {loading ? 'Creating offer...' : 'Create offer'}
+          {loading ? 'Publishing creation...' : 'Publish creation'}
         </button>
       </form>
     </main>
