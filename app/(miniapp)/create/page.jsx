@@ -25,21 +25,67 @@ export default function CreateOffer() {
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(null);
   const [error, setError] = useState(null);
+  const [termsLoading, setTermsLoading] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsSubmitting, setTermsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      tg.BackButton.show();
-      tg.BackButton.onClick(() => {
-        window.location.href = '/';
-      });
-      const u = tg.initDataUnsafe?.user;
-      if (u) setUser(u);
-    }
-    setReady(true);
+    const bootstrap = async () => {
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        tg.BackButton.show();
+        tg.BackButton.onClick(() => {
+          window.location.href = '/';
+        });
+        const u = tg.initDataUnsafe?.user;
+        if (u) {
+          setUser(u);
+          try {
+            const res = await fetch('/api/creator-terms', {
+              headers: { 'x-telegram-init-data': tg.initData || '' },
+            });
+            const data = await res.json();
+            if (res.ok) setTermsAccepted(Boolean(data.accepted));
+          } catch {
+            // keep default false
+          }
+        }
+      }
+      setTermsLoading(false);
+      setReady(true);
+    };
+
+    bootstrap();
   }, []);
+
+  const handleAcceptTerms = async () => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData) {
+      setError('Open this page inside Telegram to accept creator terms.');
+      return;
+    }
+
+    setTermsSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/creator-terms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ init_data: tg.initData }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to accept creator terms.');
+      } else {
+        setTermsAccepted(Boolean(data.accepted));
+      }
+    } catch {
+      setError('Network error while accepting terms. Please retry.');
+    }
+    setTermsSubmitting(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,6 +93,11 @@ export default function CreateOffer() {
 
     if (!user) {
       setError('Open this page inside Telegram to create offers.');
+      return;
+    }
+
+    if (!termsAccepted) {
+      setError('Please accept Creator Terms before publishing.');
       return;
     }
 
@@ -79,6 +130,9 @@ export default function CreateOffer() {
 
       const data = await res.json();
       if (!res.ok) {
+        if (data.code === 'TERMS_NOT_ACCEPTED') {
+          setTermsAccepted(false);
+        }
         setError(data.error || 'Failed to create offer.');
       } else if (data.product) {
         setCreated(data.product);
@@ -155,6 +209,27 @@ export default function CreateOffer() {
         <section className="glass-card text-sm">
           <p className="font-semibold">Telegram required to publish</p>
           <p className="text-tg-hint mt-1">You can preview this form in browser, but creation needs Telegram authentication.</p>
+        </section>
+      )}
+
+      {user && (
+        <section className="glass-card text-sm">
+          {termsLoading ? (
+            <p className="text-tg-hint">Checking Creator Terms acceptance...</p>
+          ) : termsAccepted ? (
+            <p className="text-green-700">✅ Creator Terms accepted. You can publish products.</p>
+          ) : (
+            <div className="space-y-2">
+              <p className="font-semibold">Creator Terms acceptance required</p>
+              <p className="text-tg-hint">Before publishing, you must accept the Creator Terms (monthly payouts, fee split, invoice requirement).</p>
+              <div className="flex gap-2 flex-wrap">
+                <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read Terms</a>
+                <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
+                  {termsSubmitting ? 'Accepting...' : 'I Accept Creator Terms'}
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -246,7 +321,7 @@ export default function CreateOffer() {
           </div>
         </section>
 
-        <button type="submit" disabled={loading || !user} className="primary-btn disabled:opacity-50">
+        <button type="submit" disabled={loading || !user || termsLoading || !termsAccepted} className="primary-btn disabled:opacity-50">
           {loading ? 'Creating offer...' : 'Create offer'}
         </button>
       </form>
