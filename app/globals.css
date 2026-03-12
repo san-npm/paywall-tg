@@ -27,7 +27,10 @@
    Body / global
 ──────────────────────────────── */
 body.miniapp {
-  background-color: var(--tg-theme-bg-color, #ffffff);
+  background:
+    radial-gradient(circle at 10% 5%, rgba(124, 58, 237, 0.10), transparent 34%),
+    radial-gradient(circle at 92% 0%, rgba(245, 158, 11, 0.10), transparent 28%),
+    var(--tg-theme-bg-color, #ffffff);
   color: var(--tg-theme-text-color, #000000);
 }
 
@@ -160,13 +163,17 @@ html { scroll-behavior: smooth; }
   border: 1px solid color-mix(in srgb, var(--border) 80%, #00000010);
   border-radius: 14px;
   padding: 14px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
 }
 
 .hero-card {
-  background: color-mix(in srgb, var(--surface) 90%, #ffffff);
+  background: linear-gradient(150deg,
+    color-mix(in srgb, var(--tg-theme-button-color, #2481cc) 12%, #ffffff),
+    color-mix(in srgb, var(--surface) 90%, #ffffff));
   border: 1px solid color-mix(in srgb, var(--border) 85%, #00000012);
   border-radius: 14px;
   padding: 16px;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.10);
 }
 
 .hero-badge {
