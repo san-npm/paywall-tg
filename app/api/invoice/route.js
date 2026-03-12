@@ -62,7 +62,7 @@ export async function POST(req) {
   }
 
   // Can't buy your own product
-  if (product.creator_id === buyerId) {
+  if (String(product.creator_id) === String(buyerId)) {
     return NextResponse.json({ error: "You can't buy your own product" }, { status: 400 });
   }
 
