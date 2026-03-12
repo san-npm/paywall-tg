@@ -23,6 +23,8 @@ export default function CreateOffer() {
   const [price, setPrice] = useState('');
   const [contentType, setContentType] = useState('text');
   const [content, setContent] = useState('');
+  const [priceUsd, setPriceUsd] = useState('');
+  const [priceEur, setPriceEur] = useState('');
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(null);
   const [error, setError] = useState(null);
@@ -129,6 +131,9 @@ export default function CreateOffer() {
           title,
           description,
           price_stars: priceNum,
+          price_usd_cents: priceUsd ? Math.round(Number(priceUsd) * 100) : undefined,
+          price_eur_cents: priceEur ? Math.round(Number(priceEur) * 100) : undefined,
+          payment_methods: ['stars', 'stripe'],
           content_type: contentType,
           content,
         }),
@@ -293,6 +298,35 @@ export default function CreateOffer() {
               placeholder="49"
             />
             <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 50,000 Stars.</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-sm text-tg-hint mb-1">Card price EUR (optional)</label>
+              <input
+                type="number"
+                min="0.5"
+                step="0.01"
+                value={priceEur}
+                onChange={(e) => setPriceEur(e.target.value)}
+                className="w-full p-3 rounded-xl border-none outline-none"
+                style={{ backgroundColor: 'var(--surface)' }}
+                placeholder="4.99"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-tg-hint mb-1">Card price USD (optional)</label>
+              <input
+                type="number"
+                min="0.5"
+                step="0.01"
+                value={priceUsd}
+                onChange={(e) => setPriceUsd(e.target.value)}
+                className="w-full p-3 rounded-xl border-none outline-none"
+                style={{ backgroundColor: 'var(--surface)' }}
+                placeholder="5.49"
+              />
+            </div>
           </div>
 
           <div>

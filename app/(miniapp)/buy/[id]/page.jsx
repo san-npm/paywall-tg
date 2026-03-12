@@ -38,6 +38,7 @@ export default function BuyProduct() {
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState(null);
   const [initData, setInitData] = useState('');
+  const [checkoutCurrency, setCheckoutCurrency] = useState('EUR');
 
   useEffect(() => {
     let u = null;
@@ -68,6 +69,21 @@ export default function BuyProduct() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const refreshPurchaseState = async () => {
+    setLoading(true);
+    try {
+      const d = await fetch(`/api/products?product_id=${id}`, {
+        headers: { 'x-telegram-init-data': initData }
+      }).then(r => r.json());
+      if (!d.error) {
+        setProduct(d.product);
+        setPurchased(d.purchased || false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBuy = async () => {
     if (!user || !initData || buying) return;
     setBuying(true);
@@ -89,33 +105,45 @@ export default function BuyProduct() {
 
       const tg = window.Telegram?.WebApp;
       if (tg?.openInvoice) {
-        tg.openInvoice(data.invoice_url, (status) => {
+        tg.openInvoice(data.invoice_url, async (status) => {
           if (status === 'paid') {
-            // Refresh to show purchased content
-            setLoading(true);
-            fetch(`/api/products?product_id=${id}`, {
-              headers: { 'x-telegram-init-data': initData }
-            })
-              .then(r => r.json())
-              .then(d => {
-                if (!d.error) {
-                  setProduct(d.product);
-                  setPurchased(d.purchased || false);
-                }
-              })
-              .finally(() => {
-                setLoading(false);
-                setBuying(false);
-              });
-          } else {
-            setBuying(false);
+            await refreshPurchaseState();
           }
+          setBuying(false);
         });
       } else {
-        // Fallback: open in new window
         window.open(data.invoice_url, '_blank', 'noopener,noreferrer');
         setBuying(false);
       }
+    } catch {
+      setError('Network error — please try again.');
+      setBuying(false);
+    }
+  };
+
+  const handleStripeCheckout = async () => {
+    if (!user || !initData || buying) return;
+    setBuying(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ init_data: initData, product_id: id, currency: checkoutCurrency }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to create card checkout');
+        setBuying(false);
+        return;
+      }
+      const tg = window.Telegram?.WebApp;
+      if (tg?.openLink) {
+        tg.openLink(data.checkout_url);
+      } else {
+        window.open(data.checkout_url, '_blank', 'noopener,noreferrer');
+      }
+      setBuying(false);
     } catch {
       setError('Network error — please try again.');
       setBuying(false);
@@ -136,6 +164,10 @@ export default function BuyProduct() {
     );
   }
 
+  const paymentMethods = String(product.payment_methods || 'stars,stripe').split(',').map(v => v.trim().toLowerCase());
+  const canPayStars = paymentMethods.includes('stars');
+  const canPayStripe = paymentMethods.includes('stripe');
+
   return (
     <div className="p-4 max-w-lg mx-auto">
       <div className="text-center mb-6">
@@ -149,7 +181,12 @@ export default function BuyProduct() {
           <span className="text-sm text-tg-hint">Price</span>
           <span className="text-2xl font-bold">⭐ {product.price_stars}</span>
         </div>
-        <p className="text-xs text-tg-hint text-right">Paid with Telegram Stars</p>
+        {Number.isFinite(Number(product.price_eur_cents)) && Number(product.price_eur_cents) > 0 && (
+          <p className="text-xs text-tg-hint text-right">or € {(Number(product.price_eur_cents) / 100).toFixed(2)}</p>
+        )}
+        {Number.isFinite(Number(product.price_usd_cents)) && Number(product.price_usd_cents) > 0 && (
+          <p className="text-xs text-tg-hint text-right">or $ {(Number(product.price_usd_cents) / 100).toFixed(2)}</p>
+        )}
       </div>
 
       <div className="text-sm text-tg-hint mb-4 space-y-1">
@@ -189,14 +226,35 @@ export default function BuyProduct() {
             </div>
           )}
           {user ? (
-            <button
-              onClick={handleBuy}
-              disabled={buying}
-              className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
-              style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}
-            >
-              {buying ? 'Processing...' : `⭐ Buy for ${product.price_stars} Stars`}
-            </button>
+            <div className="space-y-2">
+              {canPayStars && (
+                <button
+                  onClick={handleBuy}
+                  disabled={buying}
+                  className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}
+                >
+                  {buying ? 'Processing...' : `⭐ Buy for ${product.price_stars} Stars`}
+                </button>
+              )}
+
+              {canPayStripe && (
+                <>
+                  <div className="flex gap-2 justify-center">
+                    <button type="button" className="chip-btn" onClick={() => setCheckoutCurrency('EUR')} style={{ opacity: checkoutCurrency === 'EUR' ? 1 : 0.6 }}>EUR</button>
+                    <button type="button" className="chip-btn" onClick={() => setCheckoutCurrency('USD')} style={{ opacity: checkoutCurrency === 'USD' ? 1 : 0.6 }}>USD</button>
+                  </div>
+                  <button
+                    onClick={handleStripeCheckout}
+                    disabled={buying}
+                    className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
+                    style={{ backgroundColor: '#111827', color: '#fff' }}
+                  >
+                    {buying ? 'Processing...' : `💳 Pay with card (${checkoutCurrency})`}
+                  </button>
+                </>
+              )}
+            </div>
           ) : (
             <>
               <p className="text-sm text-tg-hint mb-3">
@@ -205,7 +263,7 @@ export default function BuyProduct() {
             </>
           )}
           <p className="text-xs text-tg-hint mt-2">
-            Payment is processed via Telegram Stars ⭐
+            Payment options: {canPayStars ? 'Telegram Stars' : ''}{canPayStars && canPayStripe ? ' + ' : ''}{canPayStripe ? 'Card (Stripe)' : ''}
           </p>
         </div>
       )}
