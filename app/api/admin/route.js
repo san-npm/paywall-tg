@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { ADMIN_TELEGRAM_IDS, BOT_TOKEN } from '@/lib/config';
 import { validateInitData, isValidProductId } from '@/lib/validate';
-import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId, getPayoutQueue, createPayoutsFromUnassigned, markPayoutPaid, getPayoutDetails, getMonthlyReconciliation } from '@/lib/db';
+import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId, getPayoutQueue, createPayoutsFromUnassigned, markPayoutPaid, markPayoutProcessing, getPayoutDetails, getMonthlyReconciliation } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
@@ -148,14 +148,16 @@ export async function POST(req) {
     return NextResponse.json({ ok: true, created });
   }
 
-  if (action === 'payout_mark_paid') {
+  if (action === 'payout_mark_processing' || action === 'payout_mark_paid') {
     const payoutId = Number(body.payout_id);
     if (!Number.isFinite(payoutId) || payoutId <= 0) {
       return NextResponse.json({ error: 'Valid payout_id required' }, { status: 400 });
     }
-    const ok = await markPayoutPaid(payoutId);
+    const ok = action === 'payout_mark_processing'
+      ? await markPayoutProcessing(payoutId)
+      : await markPayoutPaid(payoutId);
     await logAdminAction(adminId, action, 'payout', String(payoutId), ok ? 'ok' : 'not_found');
-    if (!ok) return NextResponse.json({ error: 'Payout not found or already paid' }, { status: 404 });
+    if (!ok) return NextResponse.json({ error: 'Payout not found or invalid status transition' }, { status: 404 });
     return NextResponse.json({ ok: true });
   }
 
