@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { v4 as uuid } from 'uuid';
-import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_STRIPE } from '@/lib/config';
+import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_FAKE_PAYMENTS, ENABLE_STRIPE } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
   getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction
@@ -423,6 +423,65 @@ export async function POST(req) {
             }
           );
         }
+      }
+
+      // /testbuy <id> (no-charge simulation)
+      else if (text.startsWith('/testbuy ')) {
+        if (!ENABLE_FAKE_PAYMENTS) {
+          await b.api.sendMessage(chatId, '\u274C Test purchases are disabled.');
+          return NextResponse.json({ ok: true });
+        }
+
+        const productId = text.slice(9).trim();
+        if (!isValidProductId(productId)) {
+          await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          return NextResponse.json({ ok: true });
+        }
+
+        const product = await getProduct(productId);
+        if (!product) {
+          await b.api.sendMessage(chatId, '\u274C Product not found or no longer available.');
+          return NextResponse.json({ ok: true });
+        }
+
+        if (String(product.creator_id) === String(userId)) {
+          await b.api.sendMessage(chatId, '\u{1F937} That\'s your own product!');
+          return NextResponse.json({ ok: true });
+        }
+
+        if (!(await hasPurchased(productId, userId))) {
+          const starsPaid = Number(product.price_stars || 0);
+          const platformFee = Math.ceil(starsPaid * PLATFORM_FEE_PERCENT / 100);
+          const creatorShare = starsPaid - platformFee;
+          const fakeChargeId = `test_${productId}_${userId}_${Date.now()}`;
+          await recordPurchase(productId, userId, starsPaid, creatorShare, platformFee, fakeChargeId);
+        }
+
+        const safeTitle = escapeMarkdown(product.title);
+        let contentMessage = '';
+        switch (product.content_type) {
+          case 'text':
+            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+            break;
+          case 'link':
+            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+            break;
+          case 'file':
+            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*`;
+            break;
+          default:
+            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+            break;
+        }
+
+        await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
+        if (product.content_type === 'file') {
+          if (product.file_id) await b.api.sendDocument(chatId, product.file_id);
+          else await b.api.sendMessage(chatId, 'Test mode: file is not attached yet for this product.');
+        }
+
+        const creatorMsg = `\u{1F9EA} Test sale\!\n*${safeTitle}*\nSimulated buyer generated \u2B50 ${Math.max(0, Number(product.price_stars || 0) - Math.ceil(Number(product.price_stars || 0) * PLATFORM_FEE_PERCENT / 100))} creator share`;
+        await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' }).catch(() => {});
       }
 
       // /admin_disable <id> and /admin_enable <id>
