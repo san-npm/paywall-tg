@@ -49,6 +49,9 @@ export default function Home() {
   const [payouts, setPayouts] = useState([]);
   const [payoutCreatorId, setPayoutCreatorId] = useState('');
   const [selectedPayout, setSelectedPayout] = useState(null);
+  const [creatorProfile, setCreatorProfile] = useState(null);
+  const [finance, setFinance] = useState(null);
+  const [profileSaving, setProfileSaving] = useState(false);
 
   useEffect(() => {
     let u = null;
@@ -74,14 +77,22 @@ export default function Home() {
         fetch('/api/admin?kind=payouts', {
           headers: { 'x-telegram-init-data': initData }
         }).then(r => r.json()).catch(() => ({ pending: [], payouts: [] })),
+        fetch('/api/creator-profile', {
+          headers: { 'x-telegram-init-data': initData }
+        }).then(r => r.json()).catch(() => ({ profile: null })),
+        fetch('/api/creator-finance', {
+          headers: { 'x-telegram-init-data': initData }
+        }).then(r => r.json()).catch(() => ({ totals: null, months: [], payouts: [] })),
       ])
-        .then(([productData, adminData, payoutData]) => {
+        .then(([productData, adminData, payoutData, profileData, financeData]) => {
           setOffers(productData.products || []);
           setStats(productData.stats);
           setIsAdmin(Boolean(adminData?.is_admin));
           setAdminActions(Array.isArray(adminData?.actions) ? adminData.actions : []);
           setPayoutQueue(Array.isArray(payoutData?.pending) ? payoutData.pending : []);
           setPayouts(Array.isArray(payoutData?.payouts) ? payoutData.payouts : []);
+          setCreatorProfile(profileData?.profile || { legal_name: '', email: '', country: '', payout_method: 'manual', payout_details: '' });
+          setFinance(financeData || null);
         })
         .finally(() => setReady(true));
     } else {
@@ -254,6 +265,26 @@ export default function Home() {
     }
   };
 
+  const saveCreatorProfile = async () => {
+    const tg = window.Telegram?.WebApp;
+    const iData = tg?.initData || '';
+    setProfileSaving(true);
+    try {
+      const res = await fetch('/api/creator-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
+        body: JSON.stringify(creatorProfile || {}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save profile');
+      setCreatorProfile(data.profile || creatorProfile);
+    } catch (err) {
+      setAdminError(err.message || 'Failed to save creator profile');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   if (!ready) return <DashboardSkeleton />;
 
   return (
@@ -307,6 +338,48 @@ export default function Home() {
             <p className="text-xs text-tg-hint">Earnings</p>
             <p className="text-2xl font-semibold">{stats.totalStars} <span className="text-sm font-medium">Stars</span></p>
           </article>
+        </section>
+      )}
+
+      {user && creatorProfile && (
+        <section className="glass-card space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Creator account</h2>
+          <div className="grid sm:grid-cols-2 gap-2">
+            <input className="chip-btn" placeholder="Legal name" value={creatorProfile.legal_name || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value }))} />
+            <input className="chip-btn" placeholder="Email" value={creatorProfile.email || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value }))} />
+            <input className="chip-btn" placeholder="Country (ISO2, e.g. LU)" value={creatorProfile.country || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value.toUpperCase() }))} />
+            <input className="chip-btn" placeholder="Payout method (manual, paypal, iban)" value={creatorProfile.payout_method || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), payout_method: e.target.value }))} />
+          </div>
+          <textarea className="chip-btn w-full min-h-[68px]" placeholder="Payout details (IBAN / PayPal email / notes)" value={creatorProfile.payout_details || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value }))} />
+          <button type="button" className="chip-btn chip-primary" disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save creator profile'}</button>
+        </section>
+      )}
+
+      {user && finance?.totals && (
+        <section className="glass-card space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Financial dashboard (v1)</h2>
+          <div className="grid sm:grid-cols-3 gap-2">
+            <div className="mini-stat"><p className="mini-stat-label">Gross</p><p className="mini-stat-value">⭐ {finance.totals.gross_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Platform fee</p><p className="mini-stat-value">⭐ {finance.totals.fee_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Net earnings</p><p className="mini-stat-value">⭐ {finance.totals.net_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Pending payout</p><p className="mini-stat-value">⭐ {finance.totals.pending_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Paid out</p><p className="mini-stat-value">⭐ {finance.totals.paid_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Sales count</p><p className="mini-stat-value">{finance.totals.sales_count}</p></div>
+          </div>
+
+          <div className="space-y-1 text-xs text-tg-hint">
+            <p className="font-semibold">Monthly performance</p>
+            {Array.isArray(finance.months) && finance.months.length > 0 ? finance.months.map((m) => (
+              <p key={m.month}>{m.month}: {m.sales_count} sales · gross ⭐ {m.gross_stars} · net ⭐ {m.net_stars}</p>
+            )) : <p>No monthly sales yet.</p>}
+          </div>
+
+          <div className="space-y-1 text-xs text-tg-hint">
+            <p className="font-semibold">Recent payouts</p>
+            {Array.isArray(finance.payouts) && finance.payouts.length > 0 ? finance.payouts.map((p) => (
+              <p key={p.id}>#{p.id} · ⭐ {p.amount_stars} · {p.status}{p.paid_at ? ` · paid ${p.paid_at}` : ''}</p>
+            )) : <p>No payouts yet.</p>}
+          </div>
         </section>
       )}
 
