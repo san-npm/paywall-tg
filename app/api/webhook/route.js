@@ -200,22 +200,21 @@ export async function POST(req) {
       if (text === '/start') {
         await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         await b.api.sendMessage(chatId,
-          `\u{1F44B} Welcome to *Gategram*\n\nSell digital products in Telegram\. Get paid in Stars\.\n\n` +
+          `👋 Welcome to Gategram\n\nSell digital products in Telegram. Get paid in Stars.\n\n` +
           `How it works:\n` +
-          `1\\) Create a product\n` +
-          `2\\) Share your buy link\n` +
-          `3\\) Get paid when someone buys\n\n` +
+          `1) Create a product\n` +
+          `2) Share your buy link\n` +
+          `3) Get paid when someone buys\n\n` +
           `Commands:\n` +
-          `\u{1F4E6} /create \\— Create a product\n` +
-          `\u{1F4CB} /products \\— View your products\n` +
-          `\u{1F4CA} /dashboard \\— View sales and earnings\n` +
-          `\u{1F6D2} /buy \\<product_id\\> \\— Buy a product\n\n` +
-          `Tap *Open Gategram* below to start\.`,
+          `📦 /create — Create a product\n` +
+          `📋 /products — View your products\n` +
+          `📊 /dashboard — View sales and earnings\n` +
+          `🛒 /buy <product_id> — Buy a product\n\n` +
+          `Tap Open Gategram below to start.`,
           {
-            parse_mode: 'MarkdownV2',
             reply_markup: {
               inline_keyboard: [[
-                { text: '\u{1F680} Open Gategram', web_app: { url: WEBAPP_URL } }
+                { text: '🚀 Open Gategram', web_app: { url: WEBAPP_URL } }
               ]]
             }
           }
