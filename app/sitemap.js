@@ -4,6 +4,7 @@ export default function sitemap() {
   const routes = [
     '/',
     '/docs',
+    '/docs/creator-terms',
     '/fees',
     '/how-payments-work',
     '/security',

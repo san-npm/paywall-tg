@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
 import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
-import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews } from '@/lib/db';
+import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
@@ -125,6 +125,15 @@ export async function POST(req) {
 
   try {
     await getOrCreateCreator(creatorId, username, displayName);
+
+    const termsAccepted = await hasAcceptedCurrentCreatorTerms(creatorId);
+    if (!termsAccepted) {
+      return NextResponse.json({
+        error: 'Creator terms acceptance required before publishing.',
+        code: 'TERMS_NOT_ACCEPTED',
+      }, { status: 403 });
+    }
+
     const id = uuid();
     const product = await createProduct(id, creatorId, String(title), String(description || ''), price, content_type, String(content), null);
     return NextResponse.json({ product });
