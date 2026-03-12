@@ -226,6 +226,19 @@ export default function Home() {
     }
   };
 
+  const markPayoutProcessing = async (payoutId) => {
+    setAdminError(null);
+    setAdminBusy(true);
+    try {
+      await postAdminAction({ action: 'payout_mark_processing', payout_id: payoutId });
+      await refreshPayouts();
+    } catch (err) {
+      setAdminError(err.message || 'Mark processing failed');
+    } finally {
+      setAdminBusy(false);
+    }
+  };
+
   const markPayoutPaid = async (payoutId) => {
     setAdminError(null);
     setAdminBusy(true);
@@ -502,7 +515,11 @@ export default function Home() {
                 {payouts.slice(0, 10).map((p) => (
                   <div key={p.id} className="flex items-center gap-2 flex-wrap">
                     <span>#{p.id} · {p.creator_id} · {p.amount_stars} Stars · {p.status}</span>
+                    {p.invoice_ref ? <span>· invoice {p.invoice_ref}</span> : null}
                     <button type="button" className="chip-btn" onClick={() => loadPayoutDetails(p.id)}>Details</button>
+                    {(p.status === 'invoice_submitted' || p.status === 'pending') && (
+                      <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutProcessing(p.id)}>Mark processing</button>
+                    )}
                     {p.status !== 'paid' && (
                       <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutPaid(p.id)}>Mark paid</button>
                     )}
@@ -515,6 +532,9 @@ export default function Home() {
               <div className="text-xs text-tg-hint space-y-1">
                 <p className="font-semibold">Payout #{selectedPayout.payout.id} details</p>
                 <p>Creator: {selectedPayout.payout.creator_id} · Amount: {selectedPayout.payout.amount_stars} · Status: {selectedPayout.payout.status}</p>
+                {selectedPayout.payout.invoice_ref ? <p>Invoice ref: {selectedPayout.payout.invoice_ref}</p> : null}
+                {selectedPayout.payout.invoice_url ? <p>Invoice URL: {selectedPayout.payout.invoice_url}</p> : null}
+                {selectedPayout.payout.invoice_submitted_at ? <p>Submitted at: {selectedPayout.payout.invoice_submitted_at}</p> : null}
                 {Array.isArray(selectedPayout.purchases) && selectedPayout.purchases.length > 0 ? (
                   selectedPayout.purchases.slice(0, 20).map((row) => (
                     <p key={row.id}>purchase #{row.id} · product {row.product_id} · buyer {row.buyer_telegram_id} · share {row.creator_share}</p>
