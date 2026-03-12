@@ -1,0 +1,10 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" rx="24" fill="#0B1020"/>
+  <circle cx="220" cy="130" r="180" fill="#2AABEE" fill-opacity="0.22"/>
+  <circle cx="980" cy="560" r="210" fill="#5B7CFF" fill-opacity="0.22"/>
+  <text x="84" y="248" fill="#F7FAFC" font-family="Arial, sans-serif" font-size="76" font-weight="700">Gategram</text>
+  <text x="84" y="324" fill="#8CA3B8" font-family="Arial, sans-serif" font-size="40" font-weight="500">Telegram Paywall &amp; Community Monetization</text>
+  <text x="84" y="390" fill="#C8D5E3" font-family="Arial, sans-serif" font-size="32">Native Stars checkout • Instant delivery • 5% platform fee</text>
+  <rect x="84" y="444" width="420" height="74" rx="14" fill="#2AABEE"/>
+  <text x="118" y="492" fill="white" font-family="Arial, sans-serif" font-size="34" font-weight="700">gategram.app</text>
+</svg>
