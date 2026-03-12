@@ -84,8 +84,12 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Rate limit exceeded. Max 30 products per hour.' }, { status: 429 });
   }
 
-  const { title, description, price_stars, content_type, content, price_usd_cents, price_eur_cents, payment_methods } = body;
+  const { title, description, price_stars, content_type, content, media_kind, price_usd_cents, price_eur_cents, payment_methods } = body;
 
+
+  const normalizedContentType = (content_type === 'photo' || content_type === 'video') ? 'file' : content_type;
+  const normalizedMediaKind = String(media_kind || content_type || 'document').toLowerCase();
+  const effectiveMediaKind = normalizedMediaKind === 'photo' ? 'photo' : normalizedMediaKind === 'video' ? 'video' : 'document';
   if (!title || !price_stars || !content_type || !content) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
@@ -107,12 +111,12 @@ export async function POST(req) {
   }
 
   const validTypes = ['text', 'link', 'message', 'file'];
-  if (!validTypes.includes(content_type)) {
-    return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message, file' }, { status: 400 });
+  if (!validTypes.includes(normalizedContentType)) {
+    return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message, file, photo, video' }, { status: 400 });
   }
 
   // Validate link content is a proper URL
-  if (content_type === 'link') {
+  if (normalizedContentType === 'link') {
     try {
       const url = new URL(String(content));
       if (!['http:', 'https:'].includes(url.protocol)) {
@@ -159,9 +163,10 @@ export async function POST(req) {
       String(title),
       String(description || ''),
       price,
-      content_type,
+      normalizedContentType,
       String(content),
       null,
+      effectiveMediaKind,
       usdCents,
       eurCents,
       effectiveMethods.join(','),

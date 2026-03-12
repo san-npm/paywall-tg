@@ -23,8 +23,6 @@ export default function CreateOffer() {
   const [price, setPrice] = useState('');
   const [contentType, setContentType] = useState('text');
   const [content, setContent] = useState('');
-  const [priceUsd, setPriceUsd] = useState('');
-  const [priceEur, setPriceEur] = useState('');
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(null);
   const [error, setError] = useState(null);
@@ -123,6 +121,8 @@ export default function CreateOffer() {
     trackEvent('create_offer_submit_attempted', { content_type: contentType, has_description: Boolean(description), price_stars: priceNum });
     try {
       const tg = window.Telegram?.WebApp;
+      const normalizedType = (contentType === 'photo' || contentType === 'video') ? 'file' : contentType;
+      const mediaKind = contentType === 'photo' ? 'photo' : contentType === 'video' ? 'video' : 'document';
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,10 +131,9 @@ export default function CreateOffer() {
           title,
           description,
           price_stars: priceNum,
-          price_usd_cents: priceUsd ? Math.round(Number(priceUsd) * 100) : undefined,
-          price_eur_cents: priceEur ? Math.round(Number(priceEur) * 100) : undefined,
-          payment_methods: ['stars', 'stripe'],
-          content_type: contentType,
+          payment_methods: ['stars'],
+          content_type: normalizedType,
+          media_kind: mediaKind,
           content,
         }),
       });
@@ -198,6 +197,8 @@ export default function CreateOffer() {
     { key: 'link', label: 'Link' },
     { key: 'message', label: 'Message' },
     { key: 'file', label: 'File' },
+    { key: 'photo', label: 'Photo' },
+    { key: 'video', label: 'Video' },
   ];
 
   const contentPlaceholder = {
@@ -205,6 +206,8 @@ export default function CreateOffer() {
     link: 'https://your-resource-link.com',
     message: 'Write the private message buyers should receive.',
     file: 'Describe what buyer gets. After publishing, use /attach to upload the file.',
+    photo: 'Describe the photo buyers will unlock. After publishing, use /attach to upload it.',
+    video: 'Describe the video buyers will unlock. After publishing, use /attach to upload it.',
   };
 
   const contentLabel = {
@@ -212,6 +215,8 @@ export default function CreateOffer() {
     link: 'Unlocked URL',
     message: 'Unlocked message',
     file: 'File description',
+    photo: 'Photo description',
+    video: 'Video description',
   };
 
   return (
@@ -229,7 +234,7 @@ export default function CreateOffer() {
           </div>
           <div className="mini-stat">
             <p className="mini-stat-label">Payments</p>
-            <p className="mini-stat-value">Stars + Card</p>
+            <p className="mini-stat-value">Telegram Stars</p>
           </div>
           <div className="mini-stat">
             <p className="mini-stat-label">Share anywhere</p>
@@ -322,34 +327,6 @@ export default function CreateOffer() {
             <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 50,000 Stars.</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-sm text-tg-hint mb-1">Card checkout EUR (optional)</label>
-              <input
-                type="number"
-                min="0.5"
-                step="0.01"
-                value={priceEur}
-                onChange={(e) => setPriceEur(e.target.value)}
-                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-                style={{ backgroundColor: 'var(--surface)' }}
-                placeholder="4.99"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-tg-hint mb-1">Card checkout USD (optional)</label>
-              <input
-                type="number"
-                min="0.5"
-                step="0.01"
-                value={priceUsd}
-                onChange={(e) => setPriceUsd(e.target.value)}
-                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-                style={{ backgroundColor: 'var(--surface)' }}
-                placeholder="5.49"
-              />
-            </div>
-          </div>
 
           <div>
             <label className="block text-sm text-tg-hint mb-1">Content type</label>
