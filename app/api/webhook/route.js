@@ -426,13 +426,14 @@ export async function POST(req) {
       }
 
       // /testbuy <id> (no-charge simulation)
-      else if (text.startsWith('/testbuy ')) {
+      else if (text.startsWith('/testbuy ') || text.startsWith('/testbuy@')) {
         if (!ENABLE_FAKE_PAYMENTS) {
           await b.api.sendMessage(chatId, '\u274C Test purchases are disabled.');
           return NextResponse.json({ ok: true });
         }
 
-        const productId = text.slice(9).trim();
+        const match = text.match(/^\/testbuy(?:@\w+)?\s+(.+)$/);
+        const productId = (match?.[1] || '').trim();
         if (!isValidProductId(productId)) {
           await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
           return NextResponse.json({ ok: true });
@@ -457,31 +458,32 @@ export async function POST(req) {
           await recordPurchase(productId, userId, starsPaid, creatorShare, platformFee, fakeChargeId);
         }
 
-        const safeTitle = escapeMarkdown(product.title);
+        const title = String(product.title || 'Product');
         let contentMessage = '';
         switch (product.content_type) {
           case 'text':
-            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+            contentMessage = `🧪 Test purchase successful\n\n${title}\n\n${product.content}`;
             break;
           case 'link':
-            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+            contentMessage = `🧪 Test purchase successful\n\n${title}\n\n🔗 ${product.content}`;
             break;
           case 'file':
-            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*`;
+            contentMessage = `🧪 Test purchase successful\n\n${title}`;
             break;
           default:
-            contentMessage = `\u{1F9EA} *Test purchase successful\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+            contentMessage = `🧪 Test purchase successful\n\n${title}\n\n${product.content}`;
             break;
         }
 
-        await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
+        await b.api.sendMessage(chatId, contentMessage);
         if (product.content_type === 'file') {
           if (product.file_id) await b.api.sendDocument(chatId, product.file_id);
           else await b.api.sendMessage(chatId, 'Test mode: file is not attached yet for this product.');
         }
 
-        const creatorMsg = `\u{1F9EA} Test sale\!\n*${safeTitle}*\nSimulated buyer generated \u2B50 ${Math.max(0, Number(product.price_stars || 0) - Math.ceil(Number(product.price_stars || 0) * PLATFORM_FEE_PERCENT / 100))} creator share`;
-        await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' }).catch(() => {});
+        const creatorShare = Math.max(0, Number(product.price_stars || 0) - Math.ceil(Number(product.price_stars || 0) * PLATFORM_FEE_PERCENT / 100));
+        const creatorMsg = `🧪 Test sale\n${title}\nSimulated buyer generated ⭐ ${creatorShare} creator share`;
+        await b.api.sendMessage(product.creator_id, creatorMsg).catch(() => {});
       }
 
       // /admin_disable <id> and /admin_enable <id>
