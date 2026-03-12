@@ -33,6 +33,7 @@ export default function BuyProduct() {
   const { id } = useParams();
   const searchParams = useSearchParams();
   const paidStripe = searchParams.get('paid') === 'stripe';
+  const stripeSessionId = searchParams.get('session_id') || '';
   const [product, setProduct] = useState(null);
   const [purchased, setPurchased] = useState(false);
   const [user, setUser] = useState(null);
@@ -41,6 +42,8 @@ export default function BuyProduct() {
   const [error, setError] = useState(null);
   const [initData, setInitData] = useState('');
   const [checkoutCurrency, setCheckoutCurrency] = useState('EUR');
+  const [verifyingStripe, setVerifyingStripe] = useState(false);
+  const [stripeVerified, setStripeVerified] = useState(false);
 
   useEffect(() => {
     let u = null;
@@ -70,6 +73,21 @@ export default function BuyProduct() {
       .catch(() => setError('Failed to load product'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!paidStripe || !stripeSessionId || stripeVerified) return;
+    setVerifyingStripe(true);
+    fetch(`/api/checkout/verify?session_id=${encodeURIComponent(stripeSessionId)}`)
+      .then(r => r.json())
+      .then((data) => {
+        if (data?.delivered || data?.alreadyProcessed) {
+          setStripeVerified(true);
+          setPurchased(true);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setVerifyingStripe(false));
+  }, [paidStripe, stripeSessionId, stripeVerified]);
 
   const refreshPurchaseState = async () => {
     setLoading(true);
@@ -198,7 +216,9 @@ export default function BuyProduct() {
 
       {paidStripe && !purchased && (
         <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#fff7ed', color: '#9a3412' }}>
-          ✅ Card payment completed. Delivery is pending webhook confirmation — then content will appear in Telegram bot chat.
+          {verifyingStripe
+            ? '⏳ Card payment detected. Finalizing delivery now...'
+            : '✅ Card payment completed. Delivery is pending confirmation — then content will appear in Telegram bot chat.'}
         </div>
       )}
 
@@ -221,6 +241,9 @@ export default function BuyProduct() {
                 <p className="whitespace-pre-wrap">{product.content}</p>
               )}
             </div>
+          )}
+          {!product.content && (
+            <p className="text-xs text-tg-hint mt-2">Content is available in your Telegram chat with the bot.</p>
           )}
           {product.content_type === 'file' && (
             <p className="text-xs text-tg-hint mt-2">📎 File was delivered in the bot chat.</p>
