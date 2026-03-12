@@ -318,7 +318,27 @@ export async function POST(req) {
         }
 
         if (await hasPurchased(productId, userId)) {
-          await b.api.sendMessage(chatId, '\u2705 You already purchased this! The content was sent to you.');
+          const safeTitle = escapeMarkdown(product.title);
+          let contentMessage = '';
+          switch (product.content_type) {
+            case 'text':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+            case 'link':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+              break;
+            case 'file':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*`;
+              break;
+            default:
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+          }
+          await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
+          if (product.content_type === 'file') {
+            if (product.file_id) await b.api.sendDocument(chatId, product.file_id);
+            else await b.api.sendMessage(chatId, 'The file for this product is not yet available. Contact the creator.');
+          }
           return NextResponse.json({ ok: true });
         }
 
@@ -359,7 +379,27 @@ export async function POST(req) {
         }
 
         if (await hasPurchased(productId, userId)) {
-          await b.api.sendMessage(chatId, '\u2705 You already purchased this! The content was sent to you.');
+          const safeTitle = escapeMarkdown(product.title);
+          let contentMessage = '';
+          switch (product.content_type) {
+            case 'text':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+            case 'link':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+              break;
+            case 'file':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*`;
+              break;
+            default:
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+          }
+          await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
+          if (product.content_type === 'file') {
+            if (product.file_id) await b.api.sendDocument(chatId, product.file_id);
+            else await b.api.sendMessage(chatId, 'The file for this product is not yet available. Contact the creator.');
+          }
           return NextResponse.json({ ok: true });
         }
 
