@@ -197,8 +197,8 @@ export default function BuyProduct() {
       </div>
 
       {paidStripe && !purchased && (
-        <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#ecfdf5', color: '#065f46' }}>
-          ✅ Card payment received. Your content is delivered in Telegram bot chat.
+        <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#fff7ed', color: '#9a3412' }}>
+          ✅ Card payment completed. Delivery is pending webhook confirmation — then content will appear in Telegram bot chat.
         </div>
       )}
 
