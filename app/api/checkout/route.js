@@ -90,6 +90,15 @@ export async function POST(req) {
       creator_telegram_id: String(product.creator_id),
       currency: normalizedCurrency,
     },
+    payment_intent_data: {
+      metadata: {
+        source: 'gategram',
+        product_id: String(product_id),
+        buyer_telegram_id: buyerId,
+        creator_telegram_id: String(product.creator_id),
+        currency: normalizedCurrency,
+      },
+    },
   });
 
   return NextResponse.json({ checkout_url: session.url, session_id: session.id });
