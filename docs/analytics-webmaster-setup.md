@@ -39,6 +39,13 @@ Set for Production (+ Preview/Development if needed):
 ### What is already implemented in code
 - Global GA4 script loader in `app/layout.jsx`
 - `gtag('config', G-XXXX)` initialization after interactive load
+- Event helper in `lib/analytics.js`
+- Create flow events in `app/(miniapp)/create/page.jsx`:
+  - `create_offer_page_viewed`
+  - `create_offer_submit_attempted`
+  - `create_offer_succeeded`
+  - `create_offer_failed`
+  - `creator_terms_accepted`
 
 ---
 

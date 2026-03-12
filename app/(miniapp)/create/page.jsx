@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { trackEvent } from '@/lib/analytics';
 
 function CreateSkeleton() {
   return (
@@ -30,6 +31,8 @@ export default function CreateOffer() {
   const [termsSubmitting, setTermsSubmitting] = useState(false);
 
   useEffect(() => {
+    trackEvent('create_offer_page_viewed', { page: 'create_offer' });
+
     const bootstrap = async () => {
       if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
@@ -77,9 +80,11 @@ export default function CreateOffer() {
       });
       const data = await res.json();
       if (!res.ok) {
+        trackEvent('creator_terms_accept_failed', { source: 'create_offer' });
         setError(data.error || 'Failed to accept creator terms.');
       } else {
         setTermsAccepted(Boolean(data.accepted));
+        trackEvent('creator_terms_accepted', { source: 'create_offer', version: data.accepted_version || 'unknown' });
       }
     } catch {
       setError('Network error while accepting terms. Please retry.');
@@ -113,6 +118,7 @@ export default function CreateOffer() {
     }
 
     setLoading(true);
+    trackEvent('create_offer_submit_attempted', { content_type: contentType, has_description: Boolean(description), price_stars: priceNum });
     try {
       const tg = window.Telegram?.WebApp;
       const res = await fetch('/api/products', {
@@ -132,12 +138,17 @@ export default function CreateOffer() {
       if (!res.ok) {
         if (data.code === 'TERMS_NOT_ACCEPTED') {
           setTermsAccepted(false);
+          trackEvent('create_offer_blocked_terms_not_accepted', { source: 'create_offer' });
+        } else {
+          trackEvent('create_offer_failed', { source: 'create_offer' });
         }
         setError(data.error || 'Failed to create offer.');
       } else if (data.product) {
+        trackEvent('create_offer_succeeded', { content_type: data.product.content_type, price_stars: data.product.price_stars });
         setCreated(data.product);
       }
     } catch {
+      trackEvent('create_offer_failed_network', { source: 'create_offer' });
       setError('Network error. Please try again.');
     }
 
