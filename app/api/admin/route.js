@@ -33,6 +33,52 @@ function toCsv(rows) {
   return `${lines.join('\n')}\n`;
 }
 
+function payoutStatementRows(details) {
+  if (!details?.payout) return [];
+  const header = details.payout;
+  const rows = (details.purchases || []).map((p) => ({
+    payout_id: header.id,
+    payout_created_at: header.created_at,
+    payout_status: header.status,
+    payout_paid_at: header.paid_at || '',
+    creator_id: header.creator_id,
+    payout_amount_stars: header.amount_stars,
+    invoice_ref: header.invoice_ref || '',
+    purchase_id: p.id,
+    product_id: p.product_id,
+    product_title: p.product_title || '',
+    buyer_telegram_id: p.buyer_telegram_id,
+    stars_paid: p.stars_paid,
+    creator_share: p.creator_share,
+    platform_fee: p.platform_fee,
+    refunded: p.refunded,
+    telegram_charge_id: p.telegram_charge_id || '',
+    purchase_created_at: p.created_at,
+  }));
+
+  if (rows.length > 0) return rows;
+
+  return [{
+    payout_id: header.id,
+    payout_created_at: header.created_at,
+    payout_status: header.status,
+    payout_paid_at: header.paid_at || '',
+    creator_id: header.creator_id,
+    payout_amount_stars: header.amount_stars,
+    invoice_ref: header.invoice_ref || '',
+    purchase_id: '',
+    product_id: '',
+    product_title: '',
+    buyer_telegram_id: '',
+    stars_paid: '',
+    creator_share: '',
+    platform_fee: '',
+    refunded: '',
+    telegram_charge_id: '',
+    purchase_created_at: '',
+  }];
+}
+
 export async function GET(req) {
   const adminId = getAdminId(req);
   if (!adminId) return NextResponse.json({ is_admin: false }, { status: 200 });
@@ -50,6 +96,26 @@ export async function GET(req) {
   const payout_id = searchParams.get('payout_id') || undefined;
 
   const filters = { limit, from, to, creator_id, refunded, payout_id };
+
+  if (kind === 'payout_statement_csv') {
+    const payoutIdNum = Number(payout_id);
+    if (!Number.isFinite(payoutIdNum) || payoutIdNum <= 0) {
+      return NextResponse.json({ error: 'Valid payout_id required' }, { status: 400 });
+    }
+    const details = await getPayoutDetails(payoutIdNum);
+    if (!details?.payout) {
+      return NextResponse.json({ error: 'Payout not found' }, { status: 404 });
+    }
+    const csv = toCsv(payoutStatementRows(details));
+    const filename = `payout-statement-${payoutIdNum}.csv`;
+    return new NextResponse(csv, {
+      status: 200,
+      headers: {
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': `attachment; filename="${filename}"`,
+      },
+    });
+  }
 
   const rows = kind === 'purchases'
     ? await getPurchaseExports(filters)
