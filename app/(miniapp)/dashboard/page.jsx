@@ -252,6 +252,22 @@ export default function Home() {
     }
   };
 
+  const downloadCsvResponse = async (res, fallbackName) => {
+    if (!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const cd = res.headers.get('content-disposition') || '';
+    const match = cd.match(/filename="?([^";]+)"?/i);
+    const name = match?.[1] || fallbackName;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const exportCsv = async (kind) => {
     setAdminError(null);
     try {
@@ -265,18 +281,37 @@ export default function Home() {
       const res = await fetch(`/api/admin?${params.toString()}`, {
         headers: { 'x-telegram-init-data': iData }
       });
-      if (!res.ok) throw new Error('Export failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${kind}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      await downloadCsvResponse(res, `${kind}.csv`);
     } catch (err) {
       setAdminError(err.message || 'Export failed');
+    }
+  };
+
+  const downloadPayoutStatementAdmin = async (payoutId) => {
+    setAdminError(null);
+    try {
+      const tg = window.Telegram?.WebApp;
+      const iData = tg?.initData || '';
+      const res = await fetch(`/api/admin?kind=payout_statement_csv&payout_id=${encodeURIComponent(String(payoutId))}`, {
+        headers: { 'x-telegram-init-data': iData }
+      });
+      await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
+    } catch (err) {
+      setAdminError(err.message || 'Statement download failed');
+    }
+  };
+
+  const downloadPayoutStatementCreator = async (payoutId) => {
+    setAdminError(null);
+    try {
+      const tg = window.Telegram?.WebApp;
+      const iData = tg?.initData || '';
+      const res = await fetch(`/api/creator-payout-statement?payout_id=${encodeURIComponent(String(payoutId))}`, {
+        headers: { 'x-telegram-init-data': iData }
+      });
+      await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
+    } catch (err) {
+      setAdminError(err.message || 'Statement download failed');
     }
   };
 
@@ -430,6 +465,9 @@ export default function Home() {
                 <p>#{p.id} · ⭐ {p.amount_stars} · {p.status}{p.paid_at ? ` · paid ${p.paid_at}` : ''}</p>
                 {p.invoice_ref && <p>Invoice: {p.invoice_ref}</p>}
                 {p.invoice_submitted_at && <p>Submitted: {p.invoice_submitted_at}</p>}
+                <div className="mt-2">
+                  <button type="button" className="chip-btn" onClick={() => downloadPayoutStatementCreator(p.id)}>Download statement CSV</button>
+                </div>
                 {p.status === 'pending' && (
                   <div className="mt-2 grid sm:grid-cols-3 gap-2">
                     <input className="chip-btn" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
@@ -517,6 +555,7 @@ export default function Home() {
                     <span>#{p.id} · {p.creator_id} · {p.amount_stars} Stars · {p.status}</span>
                     {p.invoice_ref ? <span>· invoice {p.invoice_ref}</span> : null}
                     <button type="button" className="chip-btn" onClick={() => loadPayoutDetails(p.id)}>Details</button>
+                    <button type="button" className="chip-btn" onClick={() => downloadPayoutStatementAdmin(p.id)}>Statement CSV</button>
                     {(p.status === 'invoice_submitted' || p.status === 'pending') && (
                       <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutProcessing(p.id)}>Mark processing</button>
                     )}
