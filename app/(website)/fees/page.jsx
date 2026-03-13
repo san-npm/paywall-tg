@@ -16,8 +16,8 @@ export default function FeesPage() {
     <>
       <PageHeader
         badge="Pricing"
-        title="Simple fee: 5%"
-        description="You keep 95% of every sale. No monthly fee. No setup fee."
+        title="Simple pricing creators can explain in one sentence"
+        description="You keep 95% of each successful sale. Gategram takes a flat 5%. No monthly fee, no setup fee."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -32,7 +32,8 @@ export default function FeesPage() {
 
       <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6 text-center">What this looks like</h2>
+          <h2 className="text-2xl font-bold mb-2 text-center">What this looks like in real sales</h2>
+          <p className="text-sm text-site-muted text-center mb-6">Fee is rounded up to whole Stars. Table below shows exactly what creator receives.</p>
           <div className="rounded-xl border border-site-border overflow-hidden">
             <div className="grid grid-cols-3 text-sm font-semibold bg-site-card">
               <div className="p-4 text-site-dim">Sale price</div>
@@ -51,26 +52,38 @@ export default function FeesPage() {
       </section>
 
       <section className="py-16 px-4 border-b border-site-border">
-        <div className="max-w-3xl mx-auto grid md:grid-cols-3 gap-4">
-          {[
-            ['No monthly fee', 'You only pay when you make sales.'],
-            ['No setup fee', 'Create and start for free.'],
-            ['No hidden costs', 'One fee model. Easy to understand.'],
-          ].map(([title, desc]) => (
-            <article key={title} className="site-panel text-center">
-              <h3 className="font-bold mb-1">{title}</h3>
-              <p className="text-sm text-site-muted">{desc}</p>
-            </article>
-          ))}
+        <div className="max-w-4xl mx-auto space-y-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              ['No monthly fee', 'You only pay when you make sales.'],
+              ['No setup fee', 'Create and start for free.'],
+              ['No hidden costs', 'One fee model. Easy to understand.'],
+            ].map(([title, desc]) => (
+              <article key={title} className="site-panel text-center">
+                <h3 className="font-bold mb-1">{title}</h3>
+                <p className="text-sm text-site-muted">{desc}</p>
+              </article>
+            ))}
+          </div>
+
+          <article className="site-panel text-sm text-site-muted">
+            <p className="font-semibold text-site-text mb-2">Payout and accounting clarity</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Creators can export payout statement CSV files for each payout cycle.</li>
+              <li>Each statement includes purchase rows and a TOTAL footer for reconciliation.</li>
+              <li>Buyers always see price before payment in Telegram checkout.</li>
+            </ul>
+          </article>
         </div>
       </section>
 
       <PageCTA
-        title="Start monetizing your content"
-        description="Clear pricing, fast setup, and instant Telegram delivery."
-        primary="Monetize your content"
-        secondary="Create your community"
-        secondaryHref="/use-cases/telegram-paid-content"
+        title="Ready to launch with pricing your audience understands?"
+        description="Start in minutes, keep 95%, and give buyers a clear in-app checkout flow."
+        primary="Start in 2 minutes"
+        primaryHref="/docs#connect-bot"
+        secondary="See payment flow"
+        secondaryHref="/how-payments-work"
       />
     </>
   );
