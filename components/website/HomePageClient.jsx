@@ -66,12 +66,12 @@ export default function HomePageClient() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl">
-            Sell paid content in Telegram. <span className="text-site-accent">Fast.</span>
+            Sell paid content and private access in Telegram. <span className="text-site-accent">Without checkout friction.</span>
           </h1>
 
           <p className="mt-6 text-lg md:text-xl text-site-muted max-w-2xl leading-relaxed">
-            No complicated setup. No external checkout maze. Just publish your content,
-            get paid in Stars, and deliver instantly.
+            For creators: publish an offer, set your Stars price, and get paid in chat.
+            For buyers: tap, pay, and unlock instantly in the same Telegram flow.
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3">
@@ -112,16 +112,41 @@ export default function HomePageClient() {
       </section>
 
       <section className="px-4 py-16 border-t border-site-border bg-site-elevated">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">How it works</h2>
-          <div className="grid md:grid-cols-3 gap-5">
-            {steps.map((s) => (
-              <article key={s.n} className="site-step">
-                <span className="site-step-n">{s.n}</span>
-                <h3 className="text-lg font-bold mb-2">{s.title}</h3>
-                <p className="text-sm text-site-muted">{s.desc}</p>
+        <div className="max-w-5xl mx-auto space-y-8">
+          <h2 className="text-3xl md:text-4xl font-bold">How it works</h2>
+
+          <div>
+            <h3 className="text-xl font-semibold mb-4">For creators</h3>
+            <div className="grid md:grid-cols-3 gap-5">
+              {steps.map((s) => (
+                <article key={s.n} className="site-step">
+                  <span className="site-step-n">{s.n}</span>
+                  <h3 className="text-lg font-bold mb-2">{s.title}</h3>
+                  <p className="text-sm text-site-muted">{s.desc}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-semibold mb-4">For buyers (your users)</h3>
+            <div className="grid md:grid-cols-3 gap-5">
+              <article className="site-step">
+                <span className="site-step-n">01</span>
+                <h3 className="text-lg font-bold mb-2">Open the buy link</h3>
+                <p className="text-sm text-site-muted">They tap your Telegram buy link from a channel, group, or DM.</p>
               </article>
-            ))}
+              <article className="site-step">
+                <span className="site-step-n">02</span>
+                <h3 className="text-lg font-bold mb-2">Pay with Telegram Stars</h3>
+                <p className="text-sm text-site-muted">Checkout happens natively in Telegram, without sending them to external pages.</p>
+              </article>
+              <article className="site-step">
+                <span className="site-step-n">03</span>
+                <h3 className="text-lg font-bold mb-2">Unlock instantly</h3>
+                <p className="text-sm text-site-muted">Content is delivered right after successful payment.</p>
+              </article>
+            </div>
           </div>
         </div>
       </section>
@@ -154,6 +179,25 @@ export default function HomePageClient() {
       </section>
 
       <section className="px-4 py-16 border-t border-site-border">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-4 mb-10">
+          <article className="site-panel">
+            <h3 className="font-bold mb-2">What creators usually ask</h3>
+            <ul className="text-sm text-site-muted space-y-1 list-disc pl-5">
+              <li>Can I sell files, links, text, or private messages?</li>
+              <li>Can I set my own Stars price? (yes)</li>
+              <li>Can I export payout statements for accounting? (yes)</li>
+            </ul>
+          </article>
+          <article className="site-panel">
+            <h3 className="font-bold mb-2">What buyers usually ask</h3>
+            <ul className="text-sm text-site-muted space-y-1 list-disc pl-5">
+              <li>Do I need to leave Telegram to pay? (no)</li>
+              <li>When do I get access? (right after payment)</li>
+              <li>Is pricing visible before checkout? (yes)</li>
+            </ul>
+          </article>
+        </div>
+
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-3">Get creator growth playbooks</h2>
           <p className="text-site-muted mb-6">Simple ideas to increase paid content sales without annoying your audience.</p>
