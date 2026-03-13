@@ -150,6 +150,7 @@ paywall-tg/
 ├── lib/
 │   ├── config.js               # Environment vars + constants
 │   ├── db.js                   # Turso/libSQL database layer
+│   ├── payout-statement.js     # CSV payout statement shaping + totals
 │   └── validate.js             # Telegram auth + initData validation
 ├── .env.example                # Environment variable template
 └── package.json
@@ -160,20 +161,26 @@ paywall-tg/
 **`GET /api/admin`** — Admin status, logs, and CSV exports
 - Requires `x-telegram-init-data` for an admin user from `ADMIN_TELEGRAM_IDS`
 - Query params:
-  - `kind=actions|purchases|payouts|reconciliation`
-  - `format=json|csv`
+  - `kind=actions|purchases|payouts|reconciliation|payout_statement_csv`
+  - `format=json|csv` (not required for `payout_statement_csv`)
   - `limit=<1..5000>`
   - `from=YYYY-MM-DD`
   - `to=YYYY-MM-DD`
   - `creator_id=<telegram_id>` (purchases only)
   - `refunded=all|no|only` (purchases only)
-  - `payout_id=<id>` (payout details in JSON)
+  - `payout_id=<id>` (payout details JSON, or required for payout statement CSV)
+- `kind=payout_statement_csv` returns a payout statement export with a `TOTAL` footer row.
 
 **`POST /api/admin`** — Admin actions
 - `enable_product` / `disable_product`
 - `refund_payment` (Telegram Stars refund + internal ledger update)
 - `payout_create` (creates pending payout rows from unassigned creator shares)
 - `payout_mark_paid` (marks payout as paid)
+
+**`GET /api/creator-payout-statement?payout_id=<id>`** — Creator payout statement CSV
+- Requires Telegram initData auth
+- Creator can only fetch statements for their own payouts
+- CSV includes a `TOTAL` footer row for reconciliation
 
 **`POST /api/webhook`** — Telegram bot webhook
 - Processes commands (`/start`, `/create`, `/buy`, etc.)
