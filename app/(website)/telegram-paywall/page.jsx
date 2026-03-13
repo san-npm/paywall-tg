@@ -33,7 +33,9 @@ export default function TelegramPaywallPage() {
 
       <PageCTA
         title="Launch your Telegram paywall"
-        description="Create your first paid offer in minutes."
+        description="Create your first paid offer in minutes with a buyer flow that is clear from first click to unlock."
+        primary="Start in 2 minutes"
+        primaryHref="/docs#connect-bot"
         secondary="See docs"
         secondaryHref="/docs"
       />
