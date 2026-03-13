@@ -13,8 +13,8 @@ export default function TelegramPaywallPage() {
     <>
       <PageHeader
         badge="SEO Landing"
-        title="Telegram paywall that converts"
-        description="Monetize paid access in Telegram without external checkout friction."
+        title="Telegram paywall that creators and buyers both understand"
+        description="Creators publish paid access. Buyers pay with Stars and unlock instantly, without leaving Telegram."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
