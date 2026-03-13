@@ -32,8 +32,8 @@ export default function GumroadAlternative() {
     <>
       <PageHeader
         badge="Alternative"
-        title={<>The Gumroad alternative for <span className="text-site-accent">Telegram</span> creators</>}
-        description="Gumroad works for Twitter. For Telegram, you need native checkout. Gategram lets your buyers purchase without ever leaving the chat."
+        title={<>The Gumroad alternative built for <span className="text-site-accent">Telegram</span></>}
+        description="Gumroad is fine for web checkout. Gategram is built for Telegram creators who want buyers to pay and unlock in chat."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -79,8 +79,10 @@ export default function GumroadAlternative() {
       </section>
 
       <PageCTA
-        title="Switch from Gumroad to native Telegram sales"
-        description="Keep your audience in the chat. Keep 95% of every sale."
+        title="Want to replace Gumroad checkout friction?"
+        description="Launch your Telegram-native flow and keep buyers inside chat from tap to unlock."
+        primary="Start in 2 minutes"
+        primaryHref="/docs#connect-bot"
         secondary="See pricing details"
         secondaryHref="/fees"
       />

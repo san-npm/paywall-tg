@@ -23,8 +23,8 @@ export default function SellDigitalProducts() {
     <>
       <PageHeader
         badge="Use Case"
-        title={<>Sell digital products on <span className="text-site-accent">Telegram</span></>}
-        description="Stop sending your Telegram audience to external storefronts. Sell ebooks, templates, courses, and any digital product with native Stars checkout. Buyer never leaves the chat."
+        title={<>Sell digital products on <span className="text-site-accent">Telegram</span> with less friction</>}
+        description="Creators list offers in minutes. Buyers pay with Stars and get files, links, or access instantly in chat."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -102,8 +102,10 @@ export default function SellDigitalProducts() {
       </section>
 
       <PageCTA
-        title="Start selling digital products on Telegram"
-        description="No setup fees, no approval process. Your first product goes live in 2 minutes."
+        title="Ready to sell your first digital product on Telegram?"
+        description="Launch quickly with native checkout your audience already trusts."
+        primary="Start in 2 minutes"
+        primaryHref="/docs#connect-bot"
         secondary="See pricing"
         secondaryHref="/fees"
       />

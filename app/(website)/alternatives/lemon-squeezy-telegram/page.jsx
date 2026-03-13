@@ -13,8 +13,8 @@ export default function LemonSqueezyAlternative() {
     <>
       <PageHeader
         badge="Alternative"
-        title={<>LemonSqueezy alternative for <span className="text-site-accent">Telegram</span></>}
-        description="LemonSqueezy is great for SaaS and general digital sales. But for Telegram creators, a native checkout converts better than any external storefront."
+        title={<>LemonSqueezy alternative for Telegram creators</>}
+        description="LemonSqueezy is strong for SaaS. Gategram is for creators who sell inside Telegram with native Stars checkout."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -87,8 +87,12 @@ export default function LemonSqueezyAlternative() {
       </section>
 
       <PageCTA
-        title="Sell natively on Telegram"
-        description="No external checkout, no tax setup, no merchant account. Start selling in 2 minutes."
+        title="Ready for Telegram-native checkout instead of hosted pages?"
+        description="Set up quickly, share one link, and let buyers complete payment without leaving Telegram."
+        primary="Start in 2 minutes"
+        primaryHref="/docs#connect-bot"
+        secondary="See payment flow"
+        secondaryHref="/how-payments-work"
       />
     </>
   );
