@@ -15,6 +15,7 @@ Scope: full repository (`app/**`, `components/**`, `lib/**`, config, docs)
 1. `npm test` (pass)
 2. `npm run build` (pass)
 3. `npm run audit:deps` (environment-limited: npm advisory endpoint 403)
+4. Conflict-resolution pass validated for `AUDIT_REPORT.md`, `app/api/admin/route.js`, and `app/api/invoice/route.js`
 
 ## Audit items and implementation status
 
@@ -27,6 +28,12 @@ Scope: full repository (`app/**`, `components/**`, `lib/**`, config, docs)
 - [x] Add structured audit event correlation IDs for sensitive operations
   - Added `request_id` generation and propagation in admin and invoice API responses/logging.
   - Files: `app/api/admin/route.js`, `app/api/invoice/route.js`
+
+- [x] Resolve branch conflicts safely in API/report files
+  - Unified response shaping with helper functions returning consistent `request_id` payloads.
+  - Added `BOT_TOKEN` guard in admin bot initialization path.
+  - Reordered invoice validation so `product_id` format checks run before per-product throttling.
+  - Files: `AUDIT_REPORT.md`, `app/api/admin/route.js`, `app/api/invoice/route.js`
 
 - [x] Add abuse-detection signals around invoice bursts
   - Added per-buyer and per-buyer-per-product invoice throttles with structured warning logs.
