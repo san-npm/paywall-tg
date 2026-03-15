@@ -325,9 +325,10 @@ export default function CreateOffer() {
       </section>
 
       {!hasInitData && (
-        <section className="glass-card text-sm">
-          <p className="font-semibold">Open in Telegram to publish</p>
-          <p className="text-tg-hint mt-1">This preview works in browser, but publishing a creation requires Telegram auth.</p>
+        <section className="glass-card text-sm space-y-2">
+          <p className="font-semibold">Telegram auth missing on this screen</p>
+          <p className="text-tg-hint mt-1">Use the bot menu button to open Gategram home first, then tap Create from inside the app.</p>
+          <a href="/" className="chip-btn inline-block">Back to Gategram home</a>
         </section>
       )}
 
