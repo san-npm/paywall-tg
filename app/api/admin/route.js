@@ -3,8 +3,22 @@ import { Bot } from 'grammy';
 import { randomUUID } from 'crypto';
 import { ADMIN_TELEGRAM_IDS, BOT_TOKEN } from '@/lib/config';
 import { validateInitData, isValidProductId } from '@/lib/validate';
-import { setProductActive, logAdminAction, getAdminActions, getPurchaseExports, getPurchaseByChargeId, markPurchaseRefundedByChargeId, getPayoutQueue, createPayoutsFromUnassigned, markPayoutPaid, getPayoutDetails, getMonthlyReconciliation } from '@/lib/db';
+import {
+  setProductActive,
+  logAdminAction,
+  getAdminActions,
+  getPurchaseExports,
+  getPurchaseByChargeId,
+  markPurchaseRefundedByChargeId,
+  getPayoutQueue,
+  createPayoutsFromUnassigned,
+  markPayoutPaid,
+  markPayoutProcessing,
+  getPayoutDetails,
+  getMonthlyReconciliation,
+} from '@/lib/db';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { payoutStatementRows, toCsv } from '@/lib/payout-statement';
 
 export const runtime = 'nodejs';
 
@@ -27,19 +41,6 @@ function getAdminId(req) {
   return userId;
 }
 
-function toCsv(rows) {
-  if (!rows.length) return '';
-  const headers = Object.keys(rows[0]);
-  const esc = (v) => {
-    const s = v == null ? '' : String(v);
-    if (/[,"\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-    return s;
-  };
-  const lines = [headers.join(',')];
-  for (const row of rows) lines.push(headers.map(h => esc(row[h])).join(','));
-  return `${lines.join('\n')}\n`;
-}
-
 export async function GET(req) {
   const adminId = getAdminId(req);
   if (!adminId) return NextResponse.json({ is_admin: false }, { status: 200 });
@@ -57,6 +58,26 @@ export async function GET(req) {
   const payout_id = searchParams.get('payout_id') || undefined;
 
   const filters = { limit, from, to, creator_id, refunded, payout_id };
+
+  if (kind === 'payout_statement_csv') {
+    const payoutIdNum = Number(payout_id);
+    if (!Number.isFinite(payoutIdNum) || payoutIdNum <= 0) {
+      return NextResponse.json({ error: 'Valid payout_id required' }, { status: 400 });
+    }
+    const details = await getPayoutDetails(payoutIdNum);
+    if (!details?.payout) {
+      return NextResponse.json({ error: 'Payout not found' }, { status: 404 });
+    }
+    const csv = toCsv(payoutStatementRows(details));
+    const filename = `payout-statement-${payoutIdNum}.csv`;
+    return new NextResponse(csv, {
+      status: 200,
+      headers: {
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': `attachment; filename="${filename}"`,
+      },
+    });
+  }
 
   const rows = kind === 'purchases'
     ? await getPurchaseExports(filters)
@@ -167,19 +188,30 @@ export async function POST(req) {
     return jsonWithRequestId({ ok: true, created }, requestId, 200);
   }
 
-  if (action === 'payout_mark_paid') {
-    const payoutPaidLimit = await checkRateLimit(`admin:${adminId}:payout_mark_paid`, 120);
-    if (payoutPaidLimit.limited) {
+  if (action === 'payout_mark_processing' || action === 'payout_mark_paid') {
+    const rateLimitKey = `admin:${adminId}:${action}`;
+    const maxPerHour = action === 'payout_mark_paid' ? 120 : 240;
+    const payoutActionLimit = await checkRateLimit(rateLimitKey, maxPerHour);
+    if (payoutActionLimit.limited) {
       await logAdminAction(adminId, action, 'payout', body.payout_id ? String(body.payout_id) : null, 'rate_limited', { requestId });
-      return jsonWithRequestId({ error: 'Rate limit exceeded for payout_mark_paid' }, requestId, 429);
+      return jsonWithRequestId({ error: `Rate limit exceeded for ${action}` }, requestId, 429);
     }
+
     const payoutId = Number(body.payout_id);
     if (!Number.isFinite(payoutId) || payoutId <= 0) {
       return jsonWithRequestId({ error: 'Valid payout_id required' }, requestId, 400);
     }
-    const ok = await markPayoutPaid(payoutId);
+
+    const ok = action === 'payout_mark_processing'
+      ? await markPayoutProcessing(payoutId)
+      : await markPayoutPaid(payoutId);
+
     await logAdminAction(adminId, action, 'payout', String(payoutId), ok ? 'ok' : 'not_found', { requestId });
-    if (!ok) return jsonWithRequestId({ error: 'Payout not found or already paid' }, requestId, 404);
+
+    if (!ok) {
+      return jsonWithRequestId({ error: 'Payout not found or invalid status transition' }, requestId, 404);
+    }
+
     return jsonWithRequestId({ ok: true }, requestId, 200);
   }
 

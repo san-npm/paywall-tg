@@ -36,8 +36,8 @@ export default function TelegramPaidContent() {
     <>
       <PageHeader
         badge="Use Case"
-        title={<>Monetize your Telegram content</>}
-        description="Turn your Telegram channel into a revenue stream. Sell paid posts, exclusive content, and gated access — all inside the app your audience already uses."
+        title={<>Monetize Telegram content with a clear buyer journey</>}
+        description="Creators publish paid posts and access offers. Buyers pay in Telegram Stars and unlock instantly in chat."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -123,8 +123,10 @@ export default function TelegramPaidContent() {
       </section>
 
       <PageCTA
-        title="Start monetizing your Telegram content"
-        description="Your audience is already in Telegram. Meet them where they are."
+        title="Ready to launch paid Telegram content?"
+        description="Set up once, share your link, and let buyers pay and unlock without leaving Telegram."
+        primary="Start in 2 minutes"
+        primaryHref="/docs#connect-bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

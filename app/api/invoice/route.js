@@ -57,9 +57,10 @@ export async function POST(req) {
     return jsonWithRequestId({ error: 'Invalid product_id' }, requestId, 400);
   }
 
-  const productLimit = await checkRateLimit(`invoice:${buyerId}:${String(product_id || '')}`, 10);
+  const normalizedProductId = String(product_id);
+  const productLimit = await checkRateLimit(`invoice:${buyerId}:${normalizedProductId}`, 10);
   if (productLimit.limited) {
-    console.warn(JSON.stringify({ event: 'invoice_rate_limited', scope: 'buyer_product_hour', buyerId, productId: String(product_id || ''), requestId }));
+    console.warn(JSON.stringify({ event: 'invoice_rate_limited', scope: 'buyer_product_hour', buyerId, productId: normalizedProductId, requestId }));
     return jsonWithRequestId({ error: 'Too many repeated attempts for this product. Please wait.' }, requestId, 429);
   }
 
@@ -69,8 +70,13 @@ export async function POST(req) {
     return jsonWithRequestId({ error: 'Product not found' }, requestId, 404);
   }
 
+  const methods = String(product.payment_methods || 'stars,stripe').split(',').map(v => v.trim().toLowerCase());
+  if (!methods.includes('stars')) {
+    return jsonWithRequestId({ error: 'Stars payments are disabled for this product' }, requestId, 400);
+  }
+
   // Can't buy your own product
-  if (product.creator_id === buyerId) {
+  if (String(product.creator_id) === String(buyerId)) {
     return jsonWithRequestId({ error: "You can't buy your own product" }, requestId, 400);
   }
 
