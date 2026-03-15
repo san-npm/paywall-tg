@@ -56,13 +56,22 @@ export default function CreateOffer() {
         tg.BackButton.onClick(() => {
           window.location.href = '/';
         });
+
+        const fromStorage = (() => {
+          try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
+        })();
+
         // iOS Telegram can expose initData slightly later, so retry briefly.
         let resolvedInitData = '';
         for (let i = 0; i < 5; i += 1) {
-          resolvedInitData = tg.initData || extractInitDataFallback();
+          resolvedInitData = tg.initData || fromStorage || extractInitDataFallback();
           if (resolvedInitData) break;
           // eslint-disable-next-line no-await-in-loop
           await new Promise((r) => setTimeout(r, 120));
+        }
+
+        if (resolvedInitData) {
+          try { window.sessionStorage.setItem('tg_init_data', resolvedInitData); } catch {}
         }
 
         setInitData(resolvedInitData);
@@ -96,7 +105,10 @@ export default function CreateOffer() {
 
   const handleAcceptTerms = async () => {
     const tg = window.Telegram?.WebApp;
-    const authData = tg?.initData || initData;
+    const stored = (() => {
+      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
+    })();
+    const authData = tg?.initData || initData || stored;
     if (!authData) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
       return;
@@ -135,7 +147,10 @@ export default function CreateOffer() {
     setError(null);
 
     const tg = window.Telegram?.WebApp;
-    const authData = tg?.initData || initData;
+    const stored = (() => {
+      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
+    })();
+    const authData = tg?.initData || initData || stored;
     if (!authData) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
       return;
