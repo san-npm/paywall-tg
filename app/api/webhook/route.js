@@ -241,7 +241,7 @@ export async function POST(req) {
             parse_mode: 'MarkdownV2',
             reply_markup: {
               inline_keyboard: [[
-                { text: '\u{1F4E6} Create in App', web_app: { url: `${WEBAPP_URL}/create` } }
+                { text: '\u{1F4E6} Create in App', web_app: { url: WEBAPP_URL } }
               ]]
             }
           }
