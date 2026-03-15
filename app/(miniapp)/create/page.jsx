@@ -46,9 +46,13 @@ export default function CreateOffer() {
         if (u) {
           setUser(u);
           try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 5000);
             const res = await fetch('/api/creator-terms', {
               headers: { 'x-telegram-init-data': tg.initData || '' },
+              signal: controller.signal,
             });
+            clearTimeout(timeout);
             const data = await res.json();
             if (res.ok) setTermsAccepted(Boolean(data.accepted));
           } catch {
@@ -102,7 +106,8 @@ export default function CreateOffer() {
     }
 
     if (!termsAccepted) {
-      setError('Please accept Creator Terms before publishing.');
+      setError('Please accept Creator Terms above before publishing.');
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -365,8 +370,8 @@ export default function CreateOffer() {
           </div>
         </section>
 
-        <button type="submit" disabled={loading || !user || termsLoading || !termsAccepted} className="primary-btn disabled:opacity-50">
-          {loading ? 'Publishing creation...' : 'Publish creation'}
+        <button type="submit" disabled={loading || !user} className="primary-btn disabled:opacity-50">
+          {loading ? 'Publishing creation...' : (termsAccepted ? 'Publish creation' : 'Accept terms to publish')}
         </button>
       </form>
     </main>
