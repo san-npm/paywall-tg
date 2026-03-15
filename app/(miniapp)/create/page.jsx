@@ -30,6 +30,7 @@ export default function CreateOffer() {
   const [termsLoading, setTermsLoading] = useState(true);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsSubmitting, setTermsSubmitting] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
@@ -90,8 +91,14 @@ export default function CreateOffer() {
       const data = await res.json();
       if (!res.ok) {
         trackEvent('creator_terms_accept_failed', { source: 'create_offer' });
-        setError(data.error || 'Failed to accept creator terms.');
+        if (data?.code === 'INITDATA_EXPIRED') {
+          setSessionExpired(true);
+          setError('Session expired. Please reopen the mini app from the bot and try again.');
+        } else {
+          setError(data.error || 'Failed to accept creator terms.');
+        }
       } else {
+        setSessionExpired(false);
         setTermsAccepted(Boolean(data.accepted));
         trackEvent('creator_terms_accepted', { source: 'create_offer', version: data.accepted_version || 'unknown' });
       }
@@ -153,11 +160,15 @@ export default function CreateOffer() {
         if (data.code === 'TERMS_NOT_ACCEPTED') {
           setTermsAccepted(false);
           trackEvent('create_offer_blocked_terms_not_accepted', { source: 'create_offer' });
+        } else if (data.code === 'INITDATA_EXPIRED') {
+          setSessionExpired(true);
+          trackEvent('create_offer_failed_session_expired', { source: 'create_offer' });
         } else {
           trackEvent('create_offer_failed', { source: 'create_offer' });
         }
         setError(data.error || 'Failed to create offer.');
       } else if (data.product) {
+        setSessionExpired(false);
         trackEvent('create_offer_succeeded', { content_type: data.product.content_type, price_stars: data.product.price_stars });
         setCreated(data.product);
       }
@@ -284,6 +295,20 @@ export default function CreateOffer() {
       {error && (
         <section className="glass-card text-sm" style={{ borderColor: '#fca5a5', color: '#b91c1c', background: '#fff1f2' }}>
           {error}
+        </section>
+      )}
+
+      {sessionExpired && (
+        <section className="glass-card text-sm space-y-2" style={{ borderColor: '#fde68a', background: '#fffbeb' }}>
+          <p className="font-semibold" style={{ color: '#92400e' }}>Session expired</p>
+          <p className="text-tg-hint">Telegram auth expired. Close and reopen this mini app from the bot chat.</p>
+          <button
+            type="button"
+            className="chip-btn"
+            onClick={() => window.Telegram?.WebApp?.close?.()}
+          >
+            Close mini app
+          </button>
         </section>
       )}
 
