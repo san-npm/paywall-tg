@@ -370,6 +370,19 @@ export default function CreateOffer() {
           </div>
         </section>
 
+        {user && !termsLoading && !termsAccepted && (
+          <section className="glass-card text-sm space-y-2">
+            <p className="font-semibold">One last step before publishing</p>
+            <p className="text-tg-hint">Accept Creator Terms once. You won’t need to do this again for next creations.</p>
+            <div className="flex gap-2 flex-wrap">
+              <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
+                {termsSubmitting ? 'Accepting...' : 'Accept terms now'}
+              </button>
+              <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read terms</a>
+            </div>
+          </section>
+        )}
+
         <button type="submit" disabled={loading || !user} className="primary-btn disabled:opacity-50">
           {loading ? 'Publishing creation...' : (termsAccepted ? 'Publish creation' : 'Accept terms to publish')}
         </button>
