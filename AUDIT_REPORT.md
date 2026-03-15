@@ -1,28 +1,27 @@
 # Deep Audit Report
 
-Date: 2026-03-12
+Date: 2026-03-12  
 Scope: full repository (`app/**`, `components/**`, `lib/**`, config, docs)
 
 ## Executive Summary
 
-- ✅ Backend flows are generally sound: auth validation, purchase gating, and idempotency safeguards are in place.
-- ✅ Frontend information architecture and metadata coverage are strong for core landing/use-case pages.
-- ⚠️ Security hardening opportunities were identified around HTTP response headers.
-- ⚠️ SEO/GEO/AEO can be improved with explicit machine-readable guidance.
-- ✅ The most impactful audit findings in this pass were addressed in code (see “Changes made in this audit”).
+- ✅ Backend controls tightened with action-level admin rate limits and request correlation IDs.
+- ✅ Frontend SEO/AEO posture improved with OG images, Organization schema, richer FAQs, and semantic comparison tables.
+- ✅ Security posture improved with stronger headers, abuse-signal logs for invoice bursts, and a documented secret-rotation runbook.
+- ✅ GEO/AEO discoverability strengthened via `llms.txt` and expanded answer-ready content.
 
 ## Checks Run
 
 1. `npm test` (pass)
 2. `npm run build` (pass)
 3. `npm run audit:deps` (environment-limited: npm advisory endpoint 403)
-4. Manual review of API/auth/payment/metadata/sitemap/robots and key page content
+4. Manual + conflict-resolution pass for `AUDIT_REPORT.md`, `app/api/admin/route.js`, and `app/api/invoice/route.js`
 
 ## Changes made in this audit
 
 ### 1) Security headers hardening
 
-Added additional baseline response headers for stronger browser-side protection:
+Added baseline response headers for stronger browser-side protection:
 
 - `Content-Security-Policy` with explicit resource directives
 - `Strict-Transport-Security` (HSTS)
@@ -33,15 +32,18 @@ File: `next.config.mjs`
 
 ### 2) GEO/AEO support via `llms.txt`
 
-Added a dedicated `llms.txt` endpoint with concise, machine-readable product and trust information for LLM/citation workflows.
+Added a dedicated `llms.txt` endpoint with concise, machine-readable product and trust information.
 
 File: `app/llms.txt/route.js`
 
-### 3) SEO keyword quality cleanup
+### 3) Backend hardening and conflict resolution
 
-Removed a malformed keyword entry and replaced it with a relevant phrase.
+- Added/kept request correlation IDs (`request_id`) across sensitive admin/invoice flows.
+- Preserved admin action-level rate limits for `refund_payment`, `payout_create`, and payout status transitions.
+- Kept payout statement CSV support and payout processing state transition support.
+- Reordered invoice validation so `product_id` format checks happen before product-level throttling.
 
-File: `lib/seo.js`
+Files: `app/api/admin/route.js`, `app/api/invoice/route.js`
 
 ## Deep audit findings (current state)
 
@@ -51,24 +53,22 @@ File: `lib/seo.js`
 - Telegram Mini App auth (`initData`) is validated server-side and replay-window constrained.
 - Content-gating checks prevent unauthorized payload exposure.
 - Admin actions are guarded by explicit admin allowlist checks.
-- UUID validation and server-side ownership checks exist on product mutations.
+- UUID validation and ownership checks exist on product mutations.
 
 **Residual risks / recommendations**
-- Add per-action rate limits on sensitive admin endpoints (`refund_payment`, payout actions).
-- Add structured audit event correlation IDs for payment/refund/payout operations.
+- Keep dependency vulnerability checks enforced in CI where advisory endpoint access is stable.
 - Add integration tests for full payment → delivery → refund lifecycle.
 
 ## Frontend review
 
 **Strengths**
-- Clean route structure for core intent pages (`/telegram-paywall`, `/community-monetization`, `/community-access`).
+- Route structure is clean for core intent pages.
 - Metadata helper centralization improves consistency.
-- FAQ + SoftwareApplication schema on homepage supports rich results and answer engines.
+- FAQ + SoftwareApplication schema supports rich results and answer engines.
 
 **Residual risks / recommendations**
-- Consider `next/image` for heavier above-the-fold media optimization.
-- Add OG image(s) for stronger social previews and better snippet CTR.
-- Add explicit conversion-tracking events for CTA funnels.
+- Keep optimizing above-the-fold media with `next/image` where practical.
+- Continue adding explicit conversion-tracking events on key CTA funnels.
 
 ## Security review
 
@@ -78,26 +78,22 @@ File: `lib/seo.js`
 - Product content is not exposed unless purchase is confirmed.
 
 **Improvements completed in this pass**
-- Added stronger browser security headers and CSP policy.
+- Stronger browser security headers and CSP policy.
 
 **Residual recommendations**
-- Add periodic key/secret rotation runbook in docs.
-- Add abuse detection metrics around invoice creation burst anomalies.
+- Continue periodic key/secret rotation and runbook review.
+- Track abuse metrics around invoice creation burst anomalies.
 
 ## SEO / GEO / AEO review
 
 **SEO strengths**
-- Canonicals, sitemap, robots and page-targeted keywords are present.
-- Topic-cluster pages align to transactional and informational intents.
+- Canonicals, sitemap, robots, and targeted page keywords are present.
+- Topic-cluster pages align with transactional and informational intents.
 
 **GEO/AEO improvements completed in this pass**
-- Added `llms.txt` endpoint to provide machine-readable context and canonical guidance.
-
-**Residual recommendations**
-- Add author/entity-level `Organization` schema site-wide.
-- Add dedicated comparison tables on alternatives pages for stronger answer extraction.
-- Expand FAQs on use-case pages to increase passage-level retrieval likelihood.
+- Added `llms.txt` endpoint for machine-readable context and canonical guidance.
+- Added richer schema/FAQ/table structures to improve passage-level retrieval.
 
 ## Conclusion
 
-The application is close to production quality. Core backend protections are present and the most actionable hardening items in this pass were implemented. Remaining items are primarily operational maturity (monitoring/tests/runbooks) and content-layer SEO/GEO/AEO enhancements rather than critical blockers.
+Application quality is strong and merge conflicts are resolved in the listed files while preserving the key hardening improvements from both branches. Remaining work is mostly operational maturity (CI dependency scanning, lifecycle integration tests, ongoing monitoring) rather than critical blockers.

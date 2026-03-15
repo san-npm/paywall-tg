@@ -80,6 +80,26 @@ export default function DocsPage() {
         </div>
       </section>
 
+      <section className="py-16 px-4 border-b border-site-border">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6">Secret rotation runbook</h2>
+          <div className="space-y-3 text-sm text-site-muted">
+            <div className="site-panel">
+              <p><strong className="text-site-text">1) Rotate BOT_TOKEN</strong><br/>Create a new bot token in BotFather, update `BOT_TOKEN` in deployment secrets, redeploy, and confirm `/start` plus invoice flow still work.</p>
+            </div>
+            <div className="site-panel">
+              <p><strong className="text-site-text">2) Rotate WEBHOOK_SECRET</strong><br/>Generate a new random secret, update webhook configuration in Telegram, update deployment secret, then verify webhook requests are accepted.</p>
+            </div>
+            <div className="site-panel">
+              <p><strong className="text-site-text">3) Rotate Turso credentials</strong><br/>Issue a new DB auth token, update `TURSO_AUTH_TOKEN`, redeploy, and run a read/write smoke test from dashboard and purchase endpoints.</p>
+            </div>
+            <div className="site-panel">
+              <p><strong className="text-site-text">4) Validate + rollback plan</strong><br/>Track error rates for 15 minutes post-rotation. Keep previous secrets available for quick rollback if auth/webhook verification fails.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <PageCTA
         title="Ready to launch your first paid drop?"
         description="Create it, share it, get paid in Telegram Stars."

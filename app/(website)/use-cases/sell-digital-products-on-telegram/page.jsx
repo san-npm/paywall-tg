@@ -85,12 +85,28 @@ export default function SellDigitalProducts() {
       <section className="py-12 px-4 border-b border-site-border bg-site-elevated">
         <div className="max-w-3xl mx-auto space-y-3">
           <h2 className="text-2xl font-bold">FAQ: Telegram paywall for digital products</h2>
-          <div className="site-panel text-sm text-site-muted">
-            <p><strong className="text-site-text">Can I sell one-time offers, not just subscriptions?</strong><br/>Yes. You can sell one-time ebooks, files, and premium posts with instant delivery.</p>
-          </div>
-          <div className="site-panel text-sm text-site-muted">
-            <p><strong className="text-site-text">Why does native checkout help conversion?</strong><br/>Keeping checkout in Telegram removes redirects and reduces friction during payment completion.</p>
-          </div>
+          {[
+            {
+              q: 'Can I sell one-time offers, not just subscriptions?',
+              a: 'Yes. You can sell one-time ebooks, files, premium posts, and access links with instant delivery after payment.',
+            },
+            {
+              q: 'Why does native checkout help conversion?',
+              a: 'Keeping checkout in Telegram removes redirects and account creation friction at the most sensitive point of the buyer journey.',
+            },
+            {
+              q: 'Can I update a product after publishing?',
+              a: 'Yes. You can edit title, description, and price in the creator flow, and you can disable products if needed.',
+            },
+            {
+              q: 'What if someone asks for a refund?',
+              a: 'Refund operations are supported through admin tools and reflected in sales accounting, so creator and platform totals stay accurate.',
+            },
+          ].map((item) => (
+            <div key={item.q} className="site-panel text-sm text-site-muted">
+              <p><strong className="text-site-text">{item.q}</strong><br/>{item.a}</p>
+            </div>
+          ))}
           <div className="site-panel text-sm text-site-muted">
             <p className="font-semibold text-site-text mb-2">References</p>
             <ul className="list-disc pl-5 space-y-1">
