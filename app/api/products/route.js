@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
 import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
-import { validateInitData, isValidProductId } from '@/lib/validate';
+import { validateInitData, validateInitDataDetailed, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
@@ -68,10 +68,14 @@ export async function POST(req) {
   }
 
   // Validate Telegram initData to authenticate the creator
-  const initData = validateInitData(body.init_data);
-  if (!initData || !initData.user?.id) {
-    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  const initDataChecked = validateInitDataDetailed(body.init_data);
+  if (!initDataChecked.ok || !initDataChecked.data?.user?.id) {
+    return NextResponse.json({
+      error: 'Invalid or expired Telegram authentication',
+      code: initDataChecked.error || 'INVALID_INITDATA',
+    }, { status: 401 });
   }
+  const initData = initDataChecked.data;
 
   // Use the authenticated user ID, not the client-supplied one
   const creatorId = String(initData.user.id);
@@ -197,10 +201,14 @@ export async function DELETE(req) {
     return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
   }
 
-  const initData = validateInitData(init_data);
-  if (!initData || !initData.user?.id) {
-    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  const initDataChecked = validateInitDataDetailed(init_data);
+  if (!initDataChecked.ok || !initDataChecked.data?.user?.id) {
+    return NextResponse.json({
+      error: 'Invalid or expired Telegram authentication',
+      code: initDataChecked.error || 'INVALID_INITDATA',
+    }, { status: 401 });
   }
+  const initData = initDataChecked.data;
 
   const creatorId = String(initData.user.id);
   const deleted = await softDeleteProduct(product_id, creatorId);
@@ -221,10 +229,14 @@ export async function PATCH(req) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const initData = validateInitData(body.init_data);
-  if (!initData || !initData.user?.id) {
-    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  const initDataChecked = validateInitDataDetailed(body.init_data);
+  if (!initDataChecked.ok || !initDataChecked.data?.user?.id) {
+    return NextResponse.json({
+      error: 'Invalid or expired Telegram authentication',
+      code: initDataChecked.error || 'INVALID_INITDATA',
+    }, { status: 401 });
   }
+  const initData = initDataChecked.data;
 
   const creatorId = String(initData.user.id);
   const { product_id, title, description, price_stars } = body;

@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server';
 import { CREATOR_TERMS_URL, CREATOR_TERMS_VERSION } from '@/lib/config';
 import { acceptCreatorTerms, getCreatorTermsAcceptance, getOrCreateCreator } from '@/lib/db';
-import { getForwardedClientIp, validateInitData } from '@/lib/validate';
+import { getForwardedClientIp, validateInitDataDetailed } from '@/lib/validate';
 
 export const runtime = 'nodejs';
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const initDataRaw = req.headers.get('x-telegram-init-data') || searchParams.get('init_data');
-  const initData = validateInitData(initDataRaw);
+  const initDataChecked = validateInitDataDetailed(initDataRaw);
 
-  if (!initData?.user?.id) {
-    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  if (!initDataChecked.ok || !initDataChecked.data?.user?.id) {
+    return NextResponse.json({
+      error: 'Invalid or expired Telegram authentication',
+      code: initDataChecked.error || 'INVALID_INITDATA',
+    }, { status: 401 });
   }
+  const initData = initDataChecked.data;
 
   const creatorId = String(initData.user.id);
   await getOrCreateCreator(creatorId, initData.user.username || null, initData.user.first_name || null);
@@ -36,10 +40,14 @@ export async function POST(req) {
   }
 
   const initDataRaw = body?.init_data || req.headers.get('x-telegram-init-data');
-  const initData = validateInitData(initDataRaw);
-  if (!initData?.user?.id) {
-    return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
+  const initDataChecked = validateInitDataDetailed(initDataRaw);
+  if (!initDataChecked.ok || !initDataChecked.data?.user?.id) {
+    return NextResponse.json({
+      error: 'Invalid or expired Telegram authentication',
+      code: initDataChecked.error || 'INVALID_INITDATA',
+    }, { status: 401 });
   }
+  const initData = initDataChecked.data;
 
   const creatorId = String(initData.user.id);
   await getOrCreateCreator(creatorId, initData.user.username || null, initData.user.first_name || null);
