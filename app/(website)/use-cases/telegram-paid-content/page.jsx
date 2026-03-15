@@ -98,6 +98,30 @@ export default function TelegramPaidContent() {
         </div>
       </section>
 
+      <section className="py-12 px-4 border-b border-site-border bg-site-elevated">
+        <div className="max-w-3xl mx-auto space-y-3">
+          <h2 className="text-2xl font-bold">FAQ: paid content in Telegram</h2>
+          {[
+            {
+              q: 'Can I sell both one-time content and recurring access?',
+              a: 'Yes. Many creators run one-time paid drops for specific reports while also selling private group access for recurring value.',
+            },
+            {
+              q: 'What content formats work best for paid Telegram offers?',
+              a: 'Short actionable content with clear outcomes performs best: templates, research summaries, tactical guides, and access links to private groups.',
+            },
+            {
+              q: 'How should I price paid content?',
+              a: 'Start with one entry offer (low-friction), one core offer (main value), and one premium offer (highest depth/support). Then optimize based on conversion and refund rates.',
+            },
+          ].map((item) => (
+            <div key={item.q} className="site-panel text-sm text-site-muted">
+              <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <PageCTA
         title="Ready to launch paid Telegram content?"
         description="Set up once, share your link, and let buyers pay and unlock without leaving Telegram."

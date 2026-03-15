@@ -1,7 +1,9 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import EmailCapture from './EmailCapture';
 import { useLang } from './useLang';
+import { trackCta } from './tracking';
 
 const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || '/docs#connect-bot';
 
@@ -59,7 +61,7 @@ export default function HomePageClient() {
 
         <div className="max-w-5xl mx-auto relative">
           <div className="flex items-center gap-3 mb-4">
-            <img src="/Gategram-mascott.svg" alt="Gategram mascot" className="w-12 h-12 md:w-14 md:h-14" />
+            <Image src="/Gategram-mascott.svg" alt="Gategram mascot" width={56} height={56} className="w-12 h-12 md:w-14 md:h-14" priority />
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-site-border bg-site-card text-site-muted">
               <span className="w-2 h-2 rounded-full bg-site-accent" /> {t.heroBadge}
             </div>
@@ -75,7 +77,7 @@ export default function HomePageClient() {
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3">
-            <Link href={BOT_URL} className="site-cta-primary">Start in 2 minutes</Link>
+            <Link href={BOT_URL} className="site-cta-primary" onClick={() => trackCta('cta_home_start_click', { location: 'hero', href: BOT_URL })}>Start in 2 minutes</Link>
             <Link href="/docs" className="site-cta-secondary">See how it works</Link>
           </div>
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
@@ -101,7 +103,7 @@ export default function HomePageClient() {
             {creatorCards.map((item) => (
               <article key={item.key} className="creator-bubble-card">
                 <div className="creator-icon-wrap" aria-hidden="true">
-                  <img src={item.icon} alt="" className="w-full h-full object-contain" />
+                  <Image src={item.icon} alt="" width={88} height={88} className="w-full h-full object-contain" />
                 </div>
                 <p className="font-semibold text-lg">{item.title}</p>
                 <p className="text-sm text-site-muted mt-1">{item.desc}</p>
@@ -173,7 +175,7 @@ export default function HomePageClient() {
             </article>
           </div>
           <div className="mt-8">
-            <Link href={BOT_URL} className="site-cta-primary">Start selling today</Link>
+            <Link href={BOT_URL} className="site-cta-primary" onClick={() => trackCta('cta_home_start_click', { location: 'social_proof', href: BOT_URL })}>Start selling today</Link>
           </div>
         </div>
       </section>

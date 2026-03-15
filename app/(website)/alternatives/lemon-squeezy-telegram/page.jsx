@@ -52,26 +52,32 @@ export default function LemonSqueezyAlternative() {
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold mb-8 text-center">Side by side</h2>
           <div className="rounded-xl border border-site-border overflow-hidden">
-            <div className="grid grid-cols-3 text-sm font-semibold bg-site-card">
-              <div className="p-4 text-site-dim"></div>
-              <div className="p-4 text-site-accent">Gategram</div>
-              <div className="p-4 text-site-dim">LemonSqueezy</div>
-            </div>
-            {[
-              { f: 'Target', p: 'Telegram creators', l: 'SaaS & general digital sales' },
-              { f: 'Checkout', p: 'Native Telegram Stars dialog', l: 'Hosted checkout page / overlay' },
-              { f: 'Fee', p: '5% flat (Stars)', l: '5% + 50c per transaction' },
-              { f: 'Delivery', p: 'Instant Telegram message', l: 'Email / webhook integration' },
-              { f: 'Setup', p: '2 minutes, no config', l: '15+ minutes, Stripe + tax setup' },
-              { f: 'Buyer friction', p: 'One tap, no account', l: 'Email + card on external page' },
-              { f: 'Tax handling', p: 'Via Telegram (Stars)', l: 'Built-in tax compliance' },
-            ].map((row, i) => (
-              <div key={i} className={`grid grid-cols-3 text-sm ${i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}`}>
-                <div className="p-4 text-site-muted font-medium">{row.f}</div>
-                <div className="p-4 text-site-text">{row.p}</div>
-                <div className="p-4 text-site-dim">{row.l}</div>
-              </div>
-            ))}
+            <table className="w-full text-sm">
+              <thead className="bg-site-card">
+                <tr>
+                  <th className="p-4 text-left text-site-dim font-semibold">Feature</th>
+                  <th className="p-4 text-left text-site-accent font-semibold">Gategram</th>
+                  <th className="p-4 text-left text-site-dim font-semibold">LemonSqueezy</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { f: 'Target', p: 'Telegram creators', l: 'SaaS & general digital sales' },
+                  { f: 'Checkout', p: 'Native Telegram Stars dialog', l: 'Hosted checkout page / overlay' },
+                  { f: 'Fee', p: '5% flat (Stars)', l: '5% + 50c per transaction' },
+                  { f: 'Delivery', p: 'Instant Telegram message', l: 'Email / webhook integration' },
+                  { f: 'Setup', p: '2 minutes, no config', l: '15+ minutes, Stripe + tax setup' },
+                  { f: 'Buyer friction', p: 'One tap, no account', l: 'Email + card on external page' },
+                  { f: 'Tax handling', p: 'Via Telegram (Stars)', l: 'Built-in tax compliance' },
+                ].map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}>
+                    <td className="p-4 text-site-muted font-medium">{row.f}</td>
+                    <td className="p-4 text-site-text">{row.p}</td>
+                    <td className="p-4 text-site-dim">{row.l}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>

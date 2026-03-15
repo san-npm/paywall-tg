@@ -97,6 +97,24 @@ export default function SecurityPage() {
         </div>
       </section>
 
+      <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-8">Operational security runbook</h2>
+          <div className="space-y-4">
+            {[
+              { title: 'Quarterly secret rotation', desc: 'Rotate BOT_TOKEN, WEBHOOK_SECRET, and database auth tokens on a regular cadence or immediately after any suspected exposure.' },
+              { title: 'Post-rotation validation', desc: 'After every rotation, validate Mini App auth, webhook delivery, invoice creation, and successful content delivery before closing the incident/change.' },
+              { title: 'Incident rollback plan', desc: 'Keep a short rollback window with prior secret versions available in secure storage to reduce time-to-recovery if verification checks fail.' },
+            ].map((item, i) => (
+              <div key={i} className="p-5 rounded-xl border border-site-border bg-site-bg">
+                <h3 className="font-bold mb-2 text-sm">{item.title}</h3>
+                <p className="text-sm text-site-muted leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <PageCTA
         title="Questions about security?"
         description="Reach out via the bot or check the docs for technical details."

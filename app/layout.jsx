@@ -36,11 +36,13 @@ export const metadata = {
     url: SITE_URL,
     siteName: 'Gategram',
     type: 'website',
+    images: [{ url: '/og-image.svg', width: 1200, height: 630, alt: 'Gategram — Telegram Paywall & Community Monetization' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Gategram — Telegram Paywall & Community Monetization',
     description: 'Monetize Telegram communities and paid content with native Stars checkout.',
+    images: ['/og-image.svg'],
   },
 };
 
