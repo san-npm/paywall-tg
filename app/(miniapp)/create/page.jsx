@@ -18,6 +18,7 @@ function CreateSkeleton() {
 export default function CreateOffer() {
   const [user, setUser] = useState(null);
   const [hasInitData, setHasInitData] = useState(false);
+  const [initData, setInitData] = useState('');
   const [ready, setReady] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -35,6 +36,17 @@ export default function CreateOffer() {
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
 
+    const extractInitDataFallback = () => {
+      if (typeof window === 'undefined') return '';
+      const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tgWebAppData') || '';
+      const fromQuery = new URLSearchParams(window.location.search).get('tgWebAppData') || '';
+      try {
+        return decodeURIComponent(fromHash || fromQuery || '');
+      } catch {
+        return fromHash || fromQuery || '';
+      }
+    };
+
     const bootstrap = async () => {
       if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
@@ -44,18 +56,27 @@ export default function CreateOffer() {
         tg.BackButton.onClick(() => {
           window.location.href = '/';
         });
-        const initData = tg.initData || '';
-        setHasInitData(Boolean(initData));
+        // iOS Telegram can expose initData slightly later, so retry briefly.
+        let resolvedInitData = '';
+        for (let i = 0; i < 5; i += 1) {
+          resolvedInitData = tg.initData || extractInitDataFallback();
+          if (resolvedInitData) break;
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise((r) => setTimeout(r, 120));
+        }
+
+        setInitData(resolvedInitData);
+        setHasInitData(Boolean(resolvedInitData));
 
         const u = tg.initDataUnsafe?.user;
         if (u) setUser(u);
 
-        if (initData) {
+        if (resolvedInitData) {
           try {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 5000);
             const res = await fetch('/api/creator-terms', {
-              headers: { 'x-telegram-init-data': initData },
+              headers: { 'x-telegram-init-data': resolvedInitData },
               signal: controller.signal,
             });
             clearTimeout(timeout);
@@ -75,8 +96,9 @@ export default function CreateOffer() {
 
   const handleAcceptTerms = async () => {
     const tg = window.Telegram?.WebApp;
-    if (!tg?.initData) {
-      setError('Open this page inside Telegram to accept creator terms.');
+    const authData = tg?.initData || initData;
+    if (!authData) {
+      setError('Telegram auth missing. Close and reopen mini app from the bot.');
       return;
     }
 
@@ -86,7 +108,7 @@ export default function CreateOffer() {
       const res = await fetch('/api/creator-terms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ init_data: tg.initData }),
+        body: JSON.stringify({ init_data: authData }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -113,8 +135,9 @@ export default function CreateOffer() {
     setError(null);
 
     const tg = window.Telegram?.WebApp;
-    if (!tg?.initData) {
-      setError('Open this page from the bot mini app to publish.');
+    const authData = tg?.initData || initData;
+    if (!authData) {
+      setError('Telegram auth missing. Close and reopen mini app from the bot.');
       return;
     }
 
@@ -144,7 +167,7 @@ export default function CreateOffer() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          init_data: tg?.initData || '',
+          init_data: authData,
           title,
           description,
           price_stars: priceNum,
