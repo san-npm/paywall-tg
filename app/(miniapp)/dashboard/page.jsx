@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 function DashboardSkeleton() {
@@ -65,6 +66,9 @@ export default function Home() {
       tg.expand();
       u = tg.initDataUnsafe?.user || null;
       initData = tg.initData || '';
+      if (initData) {
+        try { window.sessionStorage.setItem('tg_init_data', initData); } catch {}
+      }
     }
 
     if (u && initData) {
@@ -481,12 +485,9 @@ export default function Home() {
         </section>
       )}
 
-      <a
-        href="/create"
-        className="primary-btn"
-      >
+      <Link href="/create" className="primary-btn">
         Create an offer
-      </a>
+      </Link>
 
       {isAdmin && (
         <section className="glass-card space-y-3">
