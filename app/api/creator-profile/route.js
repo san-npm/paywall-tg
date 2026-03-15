@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCreatorProfile, getOrCreateCreator, upsertCreatorProfile } from '@/lib/db';
-import { validateInitData } from '@/lib/validate';
+import { sanitizeCreatorProfileInput, validateInitData } from '@/lib/validate';
 
 export const runtime = 'nodejs';
 
@@ -30,7 +30,12 @@ export async function POST(req) {
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }); }
 
+  const validated = sanitizeCreatorProfileInput(body || {});
+  if (!validated.ok) {
+    return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
+
   await getOrCreateCreator(identity.creatorId, identity.username, identity.displayName);
-  const profile = await upsertCreatorProfile(identity.creatorId, body || {});
+  const profile = await upsertCreatorProfile(identity.creatorId, validated.value);
   return NextResponse.json({ ok: true, profile });
 }

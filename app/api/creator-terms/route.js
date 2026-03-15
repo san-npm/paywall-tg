@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
 import { CREATOR_TERMS_URL, CREATOR_TERMS_VERSION } from '@/lib/config';
 import { acceptCreatorTerms, getCreatorTermsAcceptance, getOrCreateCreator } from '@/lib/db';
-import { validateInitData } from '@/lib/validate';
+import { getForwardedClientIp, validateInitData } from '@/lib/validate';
 
 export const runtime = 'nodejs';
-
-function getClientIp(req) {
-  const forwarded = req.headers.get('x-forwarded-for');
-  if (!forwarded) return null;
-  return forwarded.split(',')[0]?.trim() || null;
-}
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -41,7 +35,8 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const initData = validateInitData(body?.init_data);
+  const initDataRaw = body?.init_data || req.headers.get('x-telegram-init-data');
+  const initData = validateInitData(initDataRaw);
   if (!initData?.user?.id) {
     return NextResponse.json({ error: 'Invalid or missing Telegram authentication' }, { status: 401 });
   }
@@ -51,7 +46,7 @@ export async function POST(req) {
 
   const acceptance = await acceptCreatorTerms(
     creatorId,
-    getClientIp(req),
+    getForwardedClientIp(req.headers.get('x-forwarded-for')),
     req.headers.get('user-agent') || null,
   );
 
