@@ -32,7 +32,6 @@ export default function CreateOffer() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsSubmitting, setTermsSubmitting] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
-  const [debugInfo, setDebugInfo] = useState({ authSource: 'none', lastCode: '', lastRequestId: '', lastStatus: '' });
 
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
@@ -111,8 +110,6 @@ export default function CreateOffer() {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
     const authData = tg?.initData || initData || stored;
-    const authSource = tg?.initData ? 'tg.initData' : (initData ? 'state.initData' : (stored ? 'sessionStorage' : 'none'));
-    setDebugInfo((d) => ({ ...d, authSource }));
     const unsafeUserId = tg?.initDataUnsafe?.user?.id || user?.id;
     if (!authData && !unsafeUserId) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
@@ -130,13 +127,9 @@ export default function CreateOffer() {
           unsafe_user_id: unsafeUserId ? String(unsafeUserId) : undefined,
           unsafe_username: tg?.initDataUnsafe?.user?.username || user?.username || undefined,
           unsafe_first_name: tg?.initDataUnsafe?.user?.first_name || user?.first_name || undefined,
-          unsafe_user_id: unsafeUserId ? String(unsafeUserId) : undefined,
-          unsafe_username: tg?.initDataUnsafe?.user?.username || user?.username || undefined,
-          unsafe_first_name: tg?.initDataUnsafe?.user?.first_name || user?.first_name || undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
-      setDebugInfo((d) => ({ ...d, lastStatus: String(res.status), lastCode: String(data?.code || ''), lastRequestId: String(data?.request_id || debugRequestId) }));
       if (!res.ok) {
         trackEvent('creator_terms_accept_failed', { source: 'create_offer' });
         if (data?.code === 'INITDATA_EXPIRED') {
@@ -165,8 +158,6 @@ export default function CreateOffer() {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
     const authData = tg?.initData || initData || stored;
-    const authSource = tg?.initData ? 'tg.initData' : (initData ? 'state.initData' : (stored ? 'sessionStorage' : 'none'));
-    setDebugInfo((d) => ({ ...d, authSource }));
     const unsafeUserId = tg?.initDataUnsafe?.user?.id || user?.id;
     if (!authData && !unsafeUserId) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
@@ -215,7 +206,6 @@ export default function CreateOffer() {
       });
 
       const data = await res.json().catch(() => ({}));
-      setDebugInfo((d) => ({ ...d, lastStatus: String(res.status), lastCode: String(data?.code || ''), lastRequestId: String(data?.request_id || debugRequestId) }));
       if (!res.ok) {
         if (data.code === 'TERMS_NOT_ACCEPTED') {
           setTermsAccepted(false);
@@ -373,11 +363,6 @@ export default function CreateOffer() {
         </section>
       )}
 
-      <section className="glass-card text-xs space-y-1" style={{ borderStyle: 'dashed' }}>
-        <p><strong>Debug (temp)</strong> — auth: {debugInfo.authSource || 'none'}</p>
-        <p>status: {debugInfo.lastStatus || '-'} · code: {debugInfo.lastCode || '-'} · request: {debugInfo.lastRequestId || '-'}</p>
-      </section>
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <section className="glass-card space-y-4">
           <div>
@@ -469,7 +454,7 @@ export default function CreateOffer() {
         {hasInitData && !termsLoading && !termsAccepted && (
           <section className="glass-card text-sm space-y-2">
             <p className="font-semibold">One last step before publishing</p>
-            <p className="text-tg-hint">Accept Creator Terms once. You won’t need to do this again for next creations.</p>
+            <p className="text-tg-hint">Accept Creator Terms once. You won't need to do this again for next creations.</p>
             <div className="flex gap-2 flex-wrap">
               <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
                 {termsSubmitting ? 'Accepting...' : 'Accept terms now'}
