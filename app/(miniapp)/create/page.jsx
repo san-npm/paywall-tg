@@ -32,6 +32,7 @@ export default function CreateOffer() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsSubmitting, setTermsSubmitting] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({ authSource: 'none', lastCode: '', lastRequestId: '', lastStatus: '' });
 
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
@@ -90,7 +91,7 @@ export default function CreateOffer() {
               signal: controller.signal,
             });
             clearTimeout(timeout);
-            const data = await res.json();
+            const data = await res.json().catch(() => ({}));
             if (res.ok) setTermsAccepted(Boolean(data.accepted));
           } catch {
             // keep default false
@@ -110,6 +111,8 @@ export default function CreateOffer() {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
     const authData = tg?.initData || initData || stored;
+    const authSource = tg?.initData ? 'tg.initData' : (initData ? 'state.initData' : (stored ? 'sessionStorage' : 'none'));
+    setDebugInfo((d) => ({ ...d, authSource }));
     const unsafeUserId = tg?.initDataUnsafe?.user?.id || user?.id;
     if (!authData && !unsafeUserId) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
@@ -132,7 +135,8 @@ export default function CreateOffer() {
           unsafe_first_name: tg?.initDataUnsafe?.user?.first_name || user?.first_name || undefined,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      setDebugInfo((d) => ({ ...d, lastStatus: String(res.status), lastCode: String(data?.code || ''), lastRequestId: String(data?.request_id || debugRequestId) }));
       if (!res.ok) {
         trackEvent('creator_terms_accept_failed', { source: 'create_offer' });
         if (data?.code === 'INITDATA_EXPIRED') {
@@ -161,6 +165,8 @@ export default function CreateOffer() {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
     const authData = tg?.initData || initData || stored;
+    const authSource = tg?.initData ? 'tg.initData' : (initData ? 'state.initData' : (stored ? 'sessionStorage' : 'none'));
+    setDebugInfo((d) => ({ ...d, authSource }));
     const unsafeUserId = tg?.initDataUnsafe?.user?.id || user?.id;
     if (!authData && !unsafeUserId) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
@@ -189,9 +195,10 @@ export default function CreateOffer() {
     try {
       const normalizedType = (contentType === 'photo' || contentType === 'video') ? 'file' : contentType;
       const mediaKind = contentType === 'photo' ? 'photo' : contentType === 'video' ? 'video' : 'document';
+      const debugRequestId = `dbg_${Date.now().toString(36)}`;
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-debug-request-id': debugRequestId },
         body: JSON.stringify({
           init_data: authData,
           unsafe_user_id: unsafeUserId ? String(unsafeUserId) : undefined,
@@ -207,7 +214,8 @@ export default function CreateOffer() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      setDebugInfo((d) => ({ ...d, lastStatus: String(res.status), lastCode: String(data?.code || ''), lastRequestId: String(data?.request_id || debugRequestId) }));
       if (!res.ok) {
         if (data.code === 'TERMS_NOT_ACCEPTED') {
           setTermsAccepted(false);
@@ -363,6 +371,11 @@ export default function CreateOffer() {
           </button>
         </section>
       )}
+
+      <section className="glass-card text-xs space-y-1" style={{ borderStyle: 'dashed' }}>
+        <p><strong>Debug (temp)</strong> — auth: {debugInfo.authSource || 'none'}</p>
+        <p>status: {debugInfo.lastStatus || '-'} · code: {debugInfo.lastCode || '-'} · request: {debugInfo.lastRequestId || '-'}</p>
+      </section>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <section className="glass-card space-y-4">

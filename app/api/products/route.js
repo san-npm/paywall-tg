@@ -60,11 +60,12 @@ export async function GET(req) {
 
 // POST — create product (requires valid Telegram initData)
 export async function POST(req) {
+  const requestId = req.headers.get('x-debug-request-id') || `req_${Date.now().toString(36)}`;
   let body;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid JSON body', request_id: requestId }, { status: 400 });
   }
 
   // Validate Telegram initData to authenticate the creator
@@ -72,9 +73,12 @@ export async function POST(req) {
   const unsafeUserId = String(body?.unsafe_user_id || '').trim();
   const allowUnsafe = /^\d{5,20}$/.test(unsafeUserId);
   if ((!initDataChecked.ok || !initDataChecked.data?.user?.id) && !allowUnsafe) {
+    const code = initDataChecked.error || 'INVALID_INITDATA';
+    console.error('[create-post auth fail]', { requestId, code, hasUnsafe: allowUnsafe });
     return NextResponse.json({
       error: 'Invalid or expired Telegram authentication',
-      code: initDataChecked.error || 'INVALID_INITDATA',
+      code,
+      request_id: requestId,
     }, { status: 401 });
   }
   const initData = initDataChecked.ok && initDataChecked.data?.user?.id
@@ -161,6 +165,7 @@ export async function POST(req) {
       return NextResponse.json({
         error: 'Creator terms acceptance required before publishing.',
         code: 'TERMS_NOT_ACCEPTED',
+        request_id: requestId,
       }, { status: 403 });
     }
 
