@@ -17,6 +17,7 @@ function CreateSkeleton() {
 
 export default function CreateOffer() {
   const [user, setUser] = useState(null);
+  const [hasInitData, setHasInitData] = useState(false);
   const [ready, setReady] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -42,14 +43,18 @@ export default function CreateOffer() {
         tg.BackButton.onClick(() => {
           window.location.href = '/';
         });
+        const initData = tg.initData || '';
+        setHasInitData(Boolean(initData));
+
         const u = tg.initDataUnsafe?.user;
-        if (u) {
-          setUser(u);
+        if (u) setUser(u);
+
+        if (initData) {
           try {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 5000);
             const res = await fetch('/api/creator-terms', {
-              headers: { 'x-telegram-init-data': tg.initData || '' },
+              headers: { 'x-telegram-init-data': initData },
               signal: controller.signal,
             });
             clearTimeout(timeout);
@@ -100,8 +105,9 @@ export default function CreateOffer() {
     e.preventDefault();
     setError(null);
 
-    if (!user) {
-      setError('Open this page inside Telegram to create a paid creation.');
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData) {
+      setError('Open this page from the bot mini app to publish.');
       return;
     }
 
@@ -125,7 +131,6 @@ export default function CreateOffer() {
     setLoading(true);
     trackEvent('create_offer_submit_attempted', { content_type: contentType, has_description: Boolean(description), price_stars: priceNum });
     try {
-      const tg = window.Telegram?.WebApp;
       const normalizedType = (contentType === 'photo' || contentType === 'video') ? 'file' : contentType;
       const mediaKind = contentType === 'photo' ? 'photo' : contentType === 'video' ? 'video' : 'document';
       const res = await fetch('/api/products', {
@@ -248,14 +253,14 @@ export default function CreateOffer() {
         </div>
       </section>
 
-      {!user && (
+      {!hasInitData && (
         <section className="glass-card text-sm">
           <p className="font-semibold">Open in Telegram to publish</p>
           <p className="text-tg-hint mt-1">This preview works in browser, but publishing a creation requires Telegram auth.</p>
         </section>
       )}
 
-      {user && (
+      {hasInitData && (
         <section className="glass-card text-sm">
           {termsLoading ? (
             <p className="text-tg-hint">Checking Creator Terms...</p>
@@ -370,7 +375,7 @@ export default function CreateOffer() {
           </div>
         </section>
 
-        {user && !termsLoading && !termsAccepted && (
+        {hasInitData && !termsLoading && !termsAccepted && (
           <section className="glass-card text-sm space-y-2">
             <p className="font-semibold">One last step before publishing</p>
             <p className="text-tg-hint">Accept Creator Terms once. You won’t need to do this again for next creations.</p>
@@ -383,7 +388,7 @@ export default function CreateOffer() {
           </section>
         )}
 
-        <button type="submit" disabled={loading || !user} className="primary-btn disabled:opacity-50">
+        <button type="submit" disabled={loading} className="primary-btn disabled:opacity-50">
           {loading ? 'Publishing creation...' : (termsAccepted ? 'Publish creation' : 'Accept terms to publish')}
         </button>
       </form>
