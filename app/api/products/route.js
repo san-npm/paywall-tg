@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuid } from 'uuid';
-import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
-import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews } from '@/lib/db';
+import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
+import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
@@ -84,8 +84,12 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Rate limit exceeded. Max 30 products per hour.' }, { status: 429 });
   }
 
-  const { title, description, price_stars, content_type, content } = body;
+  const { title, description, price_stars, content_type, content, media_kind, price_usd_cents, price_eur_cents, payment_methods } = body;
 
+
+  const normalizedContentType = (content_type === 'photo' || content_type === 'video') ? 'file' : content_type;
+  const normalizedMediaKind = String(media_kind || content_type || 'document').toLowerCase();
+  const effectiveMediaKind = normalizedMediaKind === 'photo' ? 'photo' : normalizedMediaKind === 'video' ? 'video' : 'document';
   if (!title || !price_stars || !content_type || !content) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
@@ -107,12 +111,12 @@ export async function POST(req) {
   }
 
   const validTypes = ['text', 'link', 'message', 'file'];
-  if (!validTypes.includes(content_type)) {
-    return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message, file' }, { status: 400 });
+  if (!validTypes.includes(normalizedContentType)) {
+    return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message, file, photo, video' }, { status: 400 });
   }
 
   // Validate link content is a proper URL
-  if (content_type === 'link') {
+  if (normalizedContentType === 'link') {
     try {
       const url = new URL(String(content));
       if (!['http:', 'https:'].includes(url.protocol)) {
@@ -123,10 +127,50 @@ export async function POST(req) {
     }
   }
 
+  const requestedMethods = Array.isArray(payment_methods)
+    ? payment_methods
+    : String(payment_methods || 'stars,stripe').split(',');
+  const allowedMethods = requestedMethods
+    .map((v) => String(v).trim().toLowerCase())
+    .filter((v) => v === 'stars' || v === 'stripe');
+  const uniqueMethods = [...new Set(allowedMethods)];
+  const effectiveMethods = ENABLE_STRIPE
+    ? (uniqueMethods.length ? uniqueMethods : ['stars', 'stripe'])
+    : ['stars'];
+
+  const usdCents = Number.isFinite(Number(price_usd_cents))
+    ? Math.max(50, Math.round(Number(price_usd_cents)))
+    : Math.max(50, Math.round(price * DEFAULT_USD_PER_STAR * 100));
+  const eurCents = Number.isFinite(Number(price_eur_cents))
+    ? Math.max(50, Math.round(Number(price_eur_cents)))
+    : Math.max(50, Math.round(price * DEFAULT_EUR_PER_STAR * 100));
+
   try {
     await getOrCreateCreator(creatorId, username, displayName);
+
+    const termsAccepted = await hasAcceptedCurrentCreatorTerms(creatorId);
+    if (!termsAccepted) {
+      return NextResponse.json({
+        error: 'Creator terms acceptance required before publishing.',
+        code: 'TERMS_NOT_ACCEPTED',
+      }, { status: 403 });
+    }
+
     const id = uuid();
-    const product = await createProduct(id, creatorId, String(title), String(description || ''), price, content_type, String(content), null);
+    const product = await createProduct(
+      id,
+      creatorId,
+      String(title),
+      String(description || ''),
+      price,
+      normalizedContentType,
+      String(content),
+      null,
+      effectiveMediaKind,
+      usdCents,
+      eurCents,
+      effectiveMethods.join(','),
+    );
     return NextResponse.json({ product });
   } catch (err) {
     console.error('Create product error:', err);

@@ -1,13 +1,13 @@
 # Deep Audit Report
 
-Date: 2026-03-12
+Date: 2026-03-12  
 Scope: full repository (`app/**`, `components/**`, `lib/**`, config, docs)
 
 ## Executive Summary
 
-- ✅ Backend controls have been tightened with action-level admin rate limits and request correlation IDs.
+- ✅ Backend controls tightened with action-level admin rate limits and request correlation IDs.
 - ✅ Frontend SEO/AEO posture improved with OG images, Organization schema, richer FAQs, and semantic comparison tables.
-- ✅ Security posture improved with stronger headers, abuse-signal logs for invoice bursts, and documented secret-rotation runbook.
+- ✅ Security posture improved with stronger headers, abuse-signal logs for invoice bursts, and a documented secret-rotation runbook.
 - ✅ GEO/AEO discoverability strengthened via `llms.txt` and expanded answer-ready content.
 
 ## Checks Run
@@ -15,72 +15,85 @@ Scope: full repository (`app/**`, `components/**`, `lib/**`, config, docs)
 1. `npm test` (pass)
 2. `npm run build` (pass)
 3. `npm run audit:deps` (environment-limited: npm advisory endpoint 403)
-4. Conflict-resolution pass validated for `AUDIT_REPORT.md`, `app/api/admin/route.js`, and `app/api/invoice/route.js`
+4. Manual + conflict-resolution pass for `AUDIT_REPORT.md`, `app/api/admin/route.js`, and `app/api/invoice/route.js`
 
-## Audit items and implementation status
+## Changes made in this audit
 
-### Backend
+### 1) Security headers hardening
 
-- [x] Add per-action rate limits on sensitive admin endpoints
-  - Implemented rate limits for `refund_payment`, `payout_create`, and `payout_mark_paid`.
-  - File: `app/api/admin/route.js`
+Added baseline response headers for stronger browser-side protection:
 
-- [x] Add structured audit event correlation IDs for sensitive operations
-  - Added `request_id` generation and propagation in admin and invoice API responses/logging.
-  - Files: `app/api/admin/route.js`, `app/api/invoice/route.js`
+- `Content-Security-Policy` with explicit resource directives
+- `Strict-Transport-Security` (HSTS)
+- `Cross-Origin-Opener-Policy`
+- `Cross-Origin-Resource-Policy`
 
-- [x] Resolve branch conflicts safely in API/report files
-  - Unified response shaping with helper functions returning consistent `request_id` payloads.
-  - Added `BOT_TOKEN` guard in admin bot initialization path.
-  - Reordered invoice validation so `product_id` format checks run before per-product throttling.
-  - Files: `AUDIT_REPORT.md`, `app/api/admin/route.js`, `app/api/invoice/route.js`
+File: `next.config.mjs`
 
-- [x] Add abuse-detection signals around invoice bursts
-  - Added per-buyer and per-buyer-per-product invoice throttles with structured warning logs.
-  - File: `app/api/invoice/route.js`
+### 2) GEO/AEO support via `llms.txt`
 
-### Frontend / CRO
+Added a dedicated `llms.txt` endpoint with concise, machine-readable product and trust information.
 
-- [x] Improve media optimization for visible website assets
-  - Migrated key mascot and card images to `next/image`.
-  - Files: `components/website/Nav.jsx`, `components/website/HomePageClient.jsx`
+File: `app/llms.txt/route.js`
 
-- [x] Add explicit conversion-tracking events on key CTA flows
-  - Added `trackCta` helper and wired it to primary navigation + homepage CTA clicks.
-  - Files: `components/website/tracking.js`, `components/website/Nav.jsx`, `components/website/HomePageClient.jsx`
+### 3) Backend hardening and conflict resolution
 
-### Security
+- Added/kept request correlation IDs (`request_id`) across sensitive admin/invoice flows.
+- Preserved admin action-level rate limits for `refund_payment`, `payout_create`, and payout status transitions.
+- Kept payout statement CSV support and payout processing state transition support.
+- Reordered invoice validation so `product_id` format checks happen before product-level throttling.
 
-- [x] Harden browser security headers
-  - CSP, HSTS, COOP, CORP included globally.
-  - File: `next.config.mjs`
+Files: `app/api/admin/route.js`, `app/api/invoice/route.js`
 
-- [x] Add operational key/secret rotation runbook
-  - Added practical runbook in docs and summarized in security page.
-  - Files: `app/(website)/docs/page.jsx`, `app/(website)/security/page.jsx`
+## Deep audit findings (current state)
 
-### SEO / GEO / AEO
+## Backend review
 
-- [x] Add OG image coverage in site/page metadata
-  - Metadata now includes Open Graph/Twitter images.
-  - Files: `app/layout.jsx`, `lib/seo.js`, `public/og-image.svg`
+**Strengths**
+- Telegram Mini App auth (`initData`) is validated server-side and replay-window constrained.
+- Content-gating checks prevent unauthorized payload exposure.
+- Admin actions are guarded by explicit admin allowlist checks.
+- UUID validation and ownership checks exist on product mutations.
 
-- [x] Add sitewide entity schema (`Organization`)
-  - Injected JSON-LD Organization schema in website layout.
-  - File: `app/(website)/layout.jsx`
+**Residual risks / recommendations**
+- Keep dependency vulnerability checks enforced in CI where advisory endpoint access is stable.
+- Add integration tests for full payment → delivery → refund lifecycle.
 
-- [x] Improve answer extraction on comparison pages
-  - Converted comparison blocks to semantic `<table>` markup.
-  - Files: `app/(website)/alternatives/gumroad-for-telegram/page.jsx`, `app/(website)/alternatives/lemon-squeezy-telegram/page.jsx`
+## Frontend review
 
-- [x] Expand FAQ coverage for use-case pages
-  - Added richer FAQs in paid-content and digital-product use-case pages.
-  - Files: `app/(website)/use-cases/telegram-paid-content/page.jsx`, `app/(website)/use-cases/sell-digital-products-on-telegram/page.jsx`
+**Strengths**
+- Route structure is clean for core intent pages.
+- Metadata helper centralization improves consistency.
+- FAQ + SoftwareApplication schema supports rich results and answer engines.
 
-## Remaining Constraint
+**Residual risks / recommendations**
+- Keep optimizing above-the-fold media with `next/image` where practical.
+- Continue adding explicit conversion-tracking events on key CTA funnels.
 
-- Local `npm audit` still fails in this environment due npm advisory endpoint `403`; dependency vulnerability gating should run in CI.
+## Security review
+
+**Strengths**
+- Timing-safe comparisons in auth-sensitive checks.
+- Webhook secret validation implemented.
+- Product content is not exposed unless purchase is confirmed.
+
+**Improvements completed in this pass**
+- Stronger browser security headers and CSP policy.
+
+**Residual recommendations**
+- Continue periodic key/secret rotation and runbook review.
+- Track abuse metrics around invoice creation burst anomalies.
+
+## SEO / GEO / AEO review
+
+**SEO strengths**
+- Canonicals, sitemap, robots, and targeted page keywords are present.
+- Topic-cluster pages align with transactional and informational intents.
+
+**GEO/AEO improvements completed in this pass**
+- Added `llms.txt` endpoint for machine-readable context and canonical guidance.
+- Added richer schema/FAQ/table structures to improve passage-level retrieval.
 
 ## Conclusion
 
-All previously flagged remediation items from the prior audit pass have been implemented in this revision. Remaining risk is primarily operational monitoring and continuous dependency scanning in CI rather than missing application-layer controls.
+Application quality is strong and merge conflicts are resolved in the listed files while preserving the key hardening improvements from both branches. Remaining work is mostly operational maturity (CI dependency scanning, lifecycle integration tests, ongoing monitoring) rather than critical blockers.

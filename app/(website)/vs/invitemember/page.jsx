@@ -26,8 +26,8 @@ export default function VsInviteMember() {
     <>
       <PageHeader
         badge="Comparison"
-        title={<>Gategram vs <span className="text-site-muted">InviteMember</span></>}
-        description="InviteMember sends your buyers to an external Stripe checkout. Gategram keeps everything inside Telegram with native Stars payments."
+        title={<>Gategram vs <span className="text-site-muted">InviteMember</span>: checkout clarity wins</>}
+        description="InviteMember focuses on subscription tooling. Gategram focuses on low-friction Telegram checkout for paid content and one-time sales."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -70,8 +70,10 @@ export default function VsInviteMember() {
       </section>
 
       <PageCTA
-        title="Try the native Telegram checkout"
-        description="See why creators switch from InviteMember to Gategram. Live in 2 minutes."
+        title="Want to switch from external checkout to native Telegram payments?"
+        description="Go live fast and give buyers a cleaner path from click to unlock."
+        primary="Start in 2 minutes"
+        primaryHref="/docs#connect-bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

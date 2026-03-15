@@ -14,11 +14,19 @@ export default function DocsPage() {
       <PageHeader
         badge="Quickstart"
         title="Start selling in minutes"
-        description="No technical setup. Just connect your bot, create your first paid content, and share your link."
+        description="Clear setup for creators and a clear payment flow for buyers — from first offer to first sale."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
         <div className="max-w-3xl mx-auto space-y-6">
+          <article className="site-panel text-sm text-site-muted">
+            <p className="font-semibold text-site-text mb-2">Who this is for</p>
+            <p>
+              <strong className="text-site-text">Creators:</strong> sell paid content, files, and private access.
+              <br />
+              <strong className="text-site-text">Buyers:</strong> pay with Telegram Stars and get content instantly in chat.
+            </p>
+          </article>
           {[
             {
               n: '1',
@@ -54,7 +62,8 @@ export default function DocsPage() {
 
       <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6">Useful commands</h2>
+          <h2 className="text-2xl font-bold mb-2">Useful commands</h2>
+          <p className="text-sm text-site-muted mb-6">These commands are for creators running sales through the bot.</p>
           <div className="rounded-xl border border-site-border overflow-hidden">
             {[
               { cmd: '/start', desc: 'Initialize your account in bot chat' },

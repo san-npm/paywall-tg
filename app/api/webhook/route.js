@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { v4 as uuid } from 'uuid';
-import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY } from '@/lib/config';
+import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_FAKE_PAYMENTS } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
   getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction
@@ -15,6 +15,22 @@ let bot;
 function getBot() {
   if (!bot) bot = new Bot(BOT_TOKEN);
   return bot;
+}
+
+async function deliverPaidMedia(api, chatId, product) {
+  if (product.content_type !== 'file') return;
+  if (!product.file_id) {
+    await api.sendMessage(chatId, 'The media for this creation is not yet available. Contact the creator.');
+    return;
+  }
+  const kind = String(product.file_kind || 'document');
+  if (kind === 'photo') {
+    await api.sendPhoto(chatId, product.file_id);
+  } else if (kind === 'video') {
+    await api.sendVideo(chatId, product.file_id);
+  } else {
+    await api.sendDocument(chatId, product.file_id);
+  }
 }
 
 export async function POST(req) {
@@ -56,7 +72,7 @@ export async function POST(req) {
 
       // Validate product exists and price/currency match
       if (!product) {
-        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Product no longer available.' });
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Creation no longer available.' });
         return NextResponse.json({ ok: true });
       }
       if (query.currency !== TELEGRAM_CURRENCY) {
@@ -67,13 +83,13 @@ export async function POST(req) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Price has changed. Please try again.' });
         return NextResponse.json({ ok: true });
       }
-      if (product.creator_id === buyerId) {
+      if (String(product.creator_id) === String(buyerId)) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You cannot buy your own product.' });
         return NextResponse.json({ ok: true });
       }
       // Prevent duplicate purchase
       if (await hasPurchased(productId, buyerId)) {
-        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You already purchased this product.' });
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You already purchased this creation.' });
         return NextResponse.json({ ok: true });
       }
 
@@ -171,14 +187,7 @@ export async function POST(req) {
 
         await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
 
-        // If file type with a stored file_id, send the file
-        if (product.content_type === 'file') {
-          if (product.file_id) {
-            await b.api.sendDocument(buyerId, product.file_id);
-          } else {
-            await b.api.sendMessage(buyerId, 'The file for this product is not yet available. Contact the creator.');
-          }
-        }
+        await deliverPaidMedia(b.api, buyerId, product);
 
         // Notify creator
         const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;
@@ -198,20 +207,23 @@ export async function POST(req) {
 
       // /start command
       if (text === '/start') {
-        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         await b.api.sendMessage(chatId,
-          `\u{1F44B} Welcome to *Gategram*\\!\n\nSell digital content directly in Telegram\\.\n\n` +
-          `\u{1F4E6} /create \\— Create a new product\n` +
-          `\u{1F4CA} /dashboard \\— View your stats\n` +
-          `\u{1F4CB} /products \\— List your products\n` +
-          `\u{1F6D2} /buy \\<id\\> \\— Buy a product\n` +
-          `\u{1F4CE} /attach \\<id\\> \\— Attach a file to a product\n\n` +
-          `Or open the Mini App \u{1F447}`,
+          `👋 Welcome to Gategram\n\nSell paid creations in Telegram. Get paid in Stars.\n\n` +
+          `How it works:\n` +
+          `1) Create a paid creation\n` +
+          `2) Share your buy link\n` +
+          `3) Get paid when someone buys\n\n` +
+          `Commands:\n` +
+          `📦 /create — Create a paid creation\n` +
+          `📋 /products — View your products\n` +
+          `📊 /dashboard — View sales and earnings\n` +
+          `🛒 /buy <product_id> — Buy a product\n\n` +
+          `Tap Open Gategram below to start.`,
           {
-            parse_mode: 'MarkdownV2',
             reply_markup: {
               inline_keyboard: [[
-                { text: '\u{1F680} Open Gategram', web_app: { url: WEBAPP_URL } }
+                { text: '🚀 Open Gategram', web_app: { url: WEBAPP_URL } }
               ]]
             }
           }
@@ -220,9 +232,9 @@ export async function POST(req) {
 
       // /create command
       else if (text === '/create') {
-        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         await b.api.sendMessage(chatId,
-          `\u{1F4E6} *Create a product*\n\nOpen the Mini App to create your product with a nice UI, or use the quick command:\n\n` +
+          `\u{1F4E6} *Create a paid creation*\n\nOpen the Mini App to create your paid creation, or use the quick command:\n\n` +
           `\`/new <price_in_stars> <title> | <content>\`\n\n` +
           `Example:\n\`/new 50 My Secret Guide | Here's the secret content that buyers will receive\\.\\.\\.\``,
           {
@@ -252,7 +264,7 @@ export async function POST(req) {
         }
 
         const { price, title, content } = parsed.value;
-        await getOrCreateCreator(userId, msg.from.username, msg.from.first_name);
+        await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         const id = uuid();
         await createProduct(id, userId, title, '', price, 'text', content, null);
 
@@ -276,26 +288,27 @@ export async function POST(req) {
         const product = await getProductRaw(productId);
 
         if (!product) {
-          await b.api.sendMessage(chatId, '\u274C Product not found.');
+          await b.api.sendMessage(chatId, '\u274C Creation not found.');
           return NextResponse.json({ ok: true });
         }
         if (product.creator_id !== userId) {
-          await b.api.sendMessage(chatId, '\u274C You can only attach files to your own products.');
+          await b.api.sendMessage(chatId, '\u274C You can only attach media to your own creations.');
           return NextResponse.json({ ok: true });
         }
         if (product.content_type !== 'file') {
-          await b.api.sendMessage(chatId, '\u274C This product is not a file type. Only file-type products accept file attachments.');
+          await b.api.sendMessage(chatId, '\u274C This creation does not accept media attachments.');
           return NextResponse.json({ ok: true });
         }
 
         // Store a pending attach state using reply markup
         await b.api.sendMessage(chatId,
-          `\u{1F4CE} *Attach a file to:* ${escapeMarkdown(product.title)}\n\n` +
-          `Reply to this message with the file you want to attach\\.\n` +
-          `Product ID: \`${productId}\``,
+          `\u{1F4CE} *Attach media to:* ${escapeMarkdown(product.title)}\n\n` +
+          `Reply to this message with the file, photo, or video you want to attach\\.\n` +
+          `Creation ID: \`${productId}\``,
+
           {
             parse_mode: 'MarkdownV2',
-            reply_markup: { force_reply: true, selective: true, input_field_placeholder: 'Send or forward a file...' }
+            reply_markup: { force_reply: true, selective: true, input_field_placeholder: 'Send or forward a file/photo/video...' }
           }
         );
       }
@@ -310,24 +323,46 @@ export async function POST(req) {
         const product = await getProduct(productId);
 
         if (!product) {
-          await b.api.sendMessage(chatId, '\u274C Product not found or no longer available.');
+          await b.api.sendMessage(chatId, '\u274C Creation not found or no longer available.');
           return NextResponse.json({ ok: true });
         }
 
         if (await hasPurchased(productId, userId)) {
-          await b.api.sendMessage(chatId, '\u2705 You already purchased this! The content was sent to you.');
+          const safeTitle = escapeMarkdown(product.title);
+          let contentMessage = '';
+          switch (product.content_type) {
+            case 'text':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+            case 'link':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+              break;
+            case 'file':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*`;
+              break;
+            default:
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+          }
+          await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
+          if (product.content_type === 'file') {
+            try {
+              await deliverPaidMedia(b.api, chatId, product);
+            } catch (e) {
+              await b.api.sendMessage(chatId, `⚠️ Media delivery failed: ${e?.description || e?.message || 'unknown error'}`);
+            }
+          }
           return NextResponse.json({ ok: true });
         }
 
-        if (product.creator_id === userId) {
+        if (String(product.creator_id) === String(userId)) {
           await b.api.sendMessage(chatId, '\u{1F937} That\'s your own product!');
           return NextResponse.json({ ok: true });
         }
 
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
-        ]);
-      }
+        ]);      }
 
       // /buy <id>
       else if (text.startsWith('/buy ')) {
@@ -339,23 +374,106 @@ export async function POST(req) {
         const product = await getProduct(productId);
 
         if (!product) {
-          await b.api.sendMessage(chatId, '\u274C Product not found or no longer available.');
+          await b.api.sendMessage(chatId, '\u274C Creation not found or no longer available.');
           return NextResponse.json({ ok: true });
         }
 
         if (await hasPurchased(productId, userId)) {
-          await b.api.sendMessage(chatId, '\u2705 You already purchased this! The content was sent to you.');
+          const safeTitle = escapeMarkdown(product.title);
+          let contentMessage = '';
+          switch (product.content_type) {
+            case 'text':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+            case 'link':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+              break;
+            case 'file':
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*`;
+              break;
+            default:
+              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+          }
+          await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
+          if (product.content_type === 'file') {
+            try {
+              await deliverPaidMedia(b.api, chatId, product);
+            } catch (e) {
+              await b.api.sendMessage(chatId, `⚠️ Media delivery failed: ${e?.description || e?.message || 'unknown error'}`);
+            }
+          }
           return NextResponse.json({ ok: true });
         }
 
-        if (product.creator_id === userId) {
+        if (String(product.creator_id) === String(userId)) {
           await b.api.sendMessage(chatId, '\u{1F937} That\'s your own product!');
           return NextResponse.json({ ok: true });
         }
 
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
-        ]);
+        ]);      }
+
+      // /testbuy <id> (no-charge simulation)
+      else if (text.startsWith('/testbuy ') || text.startsWith('/testbuy@')) {
+        await b.api.sendMessage(chatId, '🧪 Running test purchase...');
+        if (!ENABLE_FAKE_PAYMENTS) {
+          await b.api.sendMessage(chatId, '\u274C Test purchases are disabled.');
+          return NextResponse.json({ ok: true });
+        }
+
+        const match = text.match(/^\/testbuy(?:@\w+)?\s+(.+)$/);
+        const productId = (match?.[1] || '').trim();
+        if (!isValidProductId(productId)) {
+          await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          return NextResponse.json({ ok: true });
+        }
+
+        const product = await getProduct(productId);
+        if (!product) {
+          await b.api.sendMessage(chatId, '\u274C Creation not found or no longer available.');
+          return NextResponse.json({ ok: true });
+        }
+
+        if (String(product.creator_id) === String(userId)) {
+          await b.api.sendMessage(chatId, '\u{1F937} That\'s your own product!');
+          return NextResponse.json({ ok: true });
+        }
+
+        if (!(await hasPurchased(productId, userId))) {
+          const starsPaid = Number(product.price_stars || 0);
+          const platformFee = Math.ceil(starsPaid * PLATFORM_FEE_PERCENT / 100);
+          const creatorShare = starsPaid - platformFee;
+          const fakeChargeId = `test_${productId}_${userId}_${Date.now()}`;
+          await recordPurchase(productId, userId, starsPaid, creatorShare, platformFee, fakeChargeId);
+        }
+
+        const title = String(product.title || 'Creation');
+        let contentMessage = '';
+        switch (product.content_type) {
+          case 'text':
+            contentMessage = `🧪 Test purchase successful\n\n${title}\n\n${product.content}`;
+            break;
+          case 'link':
+            contentMessage = `🧪 Test purchase successful\n\n${title}\n\n🔗 ${product.content}`;
+            break;
+          case 'file':
+            contentMessage = `🧪 Test purchase successful\n\n${title}`;
+            break;
+          default:
+            contentMessage = `🧪 Test purchase successful\n\n${title}\n\n${product.content}`;
+            break;
+        }
+
+        await b.api.sendMessage(chatId, contentMessage);
+        if (product.content_type === 'file') {
+          await deliverPaidMedia(b.api, chatId, product);
+        }
+
+        const creatorShare = Math.max(0, Number(product.price_stars || 0) - Math.ceil(Number(product.price_stars || 0) * PLATFORM_FEE_PERCENT / 100));
+        const creatorMsg = `🧪 Test sale\n${title}\nSimulated buyer generated ⭐ ${creatorShare} creator share`;
+        await b.api.sendMessage(product.creator_id, creatorMsg).catch(() => {});
       }
 
       // /admin_disable <id> and /admin_enable <id>
@@ -377,8 +495,8 @@ export async function POST(req) {
         const updated = await setProductActive(productId, enable);
         await logAdminAction(userId, enable ? 'enable_product' : 'disable_product', 'product', productId, updated ? 'ok' : 'not_found');
         await b.api.sendMessage(chatId, updated
-          ? `\u2705 Product ${enable ? 'enabled' : 'disabled'}: \`${productId}\``
-          : '\u274C Product not found.', { parse_mode: 'MarkdownV2' });
+          ? `\u2705 Creation ${enable ? 'enabled' : 'disabled'}: \`${productId}\``
+          : '\u274C Creation not found.', { parse_mode: 'MarkdownV2' });
       }
 
       // /products
@@ -399,7 +517,7 @@ export async function POST(req) {
         const stats = await getCreatorStats(userId);
         await b.api.sendMessage(chatId,
           `\u{1F4CA} *Your Dashboard*\n\n` +
-          `\u{1F4E6} Products: ${stats.products}\n` +
+          `\u{1F4E6} Creations: ${stats.products}\n` +
           `\u{1F6D2} Total sales: ${stats.sales}\n` +
           `\u2B50 Total earned: ${stats.totalStars} Stars\n\n` +
           `_Open the Mini App for detailed analytics_`,
@@ -415,34 +533,53 @@ export async function POST(req) {
       }
     }
 
-    // Handle document/file replies (for /attach flow)
-    if (body.message?.document && body.message?.reply_to_message?.text) {
+        // Handle media replies (for /attach flow)
+    if (body.message?.reply_to_message?.text) {
       const replyText = body.message.reply_to_message.text;
       const chatId = body.message.chat.id;
       const userId = String(body.message.from.id);
-      const fileId = body.message.document.file_id;
 
-      // Extract product ID from the /attach reply
-      const match = replyText.match(/Product ID:\s*([a-f0-9-]{36})/i);
-      if (match) {
-        const productId = match[1];
-        const product = await getProductRaw(productId);
+      let fileId = null;
+      let fileKind = 'document';
+      if (body.message?.document?.file_id) {
+        fileId = body.message.document.file_id;
+        fileKind = 'document';
+      } else if (Array.isArray(body.message?.photo) && body.message.photo.length > 0) {
+        fileId = body.message.photo[body.message.photo.length - 1].file_id;
+        fileKind = 'photo';
+      } else if (body.message?.video?.file_id) {
+        fileId = body.message.video.file_id;
+        fileKind = 'video';
+      }
 
-        if (!product || product.creator_id !== userId) {
-          await b.api.sendMessage(chatId, '\u274C Unable to attach file. Product not found or not yours.');
-          return NextResponse.json({ ok: true });
-        }
+      if (fileId) {
+        const match = replyText.match(/(?:Product|Creation) ID:\s*([a-f0-9-]{36})/i);
+        if (match) {
+          const productId = match[1];
+          const product = await getProductRaw(productId);
 
-        const attached = await attachFileToProduct(productId, fileId);
-        if (attached) {
-          await b.api.sendMessage(chatId, `\u2705 File attached to *${escapeMarkdown(product.title)}*\\!`, { parse_mode: 'MarkdownV2' });
-        } else {
-          await b.api.sendMessage(chatId, '\u274C Failed to attach file. Make sure the product is a file type.');
+          if (!product || product.creator_id !== userId) {
+            await b.api.sendMessage(chatId, '❌ Unable to attach media. Creation not found or not yours.');
+            return NextResponse.json({ ok: true });
+          }
+
+          const attached = await attachFileToProduct(productId, fileId, fileKind);
+          if (attached) {
+            await b.api.sendMessage(chatId, `✅ Media attached to *${escapeMarkdown(product.title)}*\!`, { parse_mode: 'MarkdownV2' });
+          } else {
+            await b.api.sendMessage(chatId, '❌ Failed to attach media.');
+          }
         }
       }
     }
   } catch (err) {
     console.error('Webhook error:', err);
+    try {
+      const chatId = body?.message?.chat?.id;
+      if (chatId) {
+        await getBot().api.sendMessage(chatId, `❌ Runtime error: ${err?.message || 'unknown error'}`);
+      }
+    } catch {}
   }
 
   return NextResponse.json({ ok: true });

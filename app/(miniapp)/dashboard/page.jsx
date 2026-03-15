@@ -49,6 +49,11 @@ export default function Home() {
   const [payouts, setPayouts] = useState([]);
   const [payoutCreatorId, setPayoutCreatorId] = useState('');
   const [selectedPayout, setSelectedPayout] = useState(null);
+  const [creatorProfile, setCreatorProfile] = useState(null);
+  const [finance, setFinance] = useState(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [invoiceForms, setInvoiceForms] = useState({});
+  const [invoiceSubmitting, setInvoiceSubmitting] = useState(null);
 
   useEffect(() => {
     let u = null;
@@ -74,14 +79,22 @@ export default function Home() {
         fetch('/api/admin?kind=payouts', {
           headers: { 'x-telegram-init-data': initData }
         }).then(r => r.json()).catch(() => ({ pending: [], payouts: [] })),
+        fetch('/api/creator-profile', {
+          headers: { 'x-telegram-init-data': initData }
+        }).then(r => r.json()).catch(() => ({ profile: null })),
+        fetch('/api/creator-finance', {
+          headers: { 'x-telegram-init-data': initData }
+        }).then(r => r.json()).catch(() => ({ totals: null, months: [], payouts: [] })),
       ])
-        .then(([productData, adminData, payoutData]) => {
+        .then(([productData, adminData, payoutData, profileData, financeData]) => {
           setOffers(productData.products || []);
           setStats(productData.stats);
           setIsAdmin(Boolean(adminData?.is_admin));
           setAdminActions(Array.isArray(adminData?.actions) ? adminData.actions : []);
           setPayoutQueue(Array.isArray(payoutData?.pending) ? payoutData.pending : []);
           setPayouts(Array.isArray(payoutData?.payouts) ? payoutData.payouts : []);
+          setCreatorProfile(profileData?.profile || { legal_name: '', email: '', country: '', payout_method: 'manual', payout_details: '' });
+          setFinance(financeData || null);
         })
         .finally(() => setReady(true));
     } else {
@@ -213,6 +226,19 @@ export default function Home() {
     }
   };
 
+  const markPayoutProcessing = async (payoutId) => {
+    setAdminError(null);
+    setAdminBusy(true);
+    try {
+      await postAdminAction({ action: 'payout_mark_processing', payout_id: payoutId });
+      await refreshPayouts();
+    } catch (err) {
+      setAdminError(err.message || 'Mark processing failed');
+    } finally {
+      setAdminBusy(false);
+    }
+  };
+
   const markPayoutPaid = async (payoutId) => {
     setAdminError(null);
     setAdminBusy(true);
@@ -224,6 +250,22 @@ export default function Home() {
     } finally {
       setAdminBusy(false);
     }
+  };
+
+  const downloadCsvResponse = async (res, fallbackName) => {
+    if (!res.ok) throw new Error('Export failed');
+    const blob = await res.blob();
+    const cd = res.headers.get('content-disposition') || '';
+    const match = cd.match(/filename="?([^";]+)"?/i);
+    const name = match?.[1] || fallbackName;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   const exportCsv = async (kind) => {
@@ -239,18 +281,91 @@ export default function Home() {
       const res = await fetch(`/api/admin?${params.toString()}`, {
         headers: { 'x-telegram-init-data': iData }
       });
-      if (!res.ok) throw new Error('Export failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${kind}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      await downloadCsvResponse(res, `${kind}.csv`);
     } catch (err) {
       setAdminError(err.message || 'Export failed');
+    }
+  };
+
+  const downloadPayoutStatementAdmin = async (payoutId) => {
+    setAdminError(null);
+    try {
+      const tg = window.Telegram?.WebApp;
+      const iData = tg?.initData || '';
+      const res = await fetch(`/api/admin?kind=payout_statement_csv&payout_id=${encodeURIComponent(String(payoutId))}`, {
+        headers: { 'x-telegram-init-data': iData }
+      });
+      await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
+    } catch (err) {
+      setAdminError(err.message || 'Statement download failed');
+    }
+  };
+
+  const downloadPayoutStatementCreator = async (payoutId) => {
+    setAdminError(null);
+    try {
+      const tg = window.Telegram?.WebApp;
+      const iData = tg?.initData || '';
+      const res = await fetch(`/api/creator-payout-statement?payout_id=${encodeURIComponent(String(payoutId))}`, {
+        headers: { 'x-telegram-init-data': iData }
+      });
+      await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
+    } catch (err) {
+      setAdminError(err.message || 'Statement download failed');
+    }
+  };
+
+  const saveCreatorProfile = async () => {
+    const tg = window.Telegram?.WebApp;
+    const iData = tg?.initData || '';
+    setProfileSaving(true);
+    try {
+      const res = await fetch('/api/creator-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
+        body: JSON.stringify(creatorProfile || {}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save profile');
+      setCreatorProfile(data.profile || creatorProfile);
+    } catch (err) {
+      setAdminError(err.message || 'Failed to save creator profile');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const submitPayoutInvoice = async (payoutId) => {
+    const form = invoiceForms[payoutId] || {};
+    if (!form.invoice_ref) {
+      setAdminError('Invoice reference is required.');
+      return;
+    }
+    const tg = window.Telegram?.WebApp;
+    const iData = tg?.initData || '';
+    setInvoiceSubmitting(payoutId);
+    setAdminError(null);
+    try {
+      const res = await fetch('/api/creator-payout-invoice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
+        body: JSON.stringify({
+          payout_id: payoutId,
+          invoice_ref: form.invoice_ref,
+          invoice_url: form.invoice_url || '',
+          invoice_notes: form.invoice_notes || '',
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Invoice submit failed');
+
+      const fres = await fetch('/api/creator-finance', { headers: { 'x-telegram-init-data': iData } });
+      const fdata = await fres.json().catch(() => null);
+      if (fdata) setFinance(fdata);
+    } catch (err) {
+      setAdminError(err.message || 'Invoice submit failed');
+    } finally {
+      setInvoiceSubmitting(null);
     }
   };
 
@@ -307,6 +422,62 @@ export default function Home() {
             <p className="text-xs text-tg-hint">Earnings</p>
             <p className="text-2xl font-semibold">{stats.totalStars} <span className="text-sm font-medium">Stars</span></p>
           </article>
+        </section>
+      )}
+
+      {user && creatorProfile && (
+        <section className="glass-card space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Creator account</h2>
+          <div className="grid sm:grid-cols-2 gap-2">
+            <input className="chip-btn" placeholder="Legal name" value={creatorProfile.legal_name || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value }))} />
+            <input className="chip-btn" placeholder="Email" value={creatorProfile.email || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value }))} />
+            <input className="chip-btn" placeholder="Country (ISO2, e.g. LU)" value={creatorProfile.country || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value.toUpperCase() }))} />
+            <input className="chip-btn" placeholder="Payout method (manual, paypal, iban)" value={creatorProfile.payout_method || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), payout_method: e.target.value }))} />
+          </div>
+          <textarea className="chip-btn w-full min-h-[68px]" placeholder="Payout details (IBAN / PayPal email / notes)" value={creatorProfile.payout_details || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value }))} />
+          <button type="button" className="chip-btn chip-primary" disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save creator profile'}</button>
+        </section>
+      )}
+
+      {user && finance?.totals && (
+        <section className="glass-card space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Financial dashboard (v1)</h2>
+          <div className="grid sm:grid-cols-3 gap-2">
+            <div className="mini-stat"><p className="mini-stat-label">Gross</p><p className="mini-stat-value">⭐ {finance.totals.gross_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Platform fee</p><p className="mini-stat-value">⭐ {finance.totals.fee_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Net earnings</p><p className="mini-stat-value">⭐ {finance.totals.net_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Pending payout</p><p className="mini-stat-value">⭐ {finance.totals.pending_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Paid out</p><p className="mini-stat-value">⭐ {finance.totals.paid_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Sales count</p><p className="mini-stat-value">{finance.totals.sales_count}</p></div>
+          </div>
+
+          <div className="space-y-1 text-xs text-tg-hint">
+            <p className="font-semibold">Monthly performance</p>
+            {Array.isArray(finance.months) && finance.months.length > 0 ? finance.months.map((m) => (
+              <p key={m.month}>{m.month}: {m.sales_count} sales · gross ⭐ {m.gross_stars} · net ⭐ {m.net_stars}</p>
+            )) : <p>No monthly sales yet.</p>}
+          </div>
+
+          <div className="space-y-2 text-xs text-tg-hint">
+            <p className="font-semibold">Recent payouts</p>
+            {Array.isArray(finance.payouts) && finance.payouts.length > 0 ? finance.payouts.map((p) => (
+              <div key={p.id} className="glass-card">
+                <p>#{p.id} · ⭐ {p.amount_stars} · {p.status}{p.paid_at ? ` · paid ${p.paid_at}` : ''}</p>
+                {p.invoice_ref && <p>Invoice: {p.invoice_ref}</p>}
+                {p.invoice_submitted_at && <p>Submitted: {p.invoice_submitted_at}</p>}
+                <div className="mt-2">
+                  <button type="button" className="chip-btn" onClick={() => downloadPayoutStatementCreator(p.id)}>Download statement CSV</button>
+                </div>
+                {p.status === 'pending' && (
+                  <div className="mt-2 grid sm:grid-cols-3 gap-2">
+                    <input className="chip-btn" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
+                    <input className="chip-btn" placeholder="Invoice URL (optional)" value={(invoiceForms[p.id]?.invoice_url || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_url: e.target.value } }))} />
+                    <button type="button" className="chip-btn chip-primary" disabled={invoiceSubmitting === p.id} onClick={() => submitPayoutInvoice(p.id)}>{invoiceSubmitting === p.id ? 'Submitting...' : 'Submit invoice'}</button>
+                  </div>
+                )}
+              </div>
+            )) : <p>No payouts yet.</p>}
+          </div>
         </section>
       )}
 
@@ -382,7 +553,12 @@ export default function Home() {
                 {payouts.slice(0, 10).map((p) => (
                   <div key={p.id} className="flex items-center gap-2 flex-wrap">
                     <span>#{p.id} · {p.creator_id} · {p.amount_stars} Stars · {p.status}</span>
+                    {p.invoice_ref ? <span>· invoice {p.invoice_ref}</span> : null}
                     <button type="button" className="chip-btn" onClick={() => loadPayoutDetails(p.id)}>Details</button>
+                    <button type="button" className="chip-btn" onClick={() => downloadPayoutStatementAdmin(p.id)}>Statement CSV</button>
+                    {(p.status === 'invoice_submitted' || p.status === 'pending') && (
+                      <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutProcessing(p.id)}>Mark processing</button>
+                    )}
                     {p.status !== 'paid' && (
                       <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutPaid(p.id)}>Mark paid</button>
                     )}
@@ -395,6 +571,9 @@ export default function Home() {
               <div className="text-xs text-tg-hint space-y-1">
                 <p className="font-semibold">Payout #{selectedPayout.payout.id} details</p>
                 <p>Creator: {selectedPayout.payout.creator_id} · Amount: {selectedPayout.payout.amount_stars} · Status: {selectedPayout.payout.status}</p>
+                {selectedPayout.payout.invoice_ref ? <p>Invoice ref: {selectedPayout.payout.invoice_ref}</p> : null}
+                {selectedPayout.payout.invoice_url ? <p>Invoice URL: {selectedPayout.payout.invoice_url}</p> : null}
+                {selectedPayout.payout.invoice_submitted_at ? <p>Submitted at: {selectedPayout.payout.invoice_submitted_at}</p> : null}
                 {Array.isArray(selectedPayout.purchases) && selectedPayout.purchases.length > 0 ? (
                   selectedPayout.purchases.slice(0, 20).map((row) => (
                     <p key={row.id}>purchase #{row.id} · product {row.product_id} · buyer {row.buyer_telegram_id} · share {row.creator_share}</p>
