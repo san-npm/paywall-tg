@@ -308,9 +308,15 @@ export default function CreateOffer() {
 
       {!hasInitData && (
         <section className="glass-card text-sm space-y-2">
-          <p className="font-semibold">Telegram auth missing on this screen</p>
-          <p className="text-tg-hint mt-1">Use the bot menu button to open Gategram home first, then tap Create from inside the app.</p>
-          <a href="/" className="chip-btn inline-block">Back to Gategram home</a>
+          <p className="font-semibold">Telegram auth required</p>
+          <p className="text-tg-hint mt-1">Close and reopen the mini app from the bot chat to authenticate.</p>
+          <button
+            type="button"
+            className="chip-btn"
+            onClick={() => window.Telegram?.WebApp?.close?.()}
+          >
+            Close mini app
+          </button>
         </section>
       )}
 
@@ -355,111 +361,113 @@ export default function CreateOffer() {
         </section>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <section className="glass-card space-y-4">
-          <div>
-            <p className="font-semibold">Creation details</p>
-            <p className="text-xs text-tg-hint mt-1">Clear title + concrete outcome = better conversion.</p>
-          </div>
-
-          <div>
-            <label className="block text-sm text-tg-hint mb-1">Creation title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              maxLength={140}
-              className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-              style={{ backgroundColor: 'var(--surface)' }}
-              placeholder="Example: Viral Hook Swipe File for Coaches"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-tg-hint mb-1">Description (optional)</label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={500}
-              className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-              style={{ backgroundColor: 'var(--surface)' }}
-              placeholder="What buyers get and why it helps them."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-tg-hint mb-1">Creation price (Stars)</label>
-            <input
-              type="number"
-              min="1"
-              max="50000"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
-              className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-              style={{ backgroundColor: 'var(--surface)' }}
-              placeholder="49"
-            />
-            <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 50,000 Stars.</p>
-          </div>
-
-
-          <div>
-            <label className="block text-sm text-tg-hint mb-1">Content type</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {contentTypes.map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setContentType(key)}
-                  className="chip-btn"
-                  style={{
-                    backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : 'var(--surface)',
-                    color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'inherit',
-                    borderColor: contentType === key ? 'transparent' : 'var(--border)',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
+      {hasInitData && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <section className="glass-card space-y-4">
+            <div>
+              <p className="font-semibold">Creation details</p>
+              <p className="text-xs text-tg-hint mt-1">Clear title + concrete outcome = better conversion.</p>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm text-tg-hint mb-1">{contentLabel[contentType]}</label>
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              rows={5}
-              maxLength={10000}
-              className="w-full p-3 rounded-xl border border-black/10 outline-none resize-none focus:ring-2 focus:ring-black/10"
-              style={{ backgroundColor: 'var(--surface)' }}
-              placeholder={contentPlaceholder[contentType]}
-            />
-            <p className="text-xs text-tg-hint mt-1">Supports up to 10,000 characters.</p>
-          </div>
-        </section>
+            <div>
+              <label className="block text-sm text-tg-hint mb-1">Creation title</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                maxLength={140}
+                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
+                style={{ backgroundColor: 'var(--surface)' }}
+                placeholder="Example: Viral Hook Swipe File for Coaches"
+              />
+            </div>
 
-        {hasInitData && !termsLoading && !termsAccepted && (
-          <section className="glass-card text-sm space-y-2">
-            <p className="font-semibold">One last step before publishing</p>
-            <p className="text-tg-hint">Accept Creator Terms once. You won't need to do this again for next creations.</p>
-            <div className="flex gap-2 flex-wrap">
-              <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
-                {termsSubmitting ? 'Accepting...' : 'Accept terms now'}
-              </button>
-              <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read terms</a>
+            <div>
+              <label className="block text-sm text-tg-hint mb-1">Description (optional)</label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                maxLength={500}
+                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
+                style={{ backgroundColor: 'var(--surface)' }}
+                placeholder="What buyers get and why it helps them."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-tg-hint mb-1">Creation price (Stars)</label>
+              <input
+                type="number"
+                min="1"
+                max="50000"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
+                style={{ backgroundColor: 'var(--surface)' }}
+                placeholder="49"
+              />
+              <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 50,000 Stars.</p>
+            </div>
+
+
+            <div>
+              <label className="block text-sm text-tg-hint mb-1">Content type</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {contentTypes.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setContentType(key)}
+                    className="chip-btn"
+                    style={{
+                      backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : 'var(--surface)',
+                      color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'inherit',
+                      borderColor: contentType === key ? 'transparent' : 'var(--border)',
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-tg-hint mb-1">{contentLabel[contentType]}</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+                rows={5}
+                maxLength={10000}
+                className="w-full p-3 rounded-xl border border-black/10 outline-none resize-none focus:ring-2 focus:ring-black/10"
+                style={{ backgroundColor: 'var(--surface)' }}
+                placeholder={contentPlaceholder[contentType]}
+              />
+              <p className="text-xs text-tg-hint mt-1">Supports up to 10,000 characters.</p>
             </div>
           </section>
-        )}
 
-        <button type="submit" disabled={loading} className="primary-btn disabled:opacity-50">
-          {loading ? 'Publishing creation...' : (termsAccepted ? 'Publish creation' : 'Accept terms to publish')}
-        </button>
-      </form>
+          {!termsLoading && !termsAccepted && (
+            <section className="glass-card text-sm space-y-2">
+              <p className="font-semibold">One last step before publishing</p>
+              <p className="text-tg-hint">Accept Creator Terms once. You won't need to do this again for next creations.</p>
+              <div className="flex gap-2 flex-wrap">
+                <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
+                  {termsSubmitting ? 'Accepting...' : 'Accept terms now'}
+                </button>
+                <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read terms</a>
+              </div>
+            </section>
+          )}
+
+          <button type="submit" disabled={loading} className="primary-btn disabled:opacity-50">
+            {loading ? 'Publishing creation...' : (termsAccepted ? 'Publish creation' : 'Accept terms to publish')}
+          </button>
+        </form>
+      )}
     </main>
   );
 }
