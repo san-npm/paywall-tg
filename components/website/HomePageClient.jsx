@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import EmailCapture from './EmailCapture';
 import { useLang } from './useLang';
 import { trackCta } from './tracking';
 
@@ -201,9 +200,9 @@ export default function HomePageClient() {
         </div>
 
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3">Get creator growth playbooks</h2>
-          <p className="text-site-muted mb-6">Simple ideas to increase paid content sales without annoying your audience.</p>
-          <EmailCapture />
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">Ready to start selling?</h2>
+          <p className="text-site-muted mb-6">Create your first paid offer in under 2 minutes.</p>
+          <Link href={BOT_URL} className="site-cta-primary" onClick={() => trackCta('cta_home_start_click', { location: 'bottom', href: BOT_URL })}>Get started</Link>
         </div>
       </section>
     </>
