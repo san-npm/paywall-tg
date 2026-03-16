@@ -55,6 +55,7 @@ export default function Home() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [invoiceForms, setInvoiceForms] = useState({});
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(null);
+  const [profileFeedback, setProfileFeedback] = useState(null); // { type: 'success'|'error', message: string }
 
   useEffect(() => {
     const extractInitDataFromUrl = () => {
@@ -373,6 +374,7 @@ export default function Home() {
     const tg = window.Telegram?.WebApp;
     const iData = tg?.initData || '';
     setProfileSaving(true);
+    setProfileFeedback(null);
     try {
       const res = await fetch('/api/creator-profile', {
         method: 'POST',
@@ -382,8 +384,9 @@ export default function Home() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Failed to save profile');
       setCreatorProfile(data.profile || creatorProfile);
+      setProfileFeedback({ type: 'success', message: 'Profile saved successfully!' });
     } catch (err) {
-      setAdminError(err.message || 'Failed to save creator profile');
+      setProfileFeedback({ type: 'error', message: err.message || 'Failed to save creator profile' });
     } finally {
       setProfileSaving(false);
     }
@@ -430,28 +433,13 @@ export default function Home() {
       <section className="hero-card">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-tg-hint mb-2">Built for creators</p>
-            <h1 className="text-2xl sm:text-3xl font-bold leading-tight">Sell content in Telegram with less friction</h1>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--tg-theme-button-color, #2481cc)' }}>Gategram</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">{user ? `Hey, ${user.first_name || 'Creator'}` : 'Sell content in Telegram'}</h1>
             <p className="text-sm text-tg-hint mt-2 max-w-prose">
-              Lower platform fee, higher limits, and instant delivery after payment. No storefront complexity.
+              {user ? 'Your creator dashboard — manage offers, track earnings, get paid.' : 'Lower fees, instant delivery, powered by Telegram Stars.'}
             </p>
           </div>
           <div className="hero-badge" aria-hidden="true"><SparklineIcon /></div>
-        </div>
-
-        <div className="grid sm:grid-cols-3 gap-2 mt-4">
-          <div className="mini-stat">
-            <p className="mini-stat-label">Platform fee</p>
-            <p className="mini-stat-value">5%</p>
-          </div>
-          <div className="mini-stat">
-            <p className="mini-stat-label">Max price</p>
-            <p className="mini-stat-value">50k Stars</p>
-          </div>
-          <div className="mini-stat">
-            <p className="mini-stat-label">Max content</p>
-            <p className="mini-stat-value">10k chars</p>
-          </div>
         </div>
       </section>
 
@@ -463,18 +451,18 @@ export default function Home() {
       )}
 
       {user && stats && (
-        <section className="grid sm:grid-cols-3 gap-3">
-          <article className="glass-card">
-            <p className="text-xs text-tg-hint">Offers</p>
-            <p className="text-2xl font-semibold">{stats.products}</p>
+        <section className="grid grid-cols-3 gap-2">
+          <article className="stat-card">
+            <p className="stat-card-label">Offers</p>
+            <p className="stat-card-value">{stats.products}</p>
           </article>
-          <article className="glass-card">
-            <p className="text-xs text-tg-hint">Sales</p>
-            <p className="text-2xl font-semibold">{stats.sales}</p>
+          <article className="stat-card">
+            <p className="stat-card-label">Sales</p>
+            <p className="stat-card-value">{stats.sales}</p>
           </article>
-          <article className="glass-card">
-            <p className="text-xs text-tg-hint">Earnings</p>
-            <p className="text-2xl font-semibold">{stats.totalStars} <span className="text-sm font-medium">Stars</span></p>
+          <article className="stat-card">
+            <p className="stat-card-label">Earned</p>
+            <p className="stat-card-value">{stats.totalStars}<span className="stat-card-unit"> Stars</span></p>
           </article>
         </section>
       )}
@@ -483,13 +471,27 @@ export default function Home() {
         <section className="glass-card space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Creator account</h2>
           <div className="grid sm:grid-cols-2 gap-2">
-            <input className="chip-btn" placeholder="Legal name" value={creatorProfile.legal_name || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value }))} />
-            <input className="chip-btn" placeholder="Email" value={creatorProfile.email || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value }))} />
-            <input className="chip-btn" placeholder="Country (ISO2, e.g. LU)" value={creatorProfile.country || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value.toUpperCase() }))} />
-            <input className="chip-btn" placeholder="Payout method (manual, paypal, iban)" value={creatorProfile.payout_method || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), payout_method: e.target.value }))} />
+            <input className="chip-btn" placeholder="Legal name" value={creatorProfile.legal_name || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value })); }} />
+            <input className="chip-btn" placeholder="Email" type="email" value={creatorProfile.email || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value })); }} />
+            <input className="chip-btn" placeholder="Country (ISO2, e.g. LU)" maxLength={2} value={creatorProfile.country || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value.toUpperCase() })); }} />
+            <select className="chip-btn" value={creatorProfile.payout_method || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: e.target.value })); }}>
+              <option value="">Payout method...</option>
+              <option value="bank_transfer">Bank transfer</option>
+              <option value="paypal">PayPal</option>
+              <option value="crypto">Crypto</option>
+              <option value="other">Other</option>
+            </select>
           </div>
-          <textarea className="chip-btn w-full min-h-[68px]" placeholder="Payout details (IBAN / PayPal email / notes)" value={creatorProfile.payout_details || ''} onChange={(e) => setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value }))} />
-          <button type="button" className="chip-btn chip-primary" disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save creator profile'}</button>
+          <textarea className="chip-btn w-full min-h-[68px]" placeholder="Payout details (IBAN / PayPal email / notes)" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
+          {profileFeedback && (
+            <div className="text-sm rounded-lg px-3 py-2" style={{
+              background: profileFeedback.type === 'success' ? '#d1fae5' : '#fee2e2',
+              color: profileFeedback.type === 'success' ? '#065f46' : '#991b1b',
+            }}>
+              {profileFeedback.message}
+            </div>
+          )}
+          <button type="button" className="chip-btn chip-primary" disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
         </section>
       )}
 
@@ -650,14 +652,15 @@ export default function Home() {
           {offers.map((p) => (
             <article key={p.id} className="glass-card">
               <div className="flex justify-between items-start gap-3">
-                <div>
-                  <p className="font-semibold text-base">{p.title}</p>
-                  <p className="text-sm text-tg-hint">
-                    {p.content_type} · {p.sales_count} sales{p.views ? ` · ${p.views} views` : ''}
+                <div className="min-w-0">
+                  <p className="font-bold text-base truncate">{p.title}</p>
+                  <p className="text-xs text-tg-hint mt-1">
+                    <span className="font-mono" style={{ color: 'var(--tg-theme-button-color, #2481cc)' }}>{p.id}</span>
+                    {' · '}{p.content_type} · {p.sales_count} sales{p.views ? ` · ${p.views} views` : ''}
                   </p>
-                  {Number(p.active) === 0 && <p className="text-xs text-red-400">Disabled</p>}
+                  {Number(p.active) === 0 && <p className="text-xs font-semibold mt-1" style={{ color: '#ef4444' }}>Disabled</p>}
                 </div>
-                <span className="price-pill">{p.price_stars} Stars</span>
+                <span className="price-pill shrink-0">{p.price_stars} Stars</span>
               </div>
 
               <div className="mt-3 flex gap-2 flex-wrap">
@@ -675,12 +678,23 @@ export default function Home() {
                 >
                   Share
                 </button>
-                <button
-                  onClick={() => navigator.clipboard?.writeText(p.id)}
-                  className="chip-btn"
-                >
-                  Copy ID
-                </button>
+                {p.content_type === 'file' && (
+                  <button
+                    onClick={() => {
+                      const tg = window.Telegram?.WebApp;
+                      const botUsername = tg?.initDataUnsafe?.bot?.username || '';
+                      if (botUsername) {
+                        window.open(`https://t.me/${botUsername}?start=attach_${p.id}`);
+                      } else {
+                        navigator.clipboard?.writeText(`/attach ${p.id}`);
+                      }
+                    }}
+                    className="chip-btn"
+                    style={{ background: p.file_id ? '#d1fae5' : '#fef3c7', borderColor: p.file_id ? '#6ee7b7' : '#fcd34d' }}
+                  >
+                    {p.file_id ? 'Replace media' : 'Attach media'}
+                  </button>
+                )}
                 <a href={`/edit/${p.id}`} className="chip-btn inline-block">Edit</a>
                 <button
                   onClick={() => handleDelete(p.id, p.title)}
