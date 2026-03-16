@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
-import { v4 as uuid } from 'uuid';
 import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_FAKE_PAYMENTS } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
-  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction
+  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
+  setPendingAttach, getPendingAttach, clearPendingAttach
 } from '@/lib/db';
-import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId } from '@/lib/validate';
+import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId } from '@/lib/validate';
 
 export const runtime = 'nodejs';
 
@@ -265,7 +265,7 @@ export async function POST(req) {
 
         const { price, title, content } = parsed.value;
         await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
-        const id = uuid();
+        const id = generateShortId();
         await createProduct(id, userId, title, '', price, 'text', content, null);
 
         const shareUrl = `https://t.me/${(await b.api.getMe()).username}?start=buy_${id}`;
@@ -300,14 +300,45 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        // Store a pending attach state using reply markup
-        await b.api.sendMessage(chatId,
-          `\u{1F4CE} *Attach media to:* ${escapeMarkdown(product.title)}\n\n` +
-          `Reply to this message with the file, photo, or video you want to attach\\.\n` +
-          `Creation ID: \`${productId}\``,
+        // Store pending attach in DB so the media handler can find it
+        await setPendingAttach(chatId, productId);
 
+        await b.api.sendMessage(chatId,
+          `📎 Attach media to: ${product.title}\n\nSend or forward a file, photo, or video now.`,
           {
-            parse_mode: 'MarkdownV2',
+            reply_markup: { force_reply: true, selective: true, input_field_placeholder: 'Send or forward a file/photo/video...' }
+          }
+        );
+      }
+
+      // /start attach_<id> (deep link for attaching media from mini-app)
+      else if (text.startsWith('/start attach_')) {
+        const productId = text.slice(14).trim();
+        if (!isValidProductId(productId)) {
+          await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
+          return NextResponse.json({ ok: true });
+        }
+        const product = await getProductRaw(productId);
+
+        if (!product) {
+          await b.api.sendMessage(chatId, '\u274C Creation not found.');
+          return NextResponse.json({ ok: true });
+        }
+        if (product.creator_id !== userId) {
+          await b.api.sendMessage(chatId, '\u274C You can only attach media to your own creations.');
+          return NextResponse.json({ ok: true });
+        }
+        if (product.content_type !== 'file') {
+          await b.api.sendMessage(chatId, '\u274C This creation does not accept media attachments.');
+          return NextResponse.json({ ok: true });
+        }
+
+        // Store pending attach in DB
+        await setPendingAttach(chatId, productId);
+
+        await b.api.sendMessage(chatId,
+          `📎 Attach media to: ${product.title}\n\nSend or forward a file, photo, or video now.`,
+          {
             reply_markup: { force_reply: true, selective: true, input_field_placeholder: 'Send or forward a file/photo/video...' }
           }
         );
@@ -533,41 +564,51 @@ export async function POST(req) {
       }
     }
 
-        // Handle media replies (for /attach flow)
-    if (body.message?.reply_to_message?.text) {
-      const replyText = body.message.reply_to_message.text;
+    // Handle media messages (for /attach flow) — uses DB-backed pending attach state
+    if (body.message && !body.message.text) {
       const chatId = body.message.chat.id;
       const userId = String(body.message.from.id);
 
       let fileId = null;
       let fileKind = 'document';
-      if (body.message?.document?.file_id) {
+      if (body.message.document?.file_id) {
         fileId = body.message.document.file_id;
         fileKind = 'document';
-      } else if (Array.isArray(body.message?.photo) && body.message.photo.length > 0) {
+      } else if (Array.isArray(body.message.photo) && body.message.photo.length > 0) {
         fileId = body.message.photo[body.message.photo.length - 1].file_id;
         fileKind = 'photo';
-      } else if (body.message?.video?.file_id) {
+      } else if (body.message.video?.file_id) {
         fileId = body.message.video.file_id;
         fileKind = 'video';
       }
 
       if (fileId) {
-        const match = replyText.match(/(?:Product|Creation) ID:\s*([a-f0-9-]{36})/i);
-        if (match) {
-          const productId = match[1];
-          const product = await getProductRaw(productId);
+        // Look up pending attach for this chat from DB
+        const pendingProductId = await getPendingAttach(chatId);
+        if (pendingProductId) {
+          try {
+            const product = await getProductRaw(pendingProductId);
 
-          if (!product || product.creator_id !== userId) {
-            await b.api.sendMessage(chatId, '❌ Unable to attach media. Creation not found or not yours.');
+            if (!product || product.creator_id !== userId) {
+              await b.api.sendMessage(chatId, '❌ Unable to attach media. Creation not found or not yours.');
+              await clearPendingAttach(chatId);
+              return NextResponse.json({ ok: true });
+            }
+
+            const attached = await attachFileToProduct(pendingProductId, fileId, fileKind);
+            if (attached) {
+              await b.api.sendMessage(chatId, `✅ Media attached to "${product.title}"!`);
+              await clearPendingAttach(chatId);
+            } else {
+              await b.api.sendMessage(chatId, '❌ Failed to attach. This creation type does not support file attachments.');
+            }
             return NextResponse.json({ ok: true });
-          }
-
-          const attached = await attachFileToProduct(productId, fileId, fileKind);
-          if (attached) {
-            await b.api.sendMessage(chatId, `✅ Media attached to *${escapeMarkdown(product.title)}*\!`, { parse_mode: 'MarkdownV2' });
-          } else {
-            await b.api.sendMessage(chatId, '❌ Failed to attach media.');
+          } catch (attachErr) {
+            console.error('Attach media error:', attachErr);
+            try {
+              await b.api.sendMessage(chatId, `❌ Failed to attach media: ${attachErr?.message || 'unknown error'}. Please try again.`);
+            } catch {}
+            return NextResponse.json({ ok: true });
           }
         }
       }

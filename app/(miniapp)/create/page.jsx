@@ -260,29 +260,41 @@ export default function CreateOffer() {
   if (!ready) return <CreateSkeleton />;
 
   if (created) {
+    const botUsername = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '' : '';
     return (
       <main className="p-4 max-w-2xl mx-auto space-y-4">
         <section className="hero-card text-center">
-          <h1 className="text-2xl font-bold">Creation published</h1>
+          <p className="text-3xl mb-2">&#127881;</p>
+          <h1 className="text-2xl font-extrabold">Creation published!</h1>
           <p className="text-sm text-tg-hint mt-1">{created.title} · {created.price_stars} Stars</p>
         </section>
 
         <section className="glass-card text-center">
-          <p className="text-xs text-tg-hint uppercase tracking-wide">Creation ID</p>
-          <p className="font-mono text-lg font-semibold mt-1 break-all">{created.id}</p>
+          <p className="text-xs text-tg-hint uppercase tracking-wide">Your creation code</p>
+          <p className="font-mono text-2xl font-bold mt-1" style={{ color: 'var(--tg-theme-button-color, #2481cc)', letterSpacing: '0.08em' }}>{created.id}</p>
         </section>
 
         {created.content_type === 'file' && (
-          <section className="glass-card text-sm">
-            <p className="font-semibold">Next step: attach your file</p>
-            <p className="text-tg-hint mt-1">Send this command in the bot chat, then upload your file as a reply.</p>
-            <code className="block mt-2 p-2 rounded-lg" style={{ background: 'var(--surface)' }}>/attach {created.id}</code>
+          <section className="glass-card text-sm space-y-3">
+            <p className="font-bold">Next step: attach your media</p>
+            <p className="text-tg-hint">Upload the photo, video, or file that buyers will unlock.</p>
+            {botUsername ? (
+              <a
+                href={`https://t.me/${botUsername}?start=attach_${created.id}`}
+                className="primary-btn inline-block"
+                style={{ width: 'auto', display: 'inline-block', padding: '10px 20px' }}
+              >
+                Upload media now
+              </a>
+            ) : (
+              <code className="block p-2 rounded-lg text-sm" style={{ background: 'var(--surface)' }}>/attach {created.id}</code>
+            )}
           </section>
         )}
 
         <section className="glass-card text-sm">
-          <p className="font-semibold">Share command</p>
-          <p className="text-tg-hint mt-1">Use <code>/buy {created.id}</code> in Telegram posts, DMs, or channel messages.</p>
+          <p className="font-bold">Share your creation</p>
+          <p className="text-tg-hint mt-1">Send <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--surface)' }}>/buy {created.id}</code> in any Telegram chat, channel, or group.</p>
         </section>
 
         <a href="/" className="primary-btn">Back to dashboard</a>
@@ -320,23 +332,20 @@ export default function CreateOffer() {
   return (
     <main className="p-4 max-w-2xl mx-auto space-y-4">
       <section className="hero-card">
-        <h1 className="text-2xl font-bold">Create a paid creation</h1>
+        <h1 className="text-2xl font-extrabold">Create a paid creation</h1>
         <p className="text-sm text-tg-hint mt-1">Turn your content into a sellable creation in under a minute.</p>
-      </section>
-
-      <section className="glass-card text-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div className="mini-stat">
-            <p className="mini-stat-label">Fast setup</p>
-            <p className="mini-stat-value">~60 sec</p>
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          <div className="stat-card">
+            <p className="stat-card-label">Setup</p>
+            <p className="stat-card-value">~60s</p>
           </div>
-          <div className="mini-stat">
-            <p className="mini-stat-label">Payments</p>
-            <p className="mini-stat-value">Telegram Stars</p>
+          <div className="stat-card">
+            <p className="stat-card-label">Payments</p>
+            <p className="stat-card-value">Stars</p>
           </div>
-          <div className="mini-stat">
-            <p className="mini-stat-label">Share anywhere</p>
-            <p className="mini-stat-value">/buy link</p>
+          <div className="stat-card">
+            <p className="stat-card-label">Share</p>
+            <p className="stat-card-value">/buy</p>
           </div>
         </div>
       </section>
