@@ -9,20 +9,14 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const initDataRaw = req.headers.get('x-telegram-init-data') || searchParams.get('init_data');
   const initDataChecked = validateInitDataDetailed(initDataRaw);
-  const unsafeUserId = String(req.headers.get('x-telegram-unsafe-user-id') || searchParams.get('unsafe_user_id') || '').trim();
-  const unsafeUsername = req.headers.get('x-telegram-unsafe-username') || searchParams.get('unsafe_username') || null;
-  const unsafeFirstName = req.headers.get('x-telegram-unsafe-first-name') || searchParams.get('unsafe_first_name') || null;
-  const allowUnsafe = /^\d{5,20}$/.test(unsafeUserId);
 
-  if ((!initDataChecked.ok || !initDataChecked.data?.user?.id) && !allowUnsafe) {
+  if (!initDataChecked.ok || !initDataChecked.data?.user?.id) {
     return NextResponse.json({
       error: 'Invalid or expired Telegram authentication',
       code: initDataChecked.error || 'INVALID_INITDATA',
     }, { status: 401 });
   }
-  const initData = initDataChecked.ok && initDataChecked.data?.user?.id
-    ? initDataChecked.data
-    : { user: { id: unsafeUserId, username: unsafeUsername, first_name: unsafeFirstName } };
+  const initData = initDataChecked.data;
 
   const creatorId = String(initData.user.id);
   await getOrCreateCreator(creatorId, initData.user.username || null, initData.user.first_name || null);
@@ -47,17 +41,13 @@ export async function POST(req) {
 
   const initDataRaw = body?.init_data || req.headers.get('x-telegram-init-data');
   const initDataChecked = validateInitDataDetailed(initDataRaw);
-  const unsafeUserId = String(body?.unsafe_user_id || '').trim();
-  const allowUnsafe = /^\d{5,20}$/.test(unsafeUserId);
-  if ((!initDataChecked.ok || !initDataChecked.data?.user?.id) && !allowUnsafe) {
+  if (!initDataChecked.ok || !initDataChecked.data?.user?.id) {
     return NextResponse.json({
       error: 'Invalid or expired Telegram authentication',
       code: initDataChecked.error || 'INVALID_INITDATA',
     }, { status: 401 });
   }
-  const initData = initDataChecked.ok && initDataChecked.data?.user?.id
-    ? initDataChecked.data
-    : { user: { id: unsafeUserId, username: body?.unsafe_username || null, first_name: body?.unsafe_first_name || null } };
+  const initData = initDataChecked.data;
 
   const creatorId = String(initData.user.id);
   await getOrCreateCreator(creatorId, initData.user.username || null, initData.user.first_name || null);

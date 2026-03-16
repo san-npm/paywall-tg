@@ -110,8 +110,7 @@ export default function CreateOffer() {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
     const authData = tg?.initData || initData || stored;
-    const unsafeUserId = tg?.initDataUnsafe?.user?.id || user?.id;
-    if (!authData && !unsafeUserId) {
+    if (!authData) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
       return;
     }
@@ -124,9 +123,6 @@ export default function CreateOffer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           init_data: authData,
-          unsafe_user_id: unsafeUserId ? String(unsafeUserId) : undefined,
-          unsafe_username: tg?.initDataUnsafe?.user?.username || user?.username || undefined,
-          unsafe_first_name: tg?.initDataUnsafe?.user?.first_name || user?.first_name || undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -158,8 +154,7 @@ export default function CreateOffer() {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
     const authData = tg?.initData || initData || stored;
-    const unsafeUserId = tg?.initDataUnsafe?.user?.id || user?.id;
-    if (!authData && !unsafeUserId) {
+    if (!authData) {
       setError('Telegram auth missing. Close and reopen mini app from the bot.');
       return;
     }
@@ -192,9 +187,6 @@ export default function CreateOffer() {
         headers: { 'Content-Type': 'application/json', 'x-debug-request-id': debugRequestId },
         body: JSON.stringify({
           init_data: authData,
-          unsafe_user_id: unsafeUserId ? String(unsafeUserId) : undefined,
-          unsafe_username: tg?.initDataUnsafe?.user?.username || user?.username || undefined,
-          unsafe_first_name: tg?.initDataUnsafe?.user?.first_name || user?.first_name || undefined,
           title,
           description,
           price_stars: priceNum,
