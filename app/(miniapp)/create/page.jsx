@@ -48,8 +48,20 @@ export default function CreateOffer() {
     };
 
     const bootstrap = async () => {
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-        const tg = window.Telegram.WebApp;
+      if (typeof window === 'undefined') {
+        setTermsLoading(false);
+        setReady(true);
+        return;
+      }
+
+      // Wait for Telegram SDK to load (script may still be loading)
+      let tg = null;
+      for (let i = 0; i < 15; i += 1) {
+        if (window.Telegram?.WebApp) { tg = window.Telegram.WebApp; break; }
+        await new Promise((r) => setTimeout(r, 150));
+      }
+
+      if (tg) {
         tg.ready();
         tg.expand();
         tg.BackButton.show();
@@ -63,11 +75,11 @@ export default function CreateOffer() {
 
         // iOS Telegram can expose initData slightly later, so retry briefly.
         let resolvedInitData = '';
-        for (let i = 0; i < 5; i += 1) {
+        for (let i = 0; i < 10; i += 1) {
           resolvedInitData = tg.initData || fromStorage || extractInitDataFallback();
           if (resolvedInitData) break;
           // eslint-disable-next-line no-await-in-loop
-          await new Promise((r) => setTimeout(r, 120));
+          await new Promise((r) => setTimeout(r, 150));
         }
 
         if (resolvedInitData) {
@@ -79,7 +91,9 @@ export default function CreateOffer() {
         const u = tg.initDataUnsafe?.user;
         if (u) setUser(u);
 
-        setHasInitData(Boolean(resolvedInitData || u?.id));
+        // Only mark as authenticated when we have the actual signed initData string.
+        // tg.initDataUnsafe?.user may exist without signed data — that's not enough for API calls.
+        setHasInitData(Boolean(resolvedInitData));
 
         if (resolvedInitData) {
           try {
