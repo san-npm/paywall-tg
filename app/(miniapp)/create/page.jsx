@@ -36,7 +36,7 @@ export default function CreateOffer() {
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
 
-    const extractInitDataFallback = () => {
+    const extractInitDataFromUrl = () => {
       if (typeof window === 'undefined') return '';
       const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tgWebAppData') || '';
       const fromQuery = new URLSearchParams(window.location.search).get('tgWebAppData') || '';
@@ -45,6 +45,20 @@ export default function CreateOffer() {
       } catch {
         return fromHash || fromQuery || '';
       }
+    };
+
+    const getFromStorage = () => {
+      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
+    };
+
+    // Parse user from initData query string (format: user=<JSON>&...)
+    const parseUserFromInitData = (data) => {
+      if (!data) return null;
+      try {
+        const params = new URLSearchParams(data);
+        const userJson = params.get('user');
+        return userJson ? JSON.parse(userJson) : null;
+      } catch { return null; }
     };
 
     const bootstrap = async () => {
@@ -61,6 +75,8 @@ export default function CreateOffer() {
         await new Promise((r) => setTimeout(r, 150));
       }
 
+      let resolvedInitData = '';
+
       if (tg) {
         tg.ready();
         tg.expand();
@@ -69,48 +85,53 @@ export default function CreateOffer() {
           window.location.href = '/';
         });
 
-        const fromStorage = (() => {
-          try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
-        })();
-
         // iOS Telegram can expose initData slightly later, so retry briefly.
-        let resolvedInitData = '';
         for (let i = 0; i < 10; i += 1) {
-          resolvedInitData = tg.initData || fromStorage || extractInitDataFallback();
+          resolvedInitData = tg.initData || getFromStorage() || extractInitDataFromUrl();
           if (resolvedInitData) break;
           // eslint-disable-next-line no-await-in-loop
           await new Promise((r) => setTimeout(r, 150));
         }
 
-        if (resolvedInitData) {
-          try { window.sessionStorage.setItem('tg_init_data', resolvedInitData); } catch {}
-        }
-
-        setInitData(resolvedInitData);
-
         const u = tg.initDataUnsafe?.user;
         if (u) setUser(u);
+      }
 
-        // Only mark as authenticated when we have the actual signed initData string.
-        // tg.initDataUnsafe?.user may exist without signed data — that's not enough for API calls.
-        setHasInitData(Boolean(resolvedInitData));
+      // Fallback: try sessionStorage and URL hash even without SDK
+      if (!resolvedInitData) {
+        resolvedInitData = getFromStorage() || extractInitDataFromUrl();
+      }
 
-        if (resolvedInitData) {
-          try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 5000);
-            const res = await fetch('/api/creator-terms', {
-              headers: { 'x-telegram-init-data': resolvedInitData },
-              signal: controller.signal,
-            });
-            clearTimeout(timeout);
-            const data = await res.json().catch(() => ({}));
-            if (res.ok) setTermsAccepted(Boolean(data.accepted));
-          } catch {
-            // keep default false
-          }
+      if (resolvedInitData) {
+        try { window.sessionStorage.setItem('tg_init_data', resolvedInitData); } catch {}
+      }
+
+      setInitData(resolvedInitData);
+
+      // Parse user from initData string if SDK didn't provide it
+      if (!user && resolvedInitData) {
+        const parsed = parseUserFromInitData(resolvedInitData);
+        if (parsed) setUser(parsed);
+      }
+
+      setHasInitData(Boolean(resolvedInitData));
+
+      if (resolvedInitData) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 5000);
+          const res = await fetch('/api/creator-terms', {
+            headers: { 'x-telegram-init-data': resolvedInitData },
+            signal: controller.signal,
+          });
+          clearTimeout(timeout);
+          const data = await res.json().catch(() => ({}));
+          if (res.ok) setTermsAccepted(Boolean(data.accepted));
+        } catch {
+          // keep default false
         }
       }
+
       setTermsLoading(false);
       setReady(true);
     };
