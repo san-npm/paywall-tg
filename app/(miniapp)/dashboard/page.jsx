@@ -57,6 +57,23 @@ export default function Home() {
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(null);
 
   useEffect(() => {
+    const extractInitDataFromUrl = () => {
+      const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tgWebAppData') || '';
+      const fromQuery = new URLSearchParams(window.location.search).get('tgWebAppData') || '';
+      try { return decodeURIComponent(fromHash || fromQuery || ''); } catch { return fromHash || fromQuery || ''; }
+    };
+    const getFromStorage = () => {
+      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
+    };
+    const parseUserFromInitData = (data) => {
+      if (!data) return null;
+      try {
+        const params = new URLSearchParams(data);
+        const userJson = params.get('user');
+        return userJson ? JSON.parse(userJson) : null;
+      } catch { return null; }
+    };
+
     const init = async () => {
       if (typeof window === 'undefined') { setReady(true); return; }
 
@@ -69,16 +86,14 @@ export default function Home() {
 
       let u = null;
       let initData = '';
+
       if (tg) {
         tg.ready();
         tg.expand();
         u = tg.initDataUnsafe?.user || null;
 
         // Try initData from SDK, sessionStorage, then URL fallback
-        const fromStorage = (() => {
-          try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
-        })();
-        initData = tg.initData || fromStorage || '';
+        initData = tg.initData || getFromStorage() || extractInitDataFromUrl();
 
         // Retry briefly for iOS where initData can appear late
         if (!initData) {
@@ -88,10 +103,20 @@ export default function Home() {
             await new Promise(r => setTimeout(r, 150));
           }
         }
+      }
 
-        if (initData) {
-          try { window.sessionStorage.setItem('tg_init_data', initData); } catch {}
-        }
+      // Fallback: try sessionStorage and URL hash even without SDK
+      if (!initData) {
+        initData = getFromStorage() || extractInitDataFromUrl();
+      }
+
+      if (initData) {
+        try { window.sessionStorage.setItem('tg_init_data', initData); } catch {}
+      }
+
+      // Parse user from initData string if SDK didn't provide it
+      if (!u && initData) {
+        u = parseUserFromInitData(initData);
       }
 
       if (u && initData) {
