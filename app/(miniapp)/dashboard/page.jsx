@@ -57,23 +57,46 @@ export default function Home() {
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(null);
 
   useEffect(() => {
-    let u = null;
-    let initData = '';
+    const init = async () => {
+      if (typeof window === 'undefined') { setReady(true); return; }
 
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      u = tg.initDataUnsafe?.user || null;
-      initData = tg.initData || '';
-      if (initData) {
-        try { window.sessionStorage.setItem('tg_init_data', initData); } catch {}
+      // Wait for Telegram SDK to load
+      let tg = null;
+      for (let i = 0; i < 15; i++) {
+        if (window.Telegram?.WebApp) { tg = window.Telegram.WebApp; break; }
+        await new Promise(r => setTimeout(r, 150));
       }
-    }
 
-    if (u && initData) {
-      setUser(u);
-      Promise.all([
+      let u = null;
+      let initData = '';
+      if (tg) {
+        tg.ready();
+        tg.expand();
+        u = tg.initDataUnsafe?.user || null;
+
+        // Try initData from SDK, sessionStorage, then URL fallback
+        const fromStorage = (() => {
+          try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
+        })();
+        initData = tg.initData || fromStorage || '';
+
+        // Retry briefly for iOS where initData can appear late
+        if (!initData) {
+          for (let i = 0; i < 10; i++) {
+            initData = tg.initData || '';
+            if (initData) break;
+            await new Promise(r => setTimeout(r, 150));
+          }
+        }
+
+        if (initData) {
+          try { window.sessionStorage.setItem('tg_init_data', initData); } catch {}
+        }
+      }
+
+      if (u && initData) {
+        setUser(u);
+        Promise.all([
         fetch(`/api/products?creator_id=${u.id}`, {
           headers: { 'x-telegram-init-data': initData }
         }).then(r => r.json()),
@@ -104,6 +127,8 @@ export default function Home() {
     } else {
       setReady(true);
     }
+    };
+    init();
   }, []);
 
   const handleDelete = async (offerId, offerTitle) => {
