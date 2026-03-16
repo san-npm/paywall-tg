@@ -21,29 +21,36 @@ async function deliverAndNotify(product, buyerId, creatorShareCents, currency) {
   let contentMessage = '';
   switch (product.content_type) {
     case 'text':
-      contentMessage = `🎉 *Purchase successful!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+      contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
       break;
     case 'link':
-      contentMessage = `🎉 *Purchase successful!*\n\n*${safeTitle}*\n\n🔗 ${escapeMarkdown(product.content)}`;
+      contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
       break;
     case 'file':
-      contentMessage = `🎉 *Purchase successful!*\n\n*${safeTitle}*`;
+      contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*`;
       break;
     default:
-      contentMessage = `🎉 *Purchase successful!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+      contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
       break;
   }
 
   await b.api.sendMessage(String(buyerId), contentMessage, { parse_mode: 'MarkdownV2' });
   if (product.content_type === 'file') {
     if (product.file_id) {
-      await b.api.sendDocument(String(buyerId), product.file_id);
+      const kind = String(product.file_kind || 'document');
+      if (kind === 'photo') {
+        await b.api.sendPhoto(String(buyerId), product.file_id);
+      } else if (kind === 'video') {
+        await b.api.sendVideo(String(buyerId), product.file_id);
+      } else {
+        await b.api.sendDocument(String(buyerId), product.file_id);
+      }
     } else {
-      await b.api.sendMessage(String(buyerId), 'The file for this product is not yet available. Contact the creator.');
+      await b.api.sendMessage(String(buyerId), 'The file for this product is not yet available\\. Contact the creator\\.', { parse_mode: 'MarkdownV2' });
     }
   }
 
-  const creatorMsg = `💰 New sale!\n*${safeTitle}*\nYou earned ${creatorShareCents / 100} ${escapeMarkdown(currency)}`;
+  const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nYou earned ${creatorShareCents / 100} ${escapeMarkdown(currency)}`;
   await b.api.sendMessage(String(product.creator_id), creatorMsg, { parse_mode: 'MarkdownV2' })
     .catch(() => {});
 }

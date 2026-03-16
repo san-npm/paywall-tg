@@ -577,7 +577,7 @@ export async function POST(req) {
     try {
       const chatId = body?.message?.chat?.id;
       if (chatId) {
-        await getBot().api.sendMessage(chatId, `❌ Runtime error: ${err?.message || 'unknown error'}`);
+        await getBot().api.sendMessage(chatId, '❌ Something went wrong. Please try again later.');
       }
     } catch {}
   }

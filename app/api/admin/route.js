@@ -79,13 +79,32 @@ export async function GET(req) {
     });
   }
 
+  // Handle payouts separately to avoid double-fetching
+  if (kind === 'payouts') {
+    const queue = await getPayoutQueue();
+    if (format === 'csv') {
+      const csv = toCsv(queue.payouts);
+      const filename = `${kind}-${new Date().toISOString().slice(0, 10)}.csv`;
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          'content-type': 'text/csv; charset=utf-8',
+          'content-disposition': `attachment; filename="${filename}"`,
+        },
+      });
+    }
+    if (payout_id) {
+      const details = await getPayoutDetails(Number(payout_id));
+      return NextResponse.json({ is_admin: true, kind, filters, ...queue, details });
+    }
+    return NextResponse.json({ is_admin: true, kind, filters, ...queue });
+  }
+
   const rows = kind === 'purchases'
     ? await getPurchaseExports(filters)
-    : kind === 'payouts'
-      ? (await getPayoutQueue()).payouts
-      : kind === 'reconciliation'
-        ? await getMonthlyReconciliation({ from, to })
-        : await getAdminActions(filters);
+    : kind === 'reconciliation'
+      ? await getMonthlyReconciliation({ from, to })
+      : await getAdminActions(filters);
 
   if (format === 'csv') {
     const csv = toCsv(rows);
@@ -97,15 +116,6 @@ export async function GET(req) {
         'content-disposition': `attachment; filename="${filename}"`,
       },
     });
-  }
-
-  if (kind === 'payouts' && format !== 'csv') {
-    const queue = await getPayoutQueue();
-    if (payout_id) {
-      const details = await getPayoutDetails(Number(payout_id));
-      return NextResponse.json({ is_admin: true, kind, filters, ...queue, details });
-    }
-    return NextResponse.json({ is_admin: true, kind, filters, ...queue });
   }
 
   return NextResponse.json({ is_admin: true, kind, filters, rows, actions: kind === 'actions' ? rows : undefined });
