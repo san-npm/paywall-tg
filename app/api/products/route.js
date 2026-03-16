@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuid } from 'uuid';
 import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
-import { validateInitData, validateInitDataDetailed, isValidProductId } from '@/lib/validate';
+import { validateInitData, validateInitDataDetailed, isValidProductId, generateShortId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
@@ -164,7 +163,7 @@ export async function POST(req) {
       }, { status: 403 });
     }
 
-    const id = uuid();
+    const id = generateShortId();
     const product = await createProduct(
       id,
       creatorId,
