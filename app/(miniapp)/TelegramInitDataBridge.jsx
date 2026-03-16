@@ -1,12 +1,29 @@
 'use client';
 import { useEffect } from 'react';
 
+function extractInitDataFromUrl() {
+  if (typeof window === 'undefined') return '';
+  const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tgWebAppData') || '';
+  const fromQuery = new URLSearchParams(window.location.search).get('tgWebAppData') || '';
+  try {
+    return decodeURIComponent(fromHash || fromQuery || '');
+  } catch {
+    return fromHash || fromQuery || '';
+  }
+}
+
 export default function TelegramInitDataBridge() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const cacheInitData = async () => {
-      // Wait for Telegram SDK to load (script may still be loading)
+    // Cache initData from URL hash immediately — no SDK needed.
+    const urlInitData = extractInitDataFromUrl();
+    if (urlInitData) {
+      try { window.sessionStorage.setItem('tg_init_data', urlInitData); } catch {}
+    }
+
+    // Also try caching from SDK if it loads (SDK's initData may differ/be fresher).
+    const cacheFromSdk = async () => {
       let tg = null;
       for (let i = 0; i < 15; i++) {
         if (window.Telegram?.WebApp) { tg = window.Telegram.WebApp; break; }
@@ -21,7 +38,7 @@ export default function TelegramInitDataBridge() {
       }
     };
 
-    cacheInitData();
+    cacheFromSdk();
   }, []);
   return null;
 }
