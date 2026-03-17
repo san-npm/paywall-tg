@@ -409,39 +409,37 @@ export default function CreateOffer() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <section className="glass-card space-y-4">
             <div>
-              <p className="font-semibold">Creation details</p>
-              <p className="text-xs text-tg-hint mt-1">Clear title + concrete outcome = better conversion.</p>
+              <p className="font-bold text-base">Creation details</p>
+              <p className="text-xs text-tg-hint mt-1">A clear title and concrete outcome drive better conversions.</p>
             </div>
 
             <div>
-              <label className="block text-sm text-tg-hint mb-1">Creation title</label>
+              <label className="form-label">Creation title</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 maxLength={140}
-                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-                style={{ backgroundColor: 'var(--surface)' }}
+                className="form-input"
                 placeholder="Example: Viral Hook Swipe File for Coaches"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-tg-hint mb-1">Description (optional)</label>
+              <label className="form-label">Description (optional)</label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 maxLength={500}
-                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-                style={{ backgroundColor: 'var(--surface)' }}
+                className="form-input"
                 placeholder="What buyers get and why it helps them."
               />
             </div>
 
             <div>
-              <label className="block text-sm text-tg-hint mb-1">Creation price (Stars)</label>
+              <label className="form-label">Price (Stars)</label>
               <input
                 type="number"
                 min="1"
@@ -449,17 +447,15 @@ export default function CreateOffer() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 required
-                className="w-full p-3 rounded-xl border border-black/10 outline-none focus:ring-2 focus:ring-black/10"
-                style={{ backgroundColor: 'var(--surface)' }}
+                className="form-input"
                 placeholder="49"
               />
-              <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 10,000 Stars.</p>
+              <p className="text-xs text-tg-hint mt-1">From 1 to 10,000 Stars.</p>
             </div>
 
-
             <div>
-              <label className="block text-sm text-tg-hint mb-1">Content type</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <label className="form-label">Content type</label>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {contentTypes.map(({ key, label }) => (
                   <button
                     key={key}
@@ -467,9 +463,9 @@ export default function CreateOffer() {
                     onClick={() => setContentType(key)}
                     className="chip-btn"
                     style={{
-                      backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : 'var(--surface)',
-                      color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'inherit',
-                      borderColor: contentType === key ? 'transparent' : 'var(--border)',
+                      backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : undefined,
+                      color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : undefined,
+                      borderColor: contentType === key ? 'transparent' : undefined,
                     }}
                   >
                     {label}
@@ -479,25 +475,23 @@ export default function CreateOffer() {
             </div>
 
             <div>
-              <label className="block text-sm text-tg-hint mb-1">{contentLabel[contentType]}</label>
+              <label className="form-label">{contentLabel[contentType]}</label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 required
-                rows={5}
+                rows={4}
                 maxLength={10000}
-                className="w-full p-3 rounded-xl border border-black/10 outline-none resize-none focus:ring-2 focus:ring-black/10"
-                style={{ backgroundColor: 'var(--surface)' }}
+                className="form-input resize-none"
                 placeholder={contentPlaceholder[contentType]}
               />
-              <p className="text-xs text-tg-hint mt-1">Supports up to 10,000 characters.</p>
             </div>
           </section>
 
           {!termsLoading && !termsAccepted && (
             <section className="glass-card text-sm space-y-2">
-              <p className="font-semibold">One last step before publishing</p>
-              <p className="text-tg-hint">Accept Creator Terms once. You won't need to do this again for next creations.</p>
+              <p className="font-bold">One last step before publishing</p>
+              <p className="text-tg-hint">Accept Creator Terms once. You won't need to do this again.</p>
               <div className="flex gap-2 flex-wrap">
                 <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
                   {termsSubmitting ? 'Accepting...' : 'Accept terms now'}
