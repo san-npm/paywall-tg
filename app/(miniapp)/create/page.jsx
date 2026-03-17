@@ -206,8 +206,8 @@ export default function CreateOffer() {
     }
 
     const priceNum = Number.parseInt(price, 10);
-    if (Number.isNaN(priceNum) || priceNum < 1 || priceNum > 50000) {
-      setError('Price must be between 1 and 50,000 Stars.');
+    if (Number.isNaN(priceNum) || priceNum < 1 || priceNum > 10000) {
+      setError('Price must be between 1 and 10,000 Stars.');
       return;
     }
 
@@ -445,7 +445,7 @@ export default function CreateOffer() {
               <input
                 type="number"
                 min="1"
-                max="50000"
+                max="10000"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 required
@@ -453,7 +453,7 @@ export default function CreateOffer() {
                 style={{ backgroundColor: 'var(--surface)' }}
                 placeholder="49"
               />
-              <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 50,000 Stars.</p>
+              <p className="text-xs text-tg-hint mt-1">Flexible pricing from 1 to 10,000 Stars.</p>
             </div>
 
 
