@@ -3,6 +3,7 @@ import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LE
 import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
 import { validateInitData, validateInitDataDetailed, isValidProductId, generateShortId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { VALID_CONTENT_TYPES, VALID_PAYMENT_METHODS } from '@/lib/constants';
 
 export const runtime = 'nodejs';
 
@@ -116,8 +117,7 @@ export async function POST(req) {
     return NextResponse.json({ error: `Price must be ${MIN_PRICE_STARS}-${MAX_PRICE_STARS} Stars` }, { status: 400 });
   }
 
-  const validTypes = ['text', 'link', 'message', 'file'];
-  if (!validTypes.includes(normalizedContentType)) {
+  if (!VALID_CONTENT_TYPES.includes(normalizedContentType)) {
     return NextResponse.json({ error: 'Invalid content_type. Allowed: text, link, message, file, photo, video' }, { status: 400 });
   }
 
@@ -138,7 +138,7 @@ export async function POST(req) {
     : String(payment_methods || 'stars,stripe').split(',');
   const allowedMethods = requestedMethods
     .map((v) => String(v).trim().toLowerCase())
-    .filter((v) => v === 'stars' || v === 'stripe');
+    .filter((v) => VALID_PAYMENT_METHODS.includes(v));
   const uniqueMethods = [...new Set(allowedMethods)];
   const effectiveMethods = ENABLE_STRIPE
     ? (uniqueMethods.length ? uniqueMethods : ['stars', 'stripe'])
