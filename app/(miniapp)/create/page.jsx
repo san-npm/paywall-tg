@@ -305,16 +305,14 @@ export default function CreateOffer() {
   const contentTypes = [
     { key: 'text', label: 'Text' },
     { key: 'link', label: 'Link' },
-    { key: 'message', label: 'Message' },
     { key: 'file', label: 'File' },
     { key: 'photo', label: 'Photo' },
     { key: 'video', label: 'Video' },
   ];
 
   const contentPlaceholder = {
-    text: 'Paste exactly what buyers unlock after payment.',
+    text: 'Paste exactly what buyers unlock after payment. Can be text, a private message, instructions, etc.',
     link: 'https://your-resource-link.com',
-    message: 'Write the private message buyers should receive.',
     file: 'Describe what buyer gets. After publishing, use /attach to upload the file.',
     photo: 'Describe the photo buyers will unlock. After publishing, use /attach to upload it.',
     video: 'Describe the video buyers will unlock. After publishing, use /attach to upload it.',
@@ -323,7 +321,6 @@ export default function CreateOffer() {
   const contentLabel = {
     text: 'Unlocked content',
     link: 'Unlocked URL',
-    message: 'Unlocked message',
     file: 'File description',
     photo: 'Photo description',
     video: 'Video description',
