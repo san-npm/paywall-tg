@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { COUNTRIES } from '@/lib/constants';
 
 function DashboardSkeleton() {
   return (
@@ -486,42 +487,7 @@ export default function Home() {
               <label className="form-label">Country</label>
               <select className="form-input" value={creatorProfile.country || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value })); }}>
                 <option value="">Select your country...</option>
-                <option value="AT">Austria</option>
-                <option value="BE">Belgium</option>
-                <option value="BG">Bulgaria</option>
-                <option value="BR">Brazil</option>
-                <option value="CA">Canada</option>
-                <option value="CH">Switzerland</option>
-                <option value="CY">Cyprus</option>
-                <option value="CZ">Czech Republic</option>
-                <option value="DE">Germany</option>
-                <option value="DK">Denmark</option>
-                <option value="EE">Estonia</option>
-                <option value="ES">Spain</option>
-                <option value="FI">Finland</option>
-                <option value="FR">France</option>
-                <option value="GB">United Kingdom</option>
-                <option value="GR">Greece</option>
-                <option value="HR">Croatia</option>
-                <option value="HU">Hungary</option>
-                <option value="IE">Ireland</option>
-                <option value="IN">India</option>
-                <option value="IT">Italy</option>
-                <option value="LT">Lithuania</option>
-                <option value="LU">Luxembourg</option>
-                <option value="LV">Latvia</option>
-                <option value="MT">Malta</option>
-                <option value="NL">Netherlands</option>
-                <option value="NO">Norway</option>
-                <option value="PL">Poland</option>
-                <option value="PT">Portugal</option>
-                <option value="RO">Romania</option>
-                <option value="SE">Sweden</option>
-                <option value="SI">Slovenia</option>
-                <option value="SK">Slovakia</option>
-                <option value="TR">Turkey</option>
-                <option value="UA">Ukraine</option>
-                <option value="US">United States</option>
+                {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
               </select>
             </div>
             <div>
@@ -752,9 +718,14 @@ export default function Home() {
                     const botUsername = tg?.initDataUnsafe?.bot?.username || '';
                     const buyLink = botUsername
                       ? `https://t.me/${botUsername}?start=buy_${p.id}`
-                      : `/buy/${p.id}`;
-                    const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ${p.price_stars} Stars`)}`;
-                    window.open(url);
+                      : `${window.location.origin}/buy/${p.id}`;
+                    if (tg?.switchInlineQuery) {
+                      // Use native Telegram share if available
+                      tg.switchInlineQuery(`${p.title} — ${p.price_stars} Stars\n${buyLink}`, ['users', 'groups', 'channels']);
+                    } else {
+                      const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ${p.price_stars} Stars`)}`;
+                      window.open(url);
+                    }
                   }}
                   className="chip-btn chip-primary"
                 >
