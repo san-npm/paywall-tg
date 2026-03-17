@@ -271,7 +271,7 @@ export default function CreateOffer() {
 
         <section className="glass-card text-center">
           <p className="text-xs text-tg-hint uppercase tracking-wide">Your creation code</p>
-          <p className="font-mono text-2xl font-bold mt-1" style={{ color: 'var(--tg-theme-button-color, #2481cc)', letterSpacing: '0.08em' }}>{created.id}</p>
+          <p className="font-mono text-2xl font-bold mt-1" style={{ color: '#7c3aed', letterSpacing: '0.08em' }}>{created.id}</p>
         </section>
 
         {created.content_type === 'file' && (
@@ -463,8 +463,8 @@ export default function CreateOffer() {
                     onClick={() => setContentType(key)}
                     className="chip-btn"
                     style={{
-                      backgroundColor: contentType === key ? 'var(--tg-theme-button-color, #2481cc)' : undefined,
-                      color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : undefined,
+                      backgroundColor: contentType === key ? '#7c3aed' : undefined,
+                      color: contentType === key ? '#fff' : undefined,
                       borderColor: contentType === key ? 'transparent' : undefined,
                     }}
                   >
