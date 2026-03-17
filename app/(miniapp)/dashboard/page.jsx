@@ -433,7 +433,7 @@ export default function Home() {
       <section className="hero-card">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--tg-theme-button-color, #2481cc)' }}>Gategram</p>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#7c3aed' }}>Gategram</p>
             <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">{user ? `Hey, ${user.first_name || 'Creator'}` : 'Sell content in Telegram'}</h1>
             <p className="text-sm text-tg-hint mt-2 max-w-prose">
               {user ? 'Your creator dashboard — manage offers, track earnings, get paid.' : 'Lower fees, instant delivery, powered by Telegram Stars.'}
@@ -528,11 +528,11 @@ export default function Home() {
               <label className="form-label">Payout method</label>
               <div className="grid grid-cols-2 gap-2">
                 <button type="button" className="chip-btn" onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'bank_transfer' })); }}
-                  style={{ backgroundColor: creatorProfile.payout_method === 'bank_transfer' ? 'var(--tg-theme-button-color, #2481cc)' : undefined, color: creatorProfile.payout_method === 'bank_transfer' ? 'var(--tg-theme-button-text-color, #fff)' : undefined, borderColor: creatorProfile.payout_method === 'bank_transfer' ? 'transparent' : undefined }}>
+                  style={{ backgroundColor: creatorProfile.payout_method === 'bank_transfer' ? '#7c3aed' : undefined, color: creatorProfile.payout_method === 'bank_transfer' ? '#fff' : undefined, borderColor: creatorProfile.payout_method === 'bank_transfer' ? 'transparent' : undefined }}>
                   Bank transfer (SEPA)
                 </button>
                 <button type="button" className="chip-btn" onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'paypal' })); }}
-                  style={{ backgroundColor: creatorProfile.payout_method === 'paypal' ? 'var(--tg-theme-button-color, #2481cc)' : undefined, color: creatorProfile.payout_method === 'paypal' ? 'var(--tg-theme-button-text-color, #fff)' : undefined, borderColor: creatorProfile.payout_method === 'paypal' ? 'transparent' : undefined }}>
+                  style={{ backgroundColor: creatorProfile.payout_method === 'paypal' ? '#7c3aed' : undefined, color: creatorProfile.payout_method === 'paypal' ? '#fff' : undefined, borderColor: creatorProfile.payout_method === 'paypal' ? 'transparent' : undefined }}>
                   PayPal
                 </button>
               </div>
@@ -570,7 +570,7 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-2">
             <div className="stat-card"><p className="stat-card-label">Gross</p><p className="stat-card-value">{finance.totals.gross_stars}<span className="stat-card-unit"> Stars</span></p></div>
             <div className="stat-card"><p className="stat-card-label">Fees</p><p className="stat-card-value">{finance.totals.fee_stars}<span className="stat-card-unit"> Stars</span></p></div>
-            <div className="stat-card"><p className="stat-card-label">Net</p><p className="stat-card-value" style={{ color: 'var(--tg-theme-button-color, #2481cc)' }}>{finance.totals.net_stars}<span className="stat-card-unit"> Stars</span></p></div>
+            <div className="stat-card"><p className="stat-card-label">Net</p><p className="stat-card-value" style={{ color: '#7c3aed' }}>{finance.totals.net_stars}<span className="stat-card-unit"> Stars</span></p></div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="mini-stat"><p className="mini-stat-label">Pending</p><p className="mini-stat-value">{finance.totals.pending_stars}</p></div>
@@ -737,7 +737,7 @@ export default function Home() {
                 <div className="min-w-0">
                   <p className="font-bold text-base truncate">{p.title}</p>
                   <p className="text-xs text-tg-hint mt-1">
-                    <span className="font-mono" style={{ color: 'var(--tg-theme-button-color, #2481cc)' }}>{p.id}</span>
+                    <span className="font-mono" style={{ color: '#7c3aed' }}>{p.id}</span>
                     {' · '}{p.content_type} · {p.sales_count} sales{p.views ? ` · ${p.views} views` : ''}
                   </p>
                   {Number(p.active) === 0 && <p className="text-xs font-semibold mt-1" style={{ color: '#ef4444' }}>Disabled</p>}

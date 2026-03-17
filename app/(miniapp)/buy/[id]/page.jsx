@@ -18,14 +18,14 @@ function BuySkeleton() {
   return (
     <div className="p-4 max-w-lg mx-auto animate-pulse">
       <div className="text-center mb-6">
-        <div className="w-16 h-16 rounded-full mx-auto mb-3" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-        <div className="h-6 w-48 mx-auto rounded-lg mb-2" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
-        <div className="h-4 w-64 mx-auto rounded-lg" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+        <div className="w-16 h-16 rounded-full mx-auto mb-3" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
+        <div className="h-6 w-48 mx-auto rounded-lg mb-2" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
+        <div className="h-4 w-64 mx-auto rounded-lg" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
       </div>
-      <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-        <div className="h-8 w-32 ml-auto rounded-lg" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }} />
+      <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }}>
+        <div className="h-8 w-32 ml-auto rounded-lg" style={{ backgroundColor: 'rgba(255, 255, 255, 0.85)' }} />
       </div>
-      <div className="h-12 rounded-xl" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      <div className="h-12 rounded-xl" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
     </div>
   );
 }
@@ -213,30 +213,26 @@ export default function BuyProduct() {
   const canPayStripe = ENABLE_STRIPE && paymentMethods.includes('stripe');
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <div className="text-center mb-6">
-        <div className="text-5xl mb-3">📦</div>
-        <h1 className="text-xl font-bold">{product.title}</h1>
-        {product.description && <p className="text-tg-hint mt-1">{product.description}</p>}
-      </div>
-
-      <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-        <div className="flex justify-between items-center">
-          <span className="text-sm text-tg-hint">Price</span>
-          <span className="text-2xl font-bold">⭐ {product.price_stars}</span>
+    <div className="p-4 max-w-lg mx-auto space-y-4">
+      <section className="hero-card text-center">
+        <h1 className="text-xl font-extrabold">{product.title}</h1>
+        {product.description && <p className="text-tg-hint mt-1 text-sm">{product.description}</p>}
+        <div className="flex justify-center items-baseline gap-1 mt-3">
+          <span className="text-3xl font-extrabold" style={{ color: '#7c3aed' }}>{product.price_stars}</span>
+          <span className="text-sm text-tg-hint font-semibold">Stars</span>
         </div>
         {Number.isFinite(Number(product.price_eur_cents)) && Number(product.price_eur_cents) > 0 && (
-          <p className="text-xs text-tg-hint text-right">or € {(Number(product.price_eur_cents) / 100).toFixed(2)}</p>
+          <p className="text-xs text-tg-hint">or € {(Number(product.price_eur_cents) / 100).toFixed(2)}</p>
         )}
         {Number.isFinite(Number(product.price_usd_cents)) && Number(product.price_usd_cents) > 0 && (
-          <p className="text-xs text-tg-hint text-right">or $ {(Number(product.price_usd_cents) / 100).toFixed(2)}</p>
+          <p className="text-xs text-tg-hint">or $ {(Number(product.price_usd_cents) / 100).toFixed(2)}</p>
         )}
-      </div>
-
-      <div className="text-sm text-tg-hint mb-4 space-y-1">
-        <p>📝 Type: {product.content_type}</p>
-        <p>🛒 {product.sales_count} sales</p>
-      </div>
+        <div className="flex justify-center gap-3 mt-3 text-xs text-tg-hint">
+          <span>{product.content_type}</span>
+          <span>·</span>
+          <span>{product.sales_count} sales</span>
+        </div>
+      </section>
 
       {paidStripe && !purchased && (
         <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#fff7ed', color: '#9a3412' }}>
@@ -253,10 +249,10 @@ export default function BuyProduct() {
       )}
 
       {purchased ? (
-        <div className="p-4 rounded-xl text-center" style={{ backgroundColor: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
-          <p className="text-lg font-semibold mb-2">✅ Already purchased!</p>
+        <section className="glass-card text-center">
+          <p className="text-lg font-semibold mb-2">Already purchased!</p>
           {product.content && (
-            <div className="mt-3 p-3 rounded-lg text-left" style={{ backgroundColor: 'var(--tg-theme-bg-color, #fff)' }}>
+            <div className="mt-3 p-3 rounded-lg text-left" style={{ backgroundColor: 'rgba(255, 255, 255, 0.85)' }}>
               {product.content_type === 'link' ? (() => {
                 const safeLink = safeExternalUrl(product.content);
                 if (!safeLink) return <p className="text-tg-hint">Invalid link content.</p>;
@@ -270,9 +266,9 @@ export default function BuyProduct() {
             <p className="text-xs text-tg-hint mt-2">Content is available in your Telegram chat with the bot.</p>
           )}
           {product.content_type === 'file' && (
-            <p className="text-xs text-tg-hint mt-2">📎 File was delivered in the bot chat.</p>
+            <p className="text-xs text-tg-hint mt-2">File was delivered in the bot chat.</p>
           )}
-        </div>
+        </section>
       ) : (
         <div className="text-center">
           {!user && !paidStripe && (
@@ -286,10 +282,9 @@ export default function BuyProduct() {
                 <button
                   onClick={handleBuy}
                   disabled={buying}
-                  className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
-                  style={{ backgroundColor: 'var(--tg-theme-button-color, #2481cc)', color: 'var(--tg-theme-button-text-color, #fff)' }}
+                  className="primary-btn disabled:opacity-50"
                 >
-                  {buying ? 'Processing...' : `⭐ Buy for ${product.price_stars} Stars`}
+                  {buying ? 'Processing...' : `Buy for ${product.price_stars} Stars`}
                 </button>
               )}
 
