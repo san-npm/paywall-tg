@@ -468,72 +468,154 @@ export default function Home() {
       )}
 
       {user && creatorProfile && (
-        <section className="glass-card space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Creator account</h2>
-          <div className="grid sm:grid-cols-2 gap-2">
-            <input className="chip-btn" placeholder="Legal name" value={creatorProfile.legal_name || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value })); }} />
-            <input className="chip-btn" placeholder="Email" type="email" value={creatorProfile.email || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value })); }} />
-            <input className="chip-btn" placeholder="Country (ISO2, e.g. LU)" maxLength={2} value={creatorProfile.country || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value.toUpperCase() })); }} />
-            <select className="chip-btn" value={creatorProfile.payout_method || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: e.target.value })); }}>
-              <option value="">Payout method...</option>
-              <option value="bank_transfer">Bank transfer</option>
-              <option value="paypal">PayPal</option>
-              <option value="crypto">Crypto</option>
-              <option value="other">Other</option>
-            </select>
+        <section className="glass-card space-y-4">
+          <div>
+            <h2 className="font-bold text-base">Creator account</h2>
+            <p className="text-xs text-tg-hint mt-1">Required for payouts. We never share your info publicly.</p>
           </div>
-          <textarea className="chip-btn w-full min-h-[68px]" placeholder="Payout details (IBAN / PayPal email / notes)" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
+          <div className="space-y-3">
+            <div>
+              <label className="form-label">Legal name</label>
+              <input className="form-input" placeholder="Your full legal name" value={creatorProfile.legal_name || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value })); }} />
+            </div>
+            <div>
+              <label className="form-label">Email</label>
+              <input className="form-input" placeholder="you@email.com" type="email" value={creatorProfile.email || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value })); }} />
+            </div>
+            <div>
+              <label className="form-label">Country</label>
+              <select className="form-input" value={creatorProfile.country || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value })); }}>
+                <option value="">Select your country...</option>
+                <option value="AT">Austria</option>
+                <option value="BE">Belgium</option>
+                <option value="BG">Bulgaria</option>
+                <option value="BR">Brazil</option>
+                <option value="CA">Canada</option>
+                <option value="CH">Switzerland</option>
+                <option value="CY">Cyprus</option>
+                <option value="CZ">Czech Republic</option>
+                <option value="DE">Germany</option>
+                <option value="DK">Denmark</option>
+                <option value="EE">Estonia</option>
+                <option value="ES">Spain</option>
+                <option value="FI">Finland</option>
+                <option value="FR">France</option>
+                <option value="GB">United Kingdom</option>
+                <option value="GR">Greece</option>
+                <option value="HR">Croatia</option>
+                <option value="HU">Hungary</option>
+                <option value="IE">Ireland</option>
+                <option value="IN">India</option>
+                <option value="IT">Italy</option>
+                <option value="LT">Lithuania</option>
+                <option value="LU">Luxembourg</option>
+                <option value="LV">Latvia</option>
+                <option value="MT">Malta</option>
+                <option value="NL">Netherlands</option>
+                <option value="NO">Norway</option>
+                <option value="PL">Poland</option>
+                <option value="PT">Portugal</option>
+                <option value="RO">Romania</option>
+                <option value="SE">Sweden</option>
+                <option value="SI">Slovenia</option>
+                <option value="SK">Slovakia</option>
+                <option value="TR">Turkey</option>
+                <option value="UA">Ukraine</option>
+                <option value="US">United States</option>
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Payout method</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" className="chip-btn" onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'bank_transfer' })); }}
+                  style={{ backgroundColor: creatorProfile.payout_method === 'bank_transfer' ? 'var(--tg-theme-button-color, #2481cc)' : undefined, color: creatorProfile.payout_method === 'bank_transfer' ? 'var(--tg-theme-button-text-color, #fff)' : undefined, borderColor: creatorProfile.payout_method === 'bank_transfer' ? 'transparent' : undefined }}>
+                  Bank transfer (SEPA)
+                </button>
+                <button type="button" className="chip-btn" onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'paypal' })); }}
+                  style={{ backgroundColor: creatorProfile.payout_method === 'paypal' ? 'var(--tg-theme-button-color, #2481cc)' : undefined, color: creatorProfile.payout_method === 'paypal' ? 'var(--tg-theme-button-text-color, #fff)' : undefined, borderColor: creatorProfile.payout_method === 'paypal' ? 'transparent' : undefined }}>
+                  PayPal
+                </button>
+              </div>
+            </div>
+            {creatorProfile.payout_method === 'bank_transfer' && (
+              <div>
+                <label className="form-label">IBAN (SEPA)</label>
+                <input className="form-input font-mono" placeholder="FR76 3000 6000 0112 3456 7890 189" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
+                <p className="text-xs text-tg-hint mt-1">European bank account number for SEPA transfers.</p>
+              </div>
+            )}
+            {creatorProfile.payout_method === 'paypal' && (
+              <div>
+                <label className="form-label">PayPal email</label>
+                <input className="form-input" type="email" placeholder="you@paypal.com" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
+                <p className="text-xs text-tg-hint mt-1">The email linked to your PayPal account.</p>
+              </div>
+            )}
+          </div>
           {profileFeedback && (
-            <div className="text-sm rounded-lg px-3 py-2" style={{
-              background: profileFeedback.type === 'success' ? '#d1fae5' : '#fee2e2',
-              color: profileFeedback.type === 'success' ? '#065f46' : '#991b1b',
-            }}>
+            <div className="feedback-banner" data-type={profileFeedback.type}>
               {profileFeedback.message}
             </div>
           )}
-          <button type="button" className="chip-btn chip-primary" disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
+          <button type="button" className="primary-btn" style={{ fontSize: '14px', padding: '11px 16px' }} disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
         </section>
       )}
 
       {user && finance?.totals && (
-        <section className="glass-card space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Financial dashboard (v1)</h2>
-          <div className="grid sm:grid-cols-3 gap-2">
-            <div className="mini-stat"><p className="mini-stat-label">Gross</p><p className="mini-stat-value">⭐ {finance.totals.gross_stars}</p></div>
-            <div className="mini-stat"><p className="mini-stat-label">Platform fee</p><p className="mini-stat-value">⭐ {finance.totals.fee_stars}</p></div>
-            <div className="mini-stat"><p className="mini-stat-label">Net earnings</p><p className="mini-stat-value">⭐ {finance.totals.net_stars}</p></div>
-            <div className="mini-stat"><p className="mini-stat-label">Pending payout</p><p className="mini-stat-value">⭐ {finance.totals.pending_stars}</p></div>
-            <div className="mini-stat"><p className="mini-stat-label">Paid out</p><p className="mini-stat-value">⭐ {finance.totals.paid_stars}</p></div>
-            <div className="mini-stat"><p className="mini-stat-label">Sales count</p><p className="mini-stat-value">{finance.totals.sales_count}</p></div>
+        <section className="glass-card space-y-4">
+          <div>
+            <h2 className="font-bold text-base">Earnings</h2>
+            <p className="text-xs text-tg-hint mt-1">Your revenue breakdown and payout history.</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="stat-card"><p className="stat-card-label">Gross</p><p className="stat-card-value">{finance.totals.gross_stars}<span className="stat-card-unit"> Stars</span></p></div>
+            <div className="stat-card"><p className="stat-card-label">Fees</p><p className="stat-card-value">{finance.totals.fee_stars}<span className="stat-card-unit"> Stars</span></p></div>
+            <div className="stat-card"><p className="stat-card-label">Net</p><p className="stat-card-value" style={{ color: 'var(--tg-theme-button-color, #2481cc)' }}>{finance.totals.net_stars}<span className="stat-card-unit"> Stars</span></p></div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="mini-stat"><p className="mini-stat-label">Pending</p><p className="mini-stat-value">{finance.totals.pending_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Paid out</p><p className="mini-stat-value">{finance.totals.paid_stars}</p></div>
+            <div className="mini-stat"><p className="mini-stat-label">Sales</p><p className="mini-stat-value">{finance.totals.sales_count}</p></div>
           </div>
 
-          <div className="space-y-1 text-xs text-tg-hint">
-            <p className="font-semibold">Monthly performance</p>
-            {Array.isArray(finance.months) && finance.months.length > 0 ? finance.months.map((m) => (
-              <p key={m.month}>{m.month}: {m.sales_count} sales · gross ⭐ {m.gross_stars} · net ⭐ {m.net_stars}</p>
-            )) : <p>No monthly sales yet.</p>}
-          </div>
-
-          <div className="space-y-2 text-xs text-tg-hint">
-            <p className="font-semibold">Recent payouts</p>
-            {Array.isArray(finance.payouts) && finance.payouts.length > 0 ? finance.payouts.map((p) => (
-              <div key={p.id} className="glass-card">
-                <p>#{p.id} · ⭐ {p.amount_stars} · {p.status}{p.paid_at ? ` · paid ${p.paid_at}` : ''}</p>
-                {p.invoice_ref && <p>Invoice: {p.invoice_ref}</p>}
-                {p.invoice_submitted_at && <p>Submitted: {p.invoice_submitted_at}</p>}
-                <div className="mt-2">
-                  <button type="button" className="chip-btn" onClick={() => downloadPayoutStatementCreator(p.id)}>Download statement CSV</button>
-                </div>
-                {p.status === 'pending' && (
-                  <div className="mt-2 grid sm:grid-cols-3 gap-2">
-                    <input className="chip-btn" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
-                    <input className="chip-btn" placeholder="Invoice URL (optional)" value={(invoiceForms[p.id]?.invoice_url || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_url: e.target.value } }))} />
-                    <button type="button" className="chip-btn chip-primary" disabled={invoiceSubmitting === p.id} onClick={() => submitPayoutInvoice(p.id)}>{invoiceSubmitting === p.id ? 'Submitting...' : 'Submit invoice'}</button>
+          {Array.isArray(finance.months) && finance.months.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-tg-hint uppercase tracking-wide">Monthly breakdown</p>
+              <div className="space-y-1">
+                {finance.months.map((m) => (
+                  <div key={m.month} className="mini-stat flex items-center justify-between">
+                    <span className="text-xs font-semibold">{m.month}</span>
+                    <span className="text-xs text-tg-hint">{m.sales_count} sales</span>
+                    <span className="text-xs font-bold">{m.net_stars} Stars</span>
                   </div>
-                )}
+                ))}
               </div>
-            )) : <p>No payouts yet.</p>}
-          </div>
+            </div>
+          )}
+
+          {Array.isArray(finance.payouts) && finance.payouts.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-tg-hint uppercase tracking-wide">Payouts</p>
+              {finance.payouts.map((p) => (
+                <div key={p.id} className="mini-stat space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold">{p.amount_stars} Stars</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.status === 'paid' ? 'bg-green-100 text-green-700' : p.status === 'processing' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{p.status}</span>
+                  </div>
+                  {p.paid_at && <p className="text-xs text-tg-hint">Paid {p.paid_at}</p>}
+                  {p.invoice_ref && <p className="text-xs text-tg-hint">Invoice: {p.invoice_ref}</p>}
+                  <button type="button" className="chip-btn text-xs" onClick={() => downloadPayoutStatementCreator(p.id)}>Download statement</button>
+                  {p.status === 'pending' && (
+                    <div className="grid sm:grid-cols-3 gap-2 pt-1">
+                      <input className="form-input text-xs" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
+                      <input className="form-input text-xs" placeholder="Invoice URL (optional)" value={(invoiceForms[p.id]?.invoice_url || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_url: e.target.value } }))} />
+                      <button type="button" className="chip-btn chip-primary text-xs" disabled={invoiceSubmitting === p.id} onClick={() => submitPayoutInvoice(p.id)}>{invoiceSubmitting === p.id ? 'Submitting...' : 'Submit invoice'}</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 

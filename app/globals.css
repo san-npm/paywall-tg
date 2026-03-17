@@ -28,11 +28,11 @@
 ──────────────────────────────── */
 body.miniapp {
   background:
-    radial-gradient(circle at 10% 5%, rgba(36, 129, 204, 0.08), transparent 38%),
-    radial-gradient(circle at 92% 0%, rgba(124, 58, 237, 0.06), transparent 32%),
-    radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.04), transparent 40%),
+    radial-gradient(circle at 12% 8%, rgba(36, 129, 204, 0.05), transparent 40%),
+    radial-gradient(circle at 90% 4%, rgba(124, 58, 237, 0.04), transparent 36%),
     var(--tg-theme-bg-color, #ffffff);
   color: var(--tg-theme-text-color, #000000);
+  line-height: 1.5;
 }
 
 body {
@@ -160,22 +160,22 @@ html { scroll-behavior: smooth; }
    Mini-app blocks (Telegram theme)
 ──────────────────────────────── */
 .glass-card {
-  background: color-mix(in srgb, var(--surface) 92%, #ffffff);
-  border: 1px solid color-mix(in srgb, var(--border) 80%, #00000010);
-  border-radius: 14px;
-  padding: 14px;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  background: color-mix(in srgb, var(--surface) 88%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
   transition: box-shadow .18s ease;
 }
 
 .hero-card {
-  background: linear-gradient(150deg,
-    color-mix(in srgb, var(--tg-theme-button-color, #2481cc) 14%, #ffffff),
-    color-mix(in srgb, var(--surface) 86%, #ffffff));
-  border: 1px solid color-mix(in srgb, var(--tg-theme-button-color, #2481cc) 16%, transparent);
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 8px 28px rgba(36, 129, 204, 0.12);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--tg-theme-button-color, #2481cc) 10%, #ffffff),
+    color-mix(in srgb, var(--surface) 94%, #ffffff));
+  border: 1px solid color-mix(in srgb, var(--tg-theme-button-color, #2481cc) 12%, transparent);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 6px 24px rgba(36, 129, 204, 0.08);
 }
 
 .hero-badge {
@@ -242,15 +242,58 @@ html { scroll-behavior: smooth; }
 
 .chip-btn {
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   border: 1px solid var(--border);
-  padding: 8px 10px;
+  padding: 9px 12px;
   background: color-mix(in srgb, var(--surface) 88%, #ffffff);
   cursor: pointer;
+  transition: background .12s ease, border-color .12s ease;
 }
+.chip-btn:hover { border-color: color-mix(in srgb, var(--tg-theme-button-color, #2481cc) 30%, transparent); }
 .chip-primary { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); border-color: transparent; }
+.chip-primary:hover { opacity: .9; }
 .chip-danger { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+/* ── Form inputs ── */
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tg-theme-hint-color, #637381);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.form-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1.5px solid color-mix(in srgb, var(--border) 100%, transparent);
+  background: var(--surface);
+  color: var(--tg-theme-text-color, #000);
+  font-size: 14px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+}
+.form-input:focus {
+  border-color: var(--tg-theme-button-color, #2481cc);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tg-theme-button-color, #2481cc) 12%, transparent);
+}
+.form-input::placeholder { color: var(--tg-theme-hint-color, #97a1ad); opacity: .7; }
+select.form-input { cursor: pointer; }
+
+/* ── Feedback banners ── */
+.feedback-banner {
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.feedback-banner[data-type="success"] { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.feedback-banner[data-type="error"] { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
 /* ────────────────────────────────
    Creator cards

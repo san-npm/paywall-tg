@@ -234,14 +234,14 @@ export async function POST(req) {
       else if (text === '/create') {
         await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         await b.api.sendMessage(chatId,
-          `\u{1F4E6} *Create a paid creation*\n\nOpen the Mini App to create your paid creation, or use the quick command:\n\n` +
-          `\`/new <price_in_stars> <title> | <content>\`\n\n` +
-          `Example:\n\`/new 50 My Secret Guide | Here's the secret content that buyers will receive\\.\\.\\.\``,
+          `Ready to sell?\n\n` +
+          `Tap the button below to open Gategram and set up your paid creation in under a minute.\n\n` +
+          `You can also create one right here:\n` +
+          `/new 50 My Secret Guide | The content buyers unlock after paying`,
           {
-            parse_mode: 'MarkdownV2',
             reply_markup: {
               inline_keyboard: [[
-                { text: '\u{1F4E6} Create in App', web_app: { url: `${WEBAPP_URL}/dashboard` } }
+                { text: 'Create in Gategram', web_app: { url: `${WEBAPP_URL}/create` } }
               ]]
             }
           }
