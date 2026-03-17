@@ -223,7 +223,7 @@ export async function POST(req) {
           {
             reply_markup: {
               inline_keyboard: [[
-                { text: '🚀 Open Gategram', web_app: { url: WEBAPP_URL } }
+                { text: '🚀 Open Gategram', web_app: { url: `${WEBAPP_URL}/dashboard` } }
               ]]
             }
           }
@@ -235,9 +235,7 @@ export async function POST(req) {
         await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
         await b.api.sendMessage(chatId,
           `Ready to sell?\n\n` +
-          `Tap the button below to open Gategram and set up your paid creation in under a minute.\n\n` +
-          `You can also create one right here:\n` +
-          `/new 50 My Secret Guide | The content buyers unlock after paying`,
+          `Tap the button below to open Gategram and set up your paid creation in under a minute.`,
           {
             reply_markup: {
               inline_keyboard: [[
@@ -556,7 +554,7 @@ export async function POST(req) {
             parse_mode: 'MarkdownV2',
             reply_markup: {
               inline_keyboard: [[
-                { text: '\u{1F4CA} Full Dashboard', web_app: { url: WEBAPP_URL } }
+                { text: '\u{1F4CA} Full Dashboard', web_app: { url: `${WEBAPP_URL}/dashboard` } }
               ]]
             }
           }
