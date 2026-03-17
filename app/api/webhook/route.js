@@ -6,7 +6,7 @@ import {
   getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
   setPendingAttach, getPendingAttach, clearPendingAttach
 } from '@/lib/db';
-import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId } from '@/lib/validate';
+import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId, sanitizeErrorMessage } from '@/lib/validate';
 
 export const runtime = 'nodejs';
 
@@ -148,11 +148,6 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        // Guard against duplicate delivery
-        if (await hasPurchased(productId, buyerId)) {
-          return NextResponse.json({ ok: true });
-        }
-
         const starsPaid = payment.total_amount;
         const platformFee = Math.ceil(starsPaid * PLATFORM_FEE_PERCENT / 100);
         const creatorShare = starsPaid - platformFee;
@@ -187,7 +182,12 @@ export async function POST(req) {
 
         await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
 
-        await deliverPaidMedia(b.api, buyerId, product);
+        try {
+          await deliverPaidMedia(b.api, buyerId, product);
+        } catch (mediaErr) {
+          console.error('deliverPaidMedia failed:', mediaErr?.message || mediaErr);
+          await b.api.sendMessage(buyerId, '\u26A0\uFE0F Media delivery failed. Contact the creator for assistance.').catch(() => {});
+        }
 
         // Notify creator
         const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;
@@ -606,7 +606,7 @@ export async function POST(req) {
           } catch (attachErr) {
             console.error('Attach media error:', attachErr);
             try {
-              await b.api.sendMessage(chatId, `❌ Failed to attach media: ${attachErr?.message || 'unknown error'}. Please try again.`);
+              await b.api.sendMessage(chatId, `❌ Failed to attach media: ${sanitizeErrorMessage(attachErr?.message, 'unknown error')}. Please try again.`);
             } catch {}
             return NextResponse.json({ ok: true });
           }
