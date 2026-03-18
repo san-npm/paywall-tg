@@ -8,36 +8,23 @@ import {
   showConfirm, getTg,
 } from '@/lib/telegram';
 
+const CONTENT_ICONS = { text: '\u{1F4DD}', link: '\u{1F517}', file: '\u{1F4CE}', photo: '\u{1F4F7}', video: '\u{1F3AC}' };
+
 function DashboardSkeleton() {
   return (
-    <div className="p-4 max-w-2xl mx-auto animate-pulse">
-      <div className="glass-card h-40 mb-4" />
-      <div className="grid sm:grid-cols-3 gap-3 mb-4">
-        <div className="glass-card h-24" />
-        <div className="glass-card h-24" />
-        <div className="glass-card h-24" />
+    <div className="p-4 max-w-lg mx-auto animate-pulse space-y-3">
+      <div className="h-16 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      <div className="grid grid-cols-3 gap-2">
+        {[1,2,3].map(i => <div key={i} className="h-16 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />)}
       </div>
-      <div className="glass-card h-14 mb-4" />
-      <div className="space-y-3">
-        <div className="glass-card h-24" />
-        <div className="glass-card h-24" />
+      <div className="grid grid-cols-2 gap-2">
+        {[1,2,3,4].map(i => <div key={i} className="h-28 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />)}
       </div>
     </div>
   );
 }
 
-function SparklineIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" aria-hidden="true">
-      <path d="M3 16.5L8 11.5L12 14.5L20 6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M20 10V6H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function toYmd(d) {
-  return d.toISOString().slice(0, 10);
-}
+function toYmd(d) { return d.toISOString().slice(0, 10); }
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -61,7 +48,8 @@ export default function Home() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [invoiceForms, setInvoiceForms] = useState({});
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(null);
-  const [profileFeedback, setProfileFeedback] = useState(null); // { type: 'success'|'error', message: string }
+  const [profileFeedback, setProfileFeedback] = useState(null);
+  const [activeTab, setActiveTab] = useState('offers');
 
   useEffect(() => {
     const init = async () => {
@@ -115,12 +103,10 @@ export default function Home() {
   const handleDelete = async (offerId, offerTitle) => {
     const confirmed = await showConfirm(`Delete "${offerTitle}"? This cannot be undone.`);
     if (!confirmed) return;
-
     hapticImpact('medium');
     const tg = getTg();
     const iData = tg?.initData || '';
     setDeleting(offerId);
-
     try {
       const res = await fetch('/api/products', {
         method: 'DELETE',
@@ -135,7 +121,6 @@ export default function Home() {
     } catch {
       hapticNotification('error');
     }
-
     setDeleting(null);
   };
 
@@ -182,24 +167,9 @@ export default function Home() {
   const applyPreset = (preset) => {
     const now = new Date();
     const end = toYmd(now);
-
-    if (preset === 'today') {
-      setExportFilters(prev => ({ ...prev, from: end, to: end }));
-      return;
-    }
-
-    if (preset === 'last7') {
-      const start = new Date(now);
-      start.setDate(start.getDate() - 6);
-      setExportFilters(prev => ({ ...prev, from: toYmd(start), to: end }));
-      return;
-    }
-
-    if (preset === 'month') {
-      const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-      setExportFilters(prev => ({ ...prev, from: toYmd(start), to: end }));
-      return;
-    }
+    if (preset === 'today') { setExportFilters(prev => ({ ...prev, from: end, to: end })); return; }
+    if (preset === 'last7') { const s = new Date(now); s.setDate(s.getDate() - 6); setExportFilters(prev => ({ ...prev, from: toYmd(s), to: end })); return; }
+    if (preset === 'month') { const s = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)); setExportFilters(prev => ({ ...prev, from: toYmd(s), to: end })); return; }
   };
 
   const refreshPayouts = async () => {
@@ -219,50 +189,29 @@ export default function Home() {
       headers: { 'x-telegram-init-data': iData }
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setAdminError('Failed to load payout details');
-      return;
-    }
+    if (!res.ok) { setAdminError('Failed to load payout details'); return; }
     setSelectedPayout(data?.details || null);
   };
 
   const createPayouts = async () => {
-    setAdminError(null);
-    setAdminBusy(true);
-    try {
-      await postAdminAction({ action: 'payout_create', creator_id: payoutCreatorId || undefined });
-      await refreshPayouts();
-    } catch (err) {
-      setAdminError(err.message || 'Payout create failed');
-    } finally {
-      setAdminBusy(false);
-    }
+    setAdminError(null); setAdminBusy(true);
+    try { await postAdminAction({ action: 'payout_create', creator_id: payoutCreatorId || undefined }); await refreshPayouts(); }
+    catch (err) { setAdminError(err.message || 'Payout create failed'); }
+    finally { setAdminBusy(false); }
   };
 
   const markPayoutProcessing = async (payoutId) => {
-    setAdminError(null);
-    setAdminBusy(true);
-    try {
-      await postAdminAction({ action: 'payout_mark_processing', payout_id: payoutId });
-      await refreshPayouts();
-    } catch (err) {
-      setAdminError(err.message || 'Mark processing failed');
-    } finally {
-      setAdminBusy(false);
-    }
+    setAdminError(null); setAdminBusy(true);
+    try { await postAdminAction({ action: 'payout_mark_processing', payout_id: payoutId }); await refreshPayouts(); }
+    catch (err) { setAdminError(err.message || 'Mark processing failed'); }
+    finally { setAdminBusy(false); }
   };
 
   const markPayoutPaid = async (payoutId) => {
-    setAdminError(null);
-    setAdminBusy(true);
-    try {
-      await postAdminAction({ action: 'payout_mark_paid', payout_id: payoutId });
-      await refreshPayouts();
-    } catch (err) {
-      setAdminError(err.message || 'Mark paid failed');
-    } finally {
-      setAdminBusy(false);
-    }
+    setAdminError(null); setAdminBusy(true);
+    try { await postAdminAction({ action: 'payout_mark_paid', payout_id: payoutId }); await refreshPayouts(); }
+    catch (err) { setAdminError(err.message || 'Mark paid failed'); }
+    finally { setAdminBusy(false); }
   };
 
   const downloadCsvResponse = async (res, fallbackName) => {
@@ -272,13 +221,8 @@ export default function Home() {
     const match = cd.match(/filename="?([^";]+)"?/i);
     const name = match?.[1] || fallbackName;
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   };
 
   const exportCsv = async (kind) => {
@@ -291,13 +235,9 @@ export default function Home() {
       if (exportFilters.to) params.set('to', exportFilters.to);
       if (exportFilters.creator_id) params.set('creator_id', exportFilters.creator_id);
       if (exportFilters.refunded && exportFilters.refunded !== 'all') params.set('refunded', exportFilters.refunded);
-      const res = await fetch(`/api/admin?${params.toString()}`, {
-        headers: { 'x-telegram-init-data': iData }
-      });
+      const res = await fetch(`/api/admin?${params.toString()}`, { headers: { 'x-telegram-init-data': iData } });
       await downloadCsvResponse(res, `${kind}.csv`);
-    } catch (err) {
-      setAdminError(err.message || 'Export failed');
-    }
+    } catch (err) { setAdminError(err.message || 'Export failed'); }
   };
 
   const downloadPayoutStatementAdmin = async (payoutId) => {
@@ -305,13 +245,9 @@ export default function Home() {
     try {
       const tg = window.Telegram?.WebApp;
       const iData = tg?.initData || '';
-      const res = await fetch(`/api/admin?kind=payout_statement_csv&payout_id=${encodeURIComponent(String(payoutId))}`, {
-        headers: { 'x-telegram-init-data': iData }
-      });
+      const res = await fetch(`/api/admin?kind=payout_statement_csv&payout_id=${encodeURIComponent(String(payoutId))}`, { headers: { 'x-telegram-init-data': iData } });
       await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
-    } catch (err) {
-      setAdminError(err.message || 'Statement download failed');
-    }
+    } catch (err) { setAdminError(err.message || 'Statement download failed'); }
   };
 
   const downloadPayoutStatementCreator = async (payoutId) => {
@@ -319,20 +255,15 @@ export default function Home() {
     try {
       const tg = window.Telegram?.WebApp;
       const iData = tg?.initData || '';
-      const res = await fetch(`/api/creator-payout-statement?payout_id=${encodeURIComponent(String(payoutId))}`, {
-        headers: { 'x-telegram-init-data': iData }
-      });
+      const res = await fetch(`/api/creator-payout-statement?payout_id=${encodeURIComponent(String(payoutId))}`, { headers: { 'x-telegram-init-data': iData } });
       await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
-    } catch (err) {
-      setAdminError(err.message || 'Statement download failed');
-    }
+    } catch (err) { setAdminError(err.message || 'Statement download failed'); }
   };
 
   const saveCreatorProfile = async () => {
     const tg = window.Telegram?.WebApp;
     const iData = tg?.initData || '';
-    setProfileSaving(true);
-    setProfileFeedback(null);
+    setProfileSaving(true); setProfileFeedback(null);
     try {
       const res = await fetch('/api/creator-profile', {
         method: 'POST',
@@ -342,285 +273,362 @@ export default function Home() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Failed to save profile');
       setCreatorProfile(data.profile || creatorProfile);
-      setProfileFeedback({ type: 'success', message: 'Profile saved successfully!' });
+      setProfileFeedback({ type: 'success', message: 'Profile saved!' });
       hapticNotification('success');
     } catch (err) {
-      setProfileFeedback({ type: 'error', message: err.message || 'Failed to save creator profile' });
+      setProfileFeedback({ type: 'error', message: err.message || 'Failed to save' });
       hapticNotification('error');
-    } finally {
-      setProfileSaving(false);
-    }
+    } finally { setProfileSaving(false); }
   };
 
   const submitPayoutInvoice = async (payoutId) => {
     const form = invoiceForms[payoutId] || {};
-    if (!form.invoice_ref) {
-      setAdminError('Invoice reference is required.');
-      return;
-    }
+    if (!form.invoice_ref) { setAdminError('Invoice reference is required.'); return; }
     const tg = window.Telegram?.WebApp;
     const iData = tg?.initData || '';
-    setInvoiceSubmitting(payoutId);
-    setAdminError(null);
+    setInvoiceSubmitting(payoutId); setAdminError(null);
     try {
       const res = await fetch('/api/creator-payout-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
-        body: JSON.stringify({
-          payout_id: payoutId,
-          invoice_ref: form.invoice_ref,
-          invoice_url: form.invoice_url || '',
-          invoice_notes: form.invoice_notes || '',
-        }),
+        body: JSON.stringify({ payout_id: payoutId, invoice_ref: form.invoice_ref, invoice_url: form.invoice_url || '', invoice_notes: form.invoice_notes || '' }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Invoice submit failed');
-
       const fres = await fetch('/api/creator-finance', { headers: { 'x-telegram-init-data': iData } });
       const fdata = await fres.json().catch(() => null);
       if (fdata) setFinance(fdata);
-    } catch (err) {
-      setAdminError(err.message || 'Invoice submit failed');
-    } finally {
-      setInvoiceSubmitting(null);
-    }
+    } catch (err) { setAdminError(err.message || 'Invoice submit failed'); }
+    finally { setInvoiceSubmitting(null); }
   };
 
   if (!ready) return <DashboardSkeleton />;
 
+  const tabs = [
+    { key: 'offers', label: 'Offers' },
+    { key: 'earnings', label: 'Earnings' },
+    { key: 'profile', label: 'Profile' },
+  ];
+
   return (
-    <main className="p-4 max-w-2xl mx-auto space-y-4">
-      <section className="hero-card">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#7c3aed' }}>Gategram</p>
-            <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight">{user ? `Hey, ${user.first_name || 'Creator'}` : 'Sell content in Telegram'}</h1>
-            <p className="text-sm text-tg-hint mt-2 max-w-prose">
-              {user ? 'Your creator dashboard — manage offers, track earnings, get paid.' : 'Lower fees, instant delivery, powered by Telegram Stars.'}
-            </p>
-          </div>
-          <div className="hero-badge" aria-hidden="true"><SparklineIcon /></div>
-        </div>
-      </section>
+    <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
+      {/* Header */}
+      <div className="pt-1">
+        <h1 className="text-xl font-bold">{user ? `Hey, ${user.first_name || 'Creator'}` : 'Gategram'}</h1>
+        <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color, #999)' }}>
+          {user ? 'Your creator dashboard' : 'Sell content in Telegram'}
+        </p>
+      </div>
 
       {!user && (
-        <section className="glass-card text-sm">
-          <p className="font-semibold mb-1">Open this inside Telegram to manage offers.</p>
-          <p className="text-tg-hint">Preview works in browser, but publishing and sales tracking require Telegram auth.</p>
-        </section>
+        <div className="tg-section text-sm">
+          <p className="font-semibold mb-1">Open inside Telegram</p>
+          <p style={{ color: 'var(--tg-theme-hint-color, #999)' }}>Publishing and sales tracking require Telegram auth.</p>
+        </div>
       )}
 
+      {/* Stats row */}
       {user && stats && (
-        <section className="grid grid-cols-3 gap-2">
-          <article className="stat-card">
-            <p className="stat-card-label">Offers</p>
-            <p className="stat-card-value">{stats.products}</p>
-          </article>
-          <article className="stat-card">
-            <p className="stat-card-label">Sales</p>
-            <p className="stat-card-value">{stats.sales}</p>
-          </article>
-          <article className="stat-card">
-            <p className="stat-card-label">Earned</p>
-            <p className="stat-card-value">{stats.totalStars}<span className="stat-card-unit"> Stars</span></p>
-          </article>
-        </section>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="tg-stat">
+            <p className="tg-stat-label">Offers</p>
+            <p className="tg-stat-value">{stats.products}</p>
+          </div>
+          <div className="tg-stat">
+            <p className="tg-stat-label">Sales</p>
+            <p className="tg-stat-value">{stats.sales}</p>
+          </div>
+          <div className="tg-stat">
+            <p className="tg-stat-label">Earned</p>
+            <p className="tg-stat-value">{stats.totalStars} <span className="tg-stat-unit">Stars</span></p>
+          </div>
+        </div>
       )}
 
-      {user && creatorProfile && (
-        <section className="glass-card space-y-4">
-          <div>
-            <h2 className="font-bold text-base">Creator account</h2>
-            <p className="text-xs text-tg-hint mt-1">Required for payouts. We never share your info publicly.</p>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <label className="form-label">Legal name</label>
-              <input className="form-input" placeholder="Your full legal name" value={creatorProfile.legal_name || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value })); }} />
-            </div>
-            <div>
-              <label className="form-label">Email</label>
-              <input className="form-input" placeholder="you@email.com" type="email" value={creatorProfile.email || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value })); }} />
-            </div>
-            <div>
-              <label className="form-label">Country</label>
-              <select className="form-input" value={creatorProfile.country || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value })); }}>
-                <option value="">Select your country...</option>
-                {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="form-label">Payout method</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" className="chip-btn" onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'bank_transfer' })); }}
-                  style={{ backgroundColor: creatorProfile.payout_method === 'bank_transfer' ? '#7c3aed' : undefined, color: creatorProfile.payout_method === 'bank_transfer' ? '#fff' : undefined, borderColor: creatorProfile.payout_method === 'bank_transfer' ? 'transparent' : undefined }}>
-                  Bank transfer (SEPA)
-                </button>
-                <button type="button" className="chip-btn" onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'paypal' })); }}
-                  style={{ backgroundColor: creatorProfile.payout_method === 'paypal' ? '#7c3aed' : undefined, color: creatorProfile.payout_method === 'paypal' ? '#fff' : undefined, borderColor: creatorProfile.payout_method === 'paypal' ? 'transparent' : undefined }}>
-                  PayPal
-                </button>
-              </div>
-            </div>
-            {creatorProfile.payout_method === 'bank_transfer' && (
-              <div>
-                <label className="form-label">IBAN (SEPA)</label>
-                <input className="form-input font-mono" placeholder="FR76 3000 6000 0112 3456 7890 189" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
-                <p className="text-xs text-tg-hint mt-1">European bank account number for SEPA transfers.</p>
-              </div>
-            )}
-            {creatorProfile.payout_method === 'paypal' && (
-              <div>
-                <label className="form-label">PayPal email</label>
-                <input className="form-input" type="email" placeholder="you@paypal.com" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
-                <p className="text-xs text-tg-hint mt-1">The email linked to your PayPal account.</p>
-              </div>
-            )}
-          </div>
-          {profileFeedback && (
-            <div className="feedback-banner" data-type={profileFeedback.type}>
-              {profileFeedback.message}
-            </div>
-          )}
-          <button type="button" className="primary-btn" style={{ fontSize: '14px', padding: '11px 16px' }} disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
-        </section>
+      {/* Tab bar */}
+      {user && (
+        <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
+          {tabs.map(t => (
+            <button
+              key={t.key}
+              onClick={() => { hapticSelection(); setActiveTab(t.key); }}
+              className="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all"
+              style={{
+                background: activeTab === t.key ? 'var(--tg-theme-button-color, #7c3aed)' : 'transparent',
+                color: activeTab === t.key ? 'var(--tg-theme-button-text-color, #fff)' : 'var(--tg-theme-hint-color, #999)',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       )}
 
-      {user && finance?.totals && (
-        <section className="glass-card space-y-4">
-          <div>
-            <h2 className="font-bold text-base">Earnings</h2>
-            <p className="text-xs text-tg-hint mt-1">Your revenue breakdown and payout history.</p>
+      {/* Create CTA */}
+      {user && activeTab === 'offers' && (
+        <Link href="/create" className="tg-btn">
+          Create an offer
+        </Link>
+      )}
+
+      {/* ─── OFFERS TAB ─── */}
+      {activeTab === 'offers' && offers.length > 0 && (
+        <div className="grid grid-cols-2 gap-2">
+          {offers.map((p) => (
+            <div key={p.id} className="tg-product-item relative">
+              {Number(p.active) === 0 && (
+                <span className="tg-badge tg-badge-red absolute top-2 right-2">OFF</span>
+              )}
+              <div className="text-3xl mb-1" aria-hidden="true">{CONTENT_ICONS[p.content_type] || '\u{1F4E6}'}</div>
+              <p className="tg-product-item-title">{p.title}</p>
+              <p className="tg-product-item-price">{p.price_stars} Stars · {p.sales_count} sales</p>
+
+              <div className="flex gap-1 justify-center mt-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    hapticImpact('light');
+                    const tg = getTg();
+                    const botUsername = tg?.initDataUnsafe?.bot?.username || '';
+                    const buyLink = botUsername
+                      ? `https://t.me/${botUsername}?start=buy_${p.id}`
+                      : `${window.location.origin}/buy/${p.id}`;
+                    if (tg?.switchInlineQuery) {
+                      tg.switchInlineQuery(`${p.title} — ${p.price_stars} Stars\n${buyLink}`, ['users', 'groups', 'channels']);
+                    } else {
+                      const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ${p.price_stars} Stars`)}`;
+                      window.open(url);
+                    }
+                  }}
+                  className="tg-action-btn"
+                >
+                  Share
+                </button>
+                <a href={`/edit/${p.id}`} className="tg-btn-secondary">Edit</a>
+              </div>
+
+              <div className="flex gap-1 justify-center mt-1 flex-wrap">
+                {p.content_type === 'file' && (
+                  <button
+                    onClick={() => {
+                      const tg = window.Telegram?.WebApp;
+                      const botUsername = tg?.initDataUnsafe?.bot?.username || '';
+                      if (botUsername) { window.open(`https://t.me/${botUsername}?start=attach_${p.id}`); }
+                      else { navigator.clipboard?.writeText(`/attach ${p.id}`); }
+                    }}
+                    className="tg-btn-secondary text-xs"
+                  >
+                    {p.file_id ? 'Replace media' : 'Attach media'}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(p.id, p.title)}
+                  disabled={deleting === p.id}
+                  className="tg-btn-danger text-xs disabled:opacity-50"
+                >
+                  {deleting === p.id ? '...' : 'Delete'}
+                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => toggleOfferActive(p.id, Number(p.active) === 0)}
+                    disabled={toggling === p.id}
+                    className="tg-btn-secondary text-xs disabled:opacity-50"
+                  >
+                    {toggling === p.id ? '...' : Number(p.active) === 0 ? 'Enable' : 'Disable'}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'offers' && offers.length === 0 && user && (
+        <div className="tg-section text-center py-10">
+          <p className="text-3xl mb-2" aria-hidden="true">{'\u{1F4E6}'}</p>
+          <p className="font-semibold">No offers yet</p>
+          <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color, #999)' }}>Create your first offer above.</p>
+        </div>
+      )}
+
+      {/* ─── EARNINGS TAB ─── */}
+      {activeTab === 'earnings' && user && finance?.totals && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="tg-stat"><p className="tg-stat-label">Gross</p><p className="tg-stat-value">{finance.totals.gross_stars}</p></div>
+            <div className="tg-stat"><p className="tg-stat-label">Fees</p><p className="tg-stat-value">{finance.totals.fee_stars}</p></div>
+            <div className="tg-stat"><p className="tg-stat-label">Net</p><p className="tg-stat-value" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{finance.totals.net_stars}</p></div>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <div className="stat-card"><p className="stat-card-label">Gross</p><p className="stat-card-value">{finance.totals.gross_stars}<span className="stat-card-unit"> Stars</span></p></div>
-            <div className="stat-card"><p className="stat-card-label">Fees</p><p className="stat-card-value">{finance.totals.fee_stars}<span className="stat-card-unit"> Stars</span></p></div>
-            <div className="stat-card"><p className="stat-card-label">Net</p><p className="stat-card-value" style={{ color: '#7c3aed' }}>{finance.totals.net_stars}<span className="stat-card-unit"> Stars</span></p></div>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="mini-stat"><p className="mini-stat-label">Pending</p><p className="mini-stat-value">{finance.totals.pending_stars}</p></div>
-            <div className="mini-stat"><p className="mini-stat-label">Paid out</p><p className="mini-stat-value">{finance.totals.paid_stars}</p></div>
-            <div className="mini-stat"><p className="mini-stat-label">Sales</p><p className="mini-stat-value">{finance.totals.sales_count}</p></div>
+            <div className="tg-stat"><p className="tg-stat-label">Pending</p><p className="tg-stat-value">{finance.totals.pending_stars}</p></div>
+            <div className="tg-stat"><p className="tg-stat-label">Paid out</p><p className="tg-stat-value">{finance.totals.paid_stars}</p></div>
+            <div className="tg-stat"><p className="tg-stat-label">Sales</p><p className="tg-stat-value">{finance.totals.sales_count}</p></div>
           </div>
 
           {Array.isArray(finance.months) && finance.months.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-tg-hint uppercase tracking-wide">Monthly breakdown</p>
-              <div className="space-y-1">
-                {finance.months.map((m) => (
-                  <div key={m.month} className="mini-stat flex items-center justify-between">
-                    <span className="text-xs font-semibold">{m.month}</span>
-                    <span className="text-xs text-tg-hint">{m.sales_count} sales</span>
-                    <span className="text-xs font-bold">{m.net_stars} Stars</span>
-                  </div>
-                ))}
-              </div>
+            <div className="tg-section space-y-1">
+              <p className="tg-section-header">Monthly breakdown</p>
+              {finance.months.map((m) => (
+                <div key={m.month} className="tg-list-row">
+                  <span className="text-sm font-semibold">{m.month}</span>
+                  <span className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>{m.sales_count} sales</span>
+                  <span className="text-sm font-bold">{m.net_stars} Stars</span>
+                </div>
+              ))}
             </div>
           )}
 
           {Array.isArray(finance.payouts) && finance.payouts.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-tg-hint uppercase tracking-wide">Payouts</p>
+            <div className="tg-section space-y-2">
+              <p className="tg-section-header">Payouts</p>
               {finance.payouts.map((p) => (
-                <div key={p.id} className="mini-stat space-y-2">
+                <div key={p.id} className="space-y-2 pb-2" style={{ borderBottom: '0.5px solid var(--tg-theme-hint-color, #99999933)' }}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-bold">{p.amount_stars} Stars</span>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.status === 'paid' ? 'bg-green-100 text-green-700' : p.status === 'processing' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{p.status}</span>
+                    <span className={`tg-badge ${p.status === 'paid' ? 'tg-badge-green' : p.status === 'processing' ? 'tg-badge-blue' : 'tg-badge-amber'}`}>{p.status}</span>
                   </div>
-                  {p.paid_at && <p className="text-xs text-tg-hint">Paid {p.paid_at}</p>}
-                  {p.invoice_ref && <p className="text-xs text-tg-hint">Invoice: {p.invoice_ref}</p>}
-                  <button type="button" className="chip-btn text-xs" onClick={() => downloadPayoutStatementCreator(p.id)}>Download statement</button>
+                  {p.paid_at && <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>Paid {p.paid_at}</p>}
+                  {p.invoice_ref && <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>Invoice: {p.invoice_ref}</p>}
+                  <button type="button" className="tg-btn-secondary text-xs" onClick={() => downloadPayoutStatementCreator(p.id)}>Download statement</button>
                   {p.status === 'pending' && (
-                    <div className="grid sm:grid-cols-3 gap-2 pt-1">
-                      <input className="form-input text-xs" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
-                      <input className="form-input text-xs" placeholder="Invoice URL (optional)" value={(invoiceForms[p.id]?.invoice_url || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_url: e.target.value } }))} />
-                      <button type="button" className="chip-btn chip-primary text-xs" disabled={invoiceSubmitting === p.id} onClick={() => submitPayoutInvoice(p.id)}>{invoiceSubmitting === p.id ? 'Submitting...' : 'Submit invoice'}</button>
+                    <div className="space-y-2 pt-1">
+                      <input className="tg-input text-sm" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
+                      <input className="tg-input text-sm" placeholder="Invoice URL (optional)" value={(invoiceForms[p.id]?.invoice_url || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_url: e.target.value } }))} />
+                      <button type="button" className="tg-action-btn w-full" disabled={invoiceSubmitting === p.id} onClick={() => submitPayoutInvoice(p.id)}>{invoiceSubmitting === p.id ? 'Submitting...' : 'Submit invoice'}</button>
                     </div>
                   )}
                 </div>
               ))}
             </div>
           )}
-        </section>
+        </div>
       )}
 
-      <Link href="/create" className="primary-btn">
-        Create an offer
-      </Link>
+      {activeTab === 'earnings' && user && !finance?.totals && (
+        <div className="tg-section text-center py-8">
+          <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>No earnings yet. Create and share your first offer!</p>
+        </div>
+      )}
 
-      {isAdmin && (
-        <section className="glass-card space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Admin controls</h2>
-          <form onSubmit={submitRefund} className="grid sm:grid-cols-3 gap-2">
-            <input
-              className="chip-btn"
-              placeholder="Buyer Telegram ID"
-              value={refundForm.buyer_telegram_id}
-              onChange={(e) => setRefundForm(prev => ({ ...prev, buyer_telegram_id: e.target.value }))}
-              required
-            />
-            <input
-              className="chip-btn"
-              placeholder="Telegram charge ID"
-              value={refundForm.telegram_charge_id}
-              onChange={(e) => setRefundForm(prev => ({ ...prev, telegram_charge_id: e.target.value }))}
-              required
-            />
-            <button type="submit" className="chip-btn chip-danger disabled:opacity-50" disabled={adminBusy}>
-              {adminBusy ? 'Refunding...' : 'Refund payment'}
-            </button>
-          </form>
-          {adminError && <p className="text-sm text-red-500">{adminError}</p>}
-          <div className="flex gap-2 flex-wrap">
-            <button type="button" className="chip-btn" onClick={() => applyPreset('today')}>Today</button>
-            <button type="button" className="chip-btn" onClick={() => applyPreset('last7')}>Last 7d</button>
-            <button type="button" className="chip-btn" onClick={() => applyPreset('month')}>This month</button>
+      {/* ─── PROFILE TAB ─── */}
+      {activeTab === 'profile' && user && creatorProfile && (
+        <div className="tg-section space-y-4">
+          <div>
+            <p className="tg-section-header" style={{ padding: 0 }}>Creator account</p>
+            <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>Required for payouts.</p>
           </div>
-          <div className="grid sm:grid-cols-4 gap-2">
-            <input className="chip-btn" type="date" value={exportFilters.from} onChange={(e) => setExportFilters(prev => ({ ...prev, from: e.target.value }))} />
-            <input className="chip-btn" type="date" value={exportFilters.to} onChange={(e) => setExportFilters(prev => ({ ...prev, to: e.target.value }))} />
-            <input className="chip-btn" placeholder="Creator ID (optional)" value={exportFilters.creator_id} onChange={(e) => setExportFilters(prev => ({ ...prev, creator_id: e.target.value }))} />
-            <select className="chip-btn" value={exportFilters.refunded} onChange={(e) => setExportFilters(prev => ({ ...prev, refunded: e.target.value }))}>
+          <div className="space-y-3">
+            <div>
+              <label className="tg-label">Legal name</label>
+              <input className="tg-input" placeholder="Your full legal name" value={creatorProfile.legal_name || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), legal_name: e.target.value })); }} />
+            </div>
+            <div>
+              <label className="tg-label">Email</label>
+              <input className="tg-input" placeholder="you@email.com" type="email" value={creatorProfile.email || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), email: e.target.value })); }} />
+            </div>
+            <div>
+              <label className="tg-label">Country</label>
+              <select className="tg-input" value={creatorProfile.country || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), country: e.target.value })); }}>
+                <option value="">Select your country...</option>
+                {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="tg-label">Payout method</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button"
+                  className={`tg-chip ${creatorProfile.payout_method === 'bank_transfer' ? 'tg-chip-active' : ''}`}
+                  onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'bank_transfer' })); }}>
+                  Bank (SEPA)
+                </button>
+                <button type="button"
+                  className={`tg-chip ${creatorProfile.payout_method === 'paypal' ? 'tg-chip-active' : ''}`}
+                  onClick={() => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_method: 'paypal' })); }}>
+                  PayPal
+                </button>
+              </div>
+            </div>
+            {creatorProfile.payout_method === 'bank_transfer' && (
+              <div>
+                <label className="tg-label">IBAN (SEPA)</label>
+                <input className="tg-input font-mono" placeholder="FR76 3000 6000 0112 3456 7890 189" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
+              </div>
+            )}
+            {creatorProfile.payout_method === 'paypal' && (
+              <div>
+                <label className="tg-label">PayPal email</label>
+                <input className="tg-input" type="email" placeholder="you@paypal.com" value={creatorProfile.payout_details || ''} onChange={(e) => { setProfileFeedback(null); setCreatorProfile(prev => ({ ...(prev || {}), payout_details: e.target.value })); }} />
+              </div>
+            )}
+          </div>
+          {profileFeedback && (
+            <div className={profileFeedback.type === 'success' ? 'tg-banner-success' : 'tg-banner-error'}>
+              {profileFeedback.message}
+            </div>
+          )}
+          <button type="button" className="tg-btn" disabled={profileSaving} onClick={saveCreatorProfile}>{profileSaving ? 'Saving...' : 'Save profile'}</button>
+        </div>
+      )}
+
+      {/* ─── ADMIN CONTROLS ─── */}
+      {isAdmin && (
+        <div className="tg-section space-y-3">
+          <p className="tg-section-header" style={{ padding: 0 }}>Admin</p>
+          <form onSubmit={submitRefund} className="space-y-2">
+            <input className="tg-input text-sm" placeholder="Buyer Telegram ID" value={refundForm.buyer_telegram_id} onChange={(e) => setRefundForm(prev => ({ ...prev, buyer_telegram_id: e.target.value }))} required />
+            <input className="tg-input text-sm" placeholder="Telegram charge ID" value={refundForm.telegram_charge_id} onChange={(e) => setRefundForm(prev => ({ ...prev, telegram_charge_id: e.target.value }))} required />
+            <button type="submit" className="tg-btn-danger w-full" disabled={adminBusy}>{adminBusy ? 'Refunding...' : 'Refund payment'}</button>
+          </form>
+          {adminError && <p className="tg-banner-error">{adminError}</p>}
+          <div className="flex gap-1 flex-wrap">
+            <button type="button" className="tg-btn-secondary" onClick={() => applyPreset('today')}>Today</button>
+            <button type="button" className="tg-btn-secondary" onClick={() => applyPreset('last7')}>Last 7d</button>
+            <button type="button" className="tg-btn-secondary" onClick={() => applyPreset('month')}>This month</button>
+          </div>
+          <div className="space-y-2">
+            <input className="tg-input text-sm" type="date" value={exportFilters.from} onChange={(e) => setExportFilters(prev => ({ ...prev, from: e.target.value }))} />
+            <input className="tg-input text-sm" type="date" value={exportFilters.to} onChange={(e) => setExportFilters(prev => ({ ...prev, to: e.target.value }))} />
+            <input className="tg-input text-sm" placeholder="Creator ID (optional)" value={exportFilters.creator_id} onChange={(e) => setExportFilters(prev => ({ ...prev, creator_id: e.target.value }))} />
+            <select className="tg-input text-sm" value={exportFilters.refunded} onChange={(e) => setExportFilters(prev => ({ ...prev, refunded: e.target.value }))}>
               <option value="all">All</option>
               <option value="no">Non-refunded</option>
               <option value="only">Refunded only</option>
             </select>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <button type="button" className="chip-btn" onClick={() => exportCsv('actions')}>Export actions CSV</button>
-            <button type="button" className="chip-btn" onClick={() => exportCsv('purchases')}>Export purchases CSV</button>
-            <button type="button" className="chip-btn" onClick={() => exportCsv('payouts')}>Export payouts CSV</button>
-            <button type="button" className="chip-btn chip-primary" onClick={() => exportCsv('reconciliation')}>Export reconciliation CSV</button>
+          <div className="flex gap-1 flex-wrap">
+            <button type="button" className="tg-btn-secondary" onClick={() => exportCsv('actions')}>Actions CSV</button>
+            <button type="button" className="tg-btn-secondary" onClick={() => exportCsv('purchases')}>Purchases CSV</button>
+            <button type="button" className="tg-btn-secondary" onClick={() => exportCsv('payouts')}>Payouts CSV</button>
+            <button type="button" className="tg-action-btn" onClick={() => exportCsv('reconciliation')}>Reconciliation CSV</button>
           </div>
 
           <div className="space-y-2">
             <p className="font-semibold text-sm">Payout queue</p>
             <div className="flex gap-2 flex-wrap">
-              <input className="chip-btn" placeholder="Creator ID (optional)" value={payoutCreatorId} onChange={(e) => setPayoutCreatorId(e.target.value)} />
-              <button type="button" className="chip-btn" disabled={adminBusy} onClick={createPayouts}>{adminBusy ? 'Working...' : 'Create pending payouts'}</button>
+              <input className="tg-input text-sm" placeholder="Creator ID (optional)" value={payoutCreatorId} onChange={(e) => setPayoutCreatorId(e.target.value)} />
+              <button type="button" className="tg-btn-secondary" disabled={adminBusy} onClick={createPayouts}>{adminBusy ? 'Working...' : 'Create pending payouts'}</button>
             </div>
             {payoutQueue.length > 0 ? (
-              <div className="text-xs text-tg-hint space-y-1">
+              <div className="text-xs space-y-1" style={{ color: 'var(--tg-theme-hint-color)' }}>
                 {payoutQueue.slice(0, 10).map((q) => (
                   <p key={`${q.creator_id}-${q.amount_stars}`}>creator {q.creator_id}: {q.amount_stars} Stars ({q.purchase_count} sales)</p>
                 ))}
               </div>
-            ) : <p className="text-xs text-tg-hint">No unassigned payouts.</p>}
+            ) : <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>No unassigned payouts.</p>}
 
             {payouts.length > 0 && (
-              <div className="text-xs text-tg-hint space-y-1">
+              <div className="text-xs space-y-1" style={{ color: 'var(--tg-theme-hint-color)' }}>
                 <p className="font-semibold">Recent payouts</p>
                 {payouts.slice(0, 10).map((p) => (
                   <div key={p.id} className="flex items-center gap-2 flex-wrap">
                     <span>#{p.id} · {p.creator_id} · {p.amount_stars} Stars · {p.status}</span>
                     {p.invoice_ref ? <span>· invoice {p.invoice_ref}</span> : null}
-                    <button type="button" className="chip-btn" onClick={() => loadPayoutDetails(p.id)}>Details</button>
-                    <button type="button" className="chip-btn" onClick={() => downloadPayoutStatementAdmin(p.id)}>Statement CSV</button>
+                    <button type="button" className="tg-btn-secondary" onClick={() => loadPayoutDetails(p.id)}>Details</button>
+                    <button type="button" className="tg-btn-secondary" onClick={() => downloadPayoutStatementAdmin(p.id)}>Statement</button>
                     {(p.status === 'invoice_submitted' || p.status === 'pending') && (
-                      <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutProcessing(p.id)}>Mark processing</button>
+                      <button type="button" className="tg-btn-secondary" disabled={adminBusy} onClick={() => markPayoutProcessing(p.id)}>Processing</button>
                     )}
                     {p.status !== 'paid' && (
-                      <button type="button" className="chip-btn" disabled={adminBusy} onClick={() => markPayoutPaid(p.id)}>Mark paid</button>
+                      <button type="button" className="tg-btn-secondary" disabled={adminBusy} onClick={() => markPayoutPaid(p.id)}>Paid</button>
                     )}
                   </div>
                 ))}
@@ -628,7 +636,7 @@ export default function Home() {
             )}
 
             {selectedPayout?.payout && (
-              <div className="text-xs text-tg-hint space-y-1">
+              <div className="text-xs space-y-1" style={{ color: 'var(--tg-theme-hint-color)' }}>
                 <p className="font-semibold">Payout #{selectedPayout.payout.id} details</p>
                 <p>Creator: {selectedPayout.payout.creator_id} · Amount: {selectedPayout.payout.amount_stars} · Status: {selectedPayout.payout.status}</p>
                 {selectedPayout.payout.invoice_ref ? <p>Invoice ref: {selectedPayout.payout.invoice_ref}</p> : null}
@@ -643,98 +651,15 @@ export default function Home() {
             )}
           </div>
           {adminActions.length > 0 && (
-            <div className="text-xs text-tg-hint space-y-1">
+            <div className="text-xs space-y-1" style={{ color: 'var(--tg-theme-hint-color)' }}>
               <p className="font-semibold">Recent admin actions</p>
               {adminActions.slice(0, 5).map((a) => (
                 <p key={a.id}>#{a.id} {a.action} → {a.status}</p>
               ))}
             </div>
           )}
-        </section>
+        </div>
       )}
-
-      {offers.length > 0 ? (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-tg-hint">Your offers</h2>
-          {offers.map((p) => (
-            <article key={p.id} className="glass-card">
-              <div className="flex justify-between items-start gap-3">
-                <div className="min-w-0">
-                  <p className="font-bold text-base truncate">{p.title}</p>
-                  <p className="text-xs text-tg-hint mt-1">
-                    <span className="font-mono" style={{ color: '#7c3aed' }}>{p.id}</span>
-                    {' · '}{p.content_type} · {p.sales_count} sales{p.views ? ` · ${p.views} views` : ''}
-                  </p>
-                  {Number(p.active) === 0 && <p className="text-xs font-semibold mt-1" style={{ color: '#ef4444' }}>Disabled</p>}
-                </div>
-                <span className="price-pill shrink-0">{p.price_stars} Stars</span>
-              </div>
-
-              <div className="mt-3 flex gap-2 flex-wrap">
-                <button
-                  onClick={() => {
-                    hapticImpact('light');
-                    const tg = getTg();
-                    const botUsername = tg?.initDataUnsafe?.bot?.username || '';
-                    const buyLink = botUsername
-                      ? `https://t.me/${botUsername}?start=buy_${p.id}`
-                      : `${window.location.origin}/buy/${p.id}`;
-                    if (tg?.switchInlineQuery) {
-                      // Use native Telegram share if available
-                      tg.switchInlineQuery(`${p.title} — ${p.price_stars} Stars\n${buyLink}`, ['users', 'groups', 'channels']);
-                    } else {
-                      const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ${p.price_stars} Stars`)}`;
-                      window.open(url);
-                    }
-                  }}
-                  className="chip-btn chip-primary"
-                >
-                  Share
-                </button>
-                {p.content_type === 'file' && (
-                  <button
-                    onClick={() => {
-                      const tg = window.Telegram?.WebApp;
-                      const botUsername = tg?.initDataUnsafe?.bot?.username || '';
-                      if (botUsername) {
-                        window.open(`https://t.me/${botUsername}?start=attach_${p.id}`);
-                      } else {
-                        navigator.clipboard?.writeText(`/attach ${p.id}`);
-                      }
-                    }}
-                    className="chip-btn"
-                    style={{ background: p.file_id ? '#d1fae5' : '#fef3c7', borderColor: p.file_id ? '#6ee7b7' : '#fcd34d' }}
-                  >
-                    {p.file_id ? 'Replace media' : 'Attach media'}
-                  </button>
-                )}
-                <a href={`/edit/${p.id}`} className="chip-btn inline-block">Edit</a>
-                <button
-                  onClick={() => handleDelete(p.id, p.title)}
-                  disabled={deleting === p.id}
-                  className="chip-btn chip-danger disabled:opacity-50"
-                >
-                  {deleting === p.id ? 'Deleting...' : 'Delete'}
-                </button>
-                {isAdmin && (
-                  <button
-                    onClick={() => toggleOfferActive(p.id, Number(p.active) === 0)}
-                    disabled={toggling === p.id}
-                    className="chip-btn disabled:opacity-50"
-                  >
-                    {toggling === p.id ? 'Working...' : Number(p.active) === 0 ? 'Enable' : 'Disable'}
-                  </button>
-                )}
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : user ? (
-        <section className="glass-card text-center py-10">
-          <h2 className="font-semibold text-lg">No offers yet</h2>
-          <p className="text-tg-hint text-sm mt-1">Create your first offer and share it in your Telegram channel.</p>
-        </section>
-      ) : null}
     </main>
   );
 }
