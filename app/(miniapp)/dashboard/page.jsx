@@ -305,19 +305,19 @@ export default function Home() {
   if (!ready) return <DashboardSkeleton />;
 
   const tabs = [
-    { key: 'offers', label: 'Offers' },
-    { key: 'earnings', label: 'Earnings' },
-    { key: 'profile', label: 'Profile' },
+    { key: 'offers', label: 'Offers', emoji: '\u{1F4E6}' },
+    { key: 'earnings', label: 'Earnings', emoji: '\u{1F4B0}' },
+    { key: 'profile', label: 'Profile', emoji: '\u{1F464}' },
   ];
 
   return (
     <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
       {/* Header */}
-      <div className="pt-1">
-        <h1 className="text-xl font-bold">{user ? `Hey, ${user.first_name || 'Creator'}` : 'Gategram'}</h1>
+      <div className="pt-2 pb-1">
         <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color, #999)' }}>
-          {user ? 'Your creator dashboard' : 'Sell content in Telegram'}
+          {user ? `Welcome back` : 'Sell content in Telegram'}
         </p>
+        <h1 className="text-2xl font-extrabold tracking-tight">{user ? `${user.first_name || 'Creator'} \u{2728}` : 'Gategram'}</h1>
       </div>
 
       {!user && (
@@ -347,18 +347,14 @@ export default function Home() {
 
       {/* Tab bar */}
       {user && (
-        <div className="flex gap-1 p-1 rounded-lg" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }}>
+        <div className="tg-tab-bar">
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => { hapticSelection(); setActiveTab(t.key); }}
-              className="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all"
-              style={{
-                background: activeTab === t.key ? 'var(--tg-theme-button-color, #7c3aed)' : 'transparent',
-                color: activeTab === t.key ? 'var(--tg-theme-button-text-color, #fff)' : 'var(--tg-theme-hint-color, #999)',
-              }}
+              className={`tg-tab ${activeTab === t.key ? 'tg-tab-active' : ''}`}
             >
-              {t.label}
+              {t.emoji} {t.label}
             </button>
           ))}
         </div>
@@ -367,7 +363,7 @@ export default function Home() {
       {/* Create CTA */}
       {user && activeTab === 'offers' && (
         <Link href="/create" className="tg-btn">
-          Create an offer
+          {'\u{2728}'} Create an offer
         </Link>
       )}
 
@@ -379,7 +375,7 @@ export default function Home() {
               {Number(p.active) === 0 && (
                 <span className="tg-badge tg-badge-red absolute top-2 right-2">OFF</span>
               )}
-              <div className="text-3xl mb-1" aria-hidden="true">{CONTENT_ICONS[p.content_type] || '\u{1F4E6}'}</div>
+              <div className="tg-product-item-icon" aria-hidden="true">{CONTENT_ICONS[p.content_type] || '\u{1F4E6}'}</div>
               <p className="tg-product-item-title">{p.title}</p>
               <p className="tg-product-item-price">{p.price_stars} Stars · {p.sales_count} sales</p>
 
@@ -444,9 +440,9 @@ export default function Home() {
 
       {activeTab === 'offers' && offers.length === 0 && user && (
         <div className="tg-section text-center py-10">
-          <p className="text-3xl mb-2" aria-hidden="true">{'\u{1F4E6}'}</p>
-          <p className="font-semibold">No offers yet</p>
-          <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color, #999)' }}>Create your first offer above.</p>
+          <p className="tg-empty-icon mb-3" aria-hidden="true">{'\u{1F680}'}</p>
+          <p className="font-bold text-base">Ready to launch?</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color, #999)' }}>Create your first offer and start earning Stars!</p>
         </div>
       )}
 
@@ -504,8 +500,10 @@ export default function Home() {
       )}
 
       {activeTab === 'earnings' && user && !finance?.totals && (
-        <div className="tg-section text-center py-8">
-          <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>No earnings yet. Create and share your first offer!</p>
+        <div className="tg-section text-center py-10">
+          <p className="tg-empty-icon mb-3" aria-hidden="true">{'\u{1F4B8}'}</p>
+          <p className="font-bold text-base">No earnings yet</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>Create and share your first offer to start earning!</p>
         </div>
       )}
 

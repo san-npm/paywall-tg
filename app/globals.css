@@ -57,10 +57,42 @@ html { scroll-behavior: smooth; }
    automatically adapt to light/dark mode.
 ──────────────────────────────── */
 
+/* Page entrance animation */
+@keyframes tg-fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tg-scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes tg-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes tg-popIn {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes tg-pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+body.miniapp main > * {
+  animation: tg-fadeUp 0.35s ease-out both;
+}
+body.miniapp main > *:nth-child(2) { animation-delay: 0.06s; }
+body.miniapp main > *:nth-child(3) { animation-delay: 0.12s; }
+body.miniapp main > *:nth-child(4) { animation-delay: 0.18s; }
+body.miniapp main > *:nth-child(5) { animation-delay: 0.24s; }
+body.miniapp main > *:nth-child(6) { animation-delay: 0.30s; }
+
 /* Section card — like Telegram settings sections */
 .tg-section {
   background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
 }
 
@@ -87,10 +119,12 @@ html { scroll-behavior: smooth; }
 /* Stat row — compact number display */
 .tg-stat {
   text-align: center;
-  padding: 10px 8px;
+  padding: 12px 8px;
   background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-  border-radius: 10px;
+  border-radius: 12px;
+  transition: transform 0.15s ease;
 }
+.tg-stat:active { transform: scale(0.96); }
 .tg-stat-label {
   font-size: 11px;
   font-weight: 600;
@@ -100,7 +134,7 @@ html { scroll-behavior: smooth; }
   margin: 0;
 }
 .tg-stat-value {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   margin-top: 2px;
   color: var(--tg-theme-text-color, #000);
@@ -114,9 +148,20 @@ html { scroll-behavior: smooth; }
 /* Product grid item — like Durger King menu items */
 .tg-product-item {
   text-align: center;
-  padding: 12px 6px;
+  padding: 14px 8px;
   background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-  border-radius: 12px;
+  border-radius: 14px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: tg-scaleIn 0.3s ease-out both;
+}
+.tg-product-item:nth-child(2) { animation-delay: 0.05s; }
+.tg-product-item:nth-child(3) { animation-delay: 0.10s; }
+.tg-product-item:nth-child(4) { animation-delay: 0.15s; }
+.tg-product-item:active { transform: scale(0.97); }
+.tg-product-item-icon {
+  font-size: 2rem;
+  margin-bottom: 4px;
+  animation: tg-pulse-soft 3s ease-in-out infinite;
 }
 .tg-product-item-title {
   font-size: 13px;
@@ -139,7 +184,7 @@ html { scroll-behavior: smooth; }
   width: 100%;
   text-align: center;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   font-weight: 700;
   font-size: 15px;
   background: var(--tg-theme-button-color, #7c3aed);
@@ -147,17 +192,19 @@ html { scroll-behavior: smooth; }
   text-decoration: none;
   cursor: pointer;
   border: none;
-  transition: opacity .12s ease;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  position: relative;
+  overflow: hidden;
 }
-.tg-btn:hover { opacity: .85; }
-.tg-btn:active { opacity: .7; }
-.tg-btn:disabled { opacity: .45; cursor: default; }
+.tg-btn:hover { opacity: .9; }
+.tg-btn:active { transform: scale(0.97); opacity: .85; }
+.tg-btn:disabled { opacity: .45; cursor: default; transform: none; }
 
 /* Small inline action button — like Durger King's ADD/BUY */
 .tg-action-btn {
   display: inline-block;
   padding: 7px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -166,29 +213,30 @@ html { scroll-behavior: smooth; }
   color: var(--tg-theme-button-text-color, #fff);
   border: none;
   cursor: pointer;
-  transition: opacity .12s ease;
+  transition: transform 0.1s ease, opacity 0.1s ease;
   text-decoration: none;
 }
-.tg-action-btn:hover { opacity: .85; }
-.tg-action-btn:active { opacity: .7; }
-.tg-action-btn:disabled { opacity: .45; cursor: default; }
+.tg-action-btn:hover { opacity: .9; }
+.tg-action-btn:active { transform: scale(0.94); opacity: .8; }
+.tg-action-btn:disabled { opacity: .45; cursor: default; transform: none; }
 
 /* Secondary/outline button */
 .tg-btn-secondary {
   display: inline-block;
   padding: 7px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
   background: var(--tg-theme-secondary-bg-color, #f0f0f0);
   color: var(--tg-theme-text-color, #000);
   border: none;
   cursor: pointer;
-  transition: opacity .12s ease;
+  transition: transform 0.1s ease, opacity 0.1s ease;
   text-decoration: none;
 }
-.tg-btn-secondary:hover { opacity: .7; }
-.tg-btn-secondary:disabled { opacity: .45; cursor: default; }
+.tg-btn-secondary:hover { opacity: .8; }
+.tg-btn-secondary:active { transform: scale(0.95); }
+.tg-btn-secondary:disabled { opacity: .45; cursor: default; transform: none; }
 
 /* Danger button */
 .tg-btn-danger {
@@ -210,7 +258,7 @@ html { scroll-behavior: smooth; }
 .tg-input {
   width: 100%;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: none;
   background: var(--tg-theme-secondary-bg-color, #f0f0f0);
   color: var(--tg-theme-text-color, #000);
@@ -218,10 +266,11 @@ html { scroll-behavior: smooth; }
   outline: none;
   box-sizing: border-box;
   -webkit-appearance: none;
-  transition: box-shadow .15s ease;
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
 }
 .tg-input:focus {
   box-shadow: 0 0 0 2px var(--tg-theme-button-color, #7c3aed);
+  transform: scale(1.01);
 }
 .tg-input::placeholder {
   color: var(--tg-theme-hint-color, #999);
@@ -261,37 +310,139 @@ select.tg-input { cursor: pointer; }
 .tg-banner-success {
   font-size: 13px;
   font-weight: 500;
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 12px 14px;
   background: #1b5e2014;
   color: #2e7d32;
+  animation: tg-fadeUp 0.25s ease-out;
 }
 .tg-banner-error {
   font-size: 13px;
   font-weight: 500;
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 12px 14px;
   background: #c6282814;
   color: #c62828;
+  animation: tg-fadeUp 0.25s ease-out;
 }
 .tg-banner-warning {
   font-size: 13px;
   font-weight: 500;
-  border-radius: 10px;
-  padding: 10px 14px;
+  border-radius: 12px;
+  padding: 12px 14px;
   background: #f57f1714;
   color: #e65100;
+  animation: tg-fadeUp 0.25s ease-out;
 }
 
 /* Price badge */
 .tg-price {
   font-size: 13px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 999px;
   background: var(--tg-theme-button-color, #7c3aed);
   color: var(--tg-theme-button-text-color, #fff);
   white-space: nowrap;
+}
+
+/* Hero emoji — large animated icon for page headers */
+.tg-hero-emoji {
+  font-size: 3.2rem;
+  line-height: 1;
+  animation: tg-popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Success celebration */
+.tg-celebration {
+  font-size: 3.6rem;
+  line-height: 1;
+  animation: tg-popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Subtle gradient accent overlay for cards */
+.tg-accent-glow {
+  position: relative;
+}
+.tg-accent-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.06), rgba(236, 72, 153, 0.04), transparent);
+  pointer-events: none;
+}
+
+/* Empty state illustration */
+.tg-empty-icon {
+  font-size: 3rem;
+  line-height: 1;
+  opacity: 0.7;
+  animation: tg-pulse-soft 3.5s ease-in-out infinite;
+}
+
+/* Tab bar pill transition */
+.tg-tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+}
+.tg-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: var(--tg-theme-hint-color, #999);
+}
+.tg-tab-active {
+  background: var(--tg-theme-button-color, #7c3aed);
+  color: var(--tg-theme-button-text-color, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Content type picker — playful selector */
+.tg-type-picker {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.tg-type-option {
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  color: var(--tg-theme-text-color, #000);
+}
+.tg-type-option:active { transform: scale(0.93); }
+.tg-type-option-active {
+  background: var(--tg-theme-button-color, #7c3aed);
+  color: var(--tg-theme-button-text-color, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.tg-type-option-icon {
+  font-size: 1.4rem;
+  display: block;
+  transition: transform 0.18s ease;
+}
+.tg-type-option-active .tg-type-option-icon {
+  transform: scale(1.15);
+}
+.tg-type-option-label {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
 }
 
 /* List row — like Telegram order summary rows */
@@ -481,7 +632,16 @@ select.tg-input { cursor: pointer; }
   .site-cta-primary,
   .site-panel,
   .creator-bubble-card,
-  .creator-icon-wrap {
+  .creator-icon-wrap,
+  body.miniapp main > *,
+  .tg-product-item,
+  .tg-hero-emoji,
+  .tg-celebration,
+  .tg-empty-icon,
+  .tg-product-item-icon,
+  .tg-banner-success,
+  .tg-banner-error,
+  .tg-banner-warning {
     animation: none !important;
     transition: none !important;
     transform: none !important;
