@@ -33,23 +33,15 @@
    Body / global
 ──────────────────────────────── */
 body.miniapp {
-  background:
-    radial-gradient(circle at 9% 10%, rgba(196, 181, 253, 0.35), transparent 36%),
-    radial-gradient(circle at 88% 4%, rgba(253, 186, 116, 0.18), transparent 36%),
-    radial-gradient(circle at 20% 78%, rgba(167, 243, 208, 0.20), transparent 40%),
-    linear-gradient(130deg, #fdf9ff 0%, #f5eeff 38%, #eef6ff 68%, #f8f0ff 100%);
-  color: var(--mini-text);
+  background-color: var(--tg-theme-bg-color, #ffffff);
+  color: var(--tg-theme-text-color, #000000);
   line-height: 1.5;
 }
-
-/* Override Telegram theme colors within mini-app context */
-body.miniapp .text-tg-hint { color: var(--mini-text-dim) !important; }
-body.miniapp .text-tg-link { color: var(--mini-accent) !important; }
 
 body {
   background-color: var(--tg-theme-bg-color, #ffffff);
   color: var(--tg-theme-text-color, #0f172a);
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -57,253 +49,282 @@ body {
 }
 
 html { scroll-behavior: smooth; }
-::selection { background: rgba(124, 58, 237, 0.20); color: #1a1235; }
+::selection { background: rgba(124, 58, 237, 0.20); }
 
 /* ────────────────────────────────
-   Pastel rainbow background
+   Mini-app: Telegram-native components
+   All colors use var(--tg-theme-*) so they
+   automatically adapt to light/dark mode.
 ──────────────────────────────── */
-.site-rainbow-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  background:
-    radial-gradient(circle at 9%  10%, rgba(196, 181, 253, 0.55), transparent 36%),
-    radial-gradient(circle at 88% 12%, rgba(253, 186, 116, 0.38), transparent 36%),
-    radial-gradient(circle at 20% 78%, rgba(167, 243, 208, 0.42), transparent 40%),
-    radial-gradient(circle at 84% 76%, rgba(251, 207, 232, 0.42), transparent 38%),
-    linear-gradient(130deg, #fdf9ff 0%, #f5eeff 38%, #eef6ff 68%, #f8f0ff 100%);
-}
 
-/* ────────────────────────────────
-   Floating orbs
-──────────────────────────────── */
-.site-orb { position: absolute; border-radius: 9999px; filter: blur(48px); pointer-events: none; }
-.site-orb-a { width: 260px; height: 260px; background: rgba(216, 180, 254, 0.45); top: -80px; right: 4%; animation: floatY 9s ease-in-out infinite; }
-.site-orb-b { width: 220px; height: 220px; background: rgba(134, 239, 172, 0.35); bottom: -70px; left: 8%; animation: floatY 11s ease-in-out infinite reverse; }
-.site-orb-c { width: 180px; height: 180px; background: rgba(253, 186, 116, 0.32); top: 20%; left: 35%; animation: floatY 10s ease-in-out infinite; }
-
-/* ────────────────────────────────
-   CTA buttons
-──────────────────────────────── */
-.site-cta-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* Section card — like Telegram settings sections */
+.tg-section {
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
   border-radius: 12px;
-  background: linear-gradient(135deg, #7c3aed, #9333ea);
-  color: #ffffff;
-  border: none;
-  font-weight: 700;
-  padding: 12px 18px;
-  text-decoration: none;
-  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
-}
-.site-cta-primary:hover {
-  background: linear-gradient(135deg, #6d28d9, #7e22ce);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.30);
-}
-
-.site-cta-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  border: 1.5px solid rgba(139, 92, 246, 0.30);
-  color: var(--site-text-muted);
-  font-weight: 600;
-  padding: 12px 18px;
-  text-decoration: none;
-  transition: color .2s ease, border-color .2s ease;
-}
-.site-cta-secondary:hover {
-  color: var(--site-text);
-  border-color: var(--site-accent);
-}
-
-/* ────────────────────────────────
-   Chips / stat cards
-──────────────────────────────── */
-.site-chip {
-  background: rgba(255, 255, 255, 0.80);
-  border: 1.5px solid rgba(139, 92, 246, 0.16);
-  border-radius: 12px;
-  padding: 12px;
-  backdrop-filter: blur(4px);
-}
-.site-chip-label { font-size: 11px; color: var(--site-text-dim); text-transform: uppercase; letter-spacing: .05em; margin: 0; }
-.site-chip-value { font-size: 18px; font-weight: 800; margin: 2px 0 0; color: var(--site-text); }
-
-/* ────────────────────────────────
-   Content panels
-──────────────────────────────── */
-.site-panel {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1.5px solid rgba(139, 92, 246, 0.14);
-  border-radius: 16px;
   padding: 16px;
-  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-  backdrop-filter: blur(6px);
-}
-.site-panel:hover {
-  transform: translateY(-3px);
-  border-color: rgba(139, 92, 246, 0.30);
-  box-shadow: 0 10px 28px rgba(124, 58, 237, 0.10);
 }
 
-.site-step {
-  background: rgba(255, 255, 255, 0.80);
-  border: 1.5px solid rgba(139, 92, 246, 0.14);
-  border-radius: 14px;
-  padding: 14px;
-  backdrop-filter: blur(4px);
+/* Separator line between items */
+.tg-separator {
+  height: 0.5px;
+  background: var(--tg-theme-hint-color, #999);
+  opacity: 0.2;
+  margin: 0;
+  border: none;
 }
-.site-step-n {
-  display: inline-block;
-  font-size: 11px;
-  color: var(--site-accent);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+/* Section header text */
+.tg-section-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tg-theme-hint-color, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 4px;
   margin-bottom: 8px;
 }
 
-/* ────────────────────────────────
-   Mini-app blocks (purple theme, matching website)
-──────────────────────────────── */
-.glass-card {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1.5px solid rgba(139, 92, 246, 0.14);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.05);
-  backdrop-filter: blur(6px);
-  transition: box-shadow .18s ease;
-}
-
-.hero-card {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(167, 243, 208, 0.06), rgba(255, 255, 255, 0.90));
-  border: 1.5px solid rgba(139, 92, 246, 0.16);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.08);
-}
-
-.hero-badge {
-  background: rgba(124, 58, 237, 0.10);
-  color: var(--mini-accent);
-  border-radius: 10px;
-  min-width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mini-stat {
-  background: rgba(255, 255, 255, 0.80);
-  border: 1.5px solid rgba(139, 92, 246, 0.12);
-  border-radius: 10px;
-  padding: 10px;
-}
-.mini-stat-label { font-size: 11px; color: var(--mini-text-dim); text-transform: uppercase; letter-spacing: .04em; margin: 0; }
-.mini-stat-value { font-size: 16px; font-weight: 700; margin-top: 2px; color: var(--mini-text); }
-
-.stat-card {
-  background: linear-gradient(145deg, rgba(124, 58, 237, 0.06), rgba(255, 255, 255, 0.90));
-  border: 1.5px solid rgba(139, 92, 246, 0.16);
-  border-radius: 12px;
-  padding: 10px 12px;
+/* Stat row — compact number display */
+.tg-stat {
   text-align: center;
+  padding: 10px 8px;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  border-radius: 10px;
 }
-.stat-card-label { font-size: 10px; color: var(--mini-text-dim); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin: 0; }
-.stat-card-value { font-size: 18px; font-weight: 800; margin-top: 2px; color: var(--mini-text); }
-.stat-card-unit { font-size: 11px; font-weight: 500; opacity: .65; }
+.tg-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tg-theme-hint-color, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+.tg-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  margin-top: 2px;
+  color: var(--tg-theme-text-color, #000);
+}
+.tg-stat-unit {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tg-theme-hint-color, #999);
+}
 
-.primary-btn {
+/* Product grid item — like Durger King menu items */
+.tg-product-item {
+  text-align: center;
+  padding: 12px 6px;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  border-radius: 12px;
+}
+.tg-product-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000);
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tg-product-item-price {
+  font-size: 12px;
+  color: var(--tg-theme-hint-color, #999);
+  margin-top: 2px;
+}
+
+/* Primary action button — uses Telegram's button color */
+.tg-btn {
   display: block;
   width: 100%;
   text-align: center;
-  padding: 13px 16px;
+  padding: 14px 16px;
   border-radius: 12px;
   font-weight: 700;
   font-size: 15px;
-  background: linear-gradient(135deg, #7c3aed, #9333ea);
-  color: #ffffff;
+  background: var(--tg-theme-button-color, #7c3aed);
+  color: var(--tg-theme-button-text-color, #fff);
   text-decoration: none;
   cursor: pointer;
   border: none;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.30);
-  transition: opacity .16s ease, transform .14s ease, box-shadow .16s ease;
+  transition: opacity .12s ease;
 }
-.primary-btn:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35); }
-.primary-btn:active { transform: translateY(0); }
+.tg-btn:hover { opacity: .85; }
+.tg-btn:active { opacity: .7; }
+.tg-btn:disabled { opacity: .45; cursor: default; }
 
-.price-pill {
-  font-size: 13px;
+/* Small inline action button — like Durger King's ADD/BUY */
+.tg-action-btn {
+  display: inline-block;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(139, 92, 246, 0.16);
-  background: rgba(255, 255, 255, 0.80);
-  color: var(--mini-accent);
-  white-space: nowrap;
-}
-
-.chip-btn {
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1.5px solid rgba(139, 92, 246, 0.16);
-  padding: 9px 12px;
-  background: rgba(255, 255, 255, 0.80);
-  color: var(--mini-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--tg-theme-button-color, #7c3aed);
+  color: var(--tg-theme-button-text-color, #fff);
+  border: none;
   cursor: pointer;
-  transition: background .12s ease, border-color .12s ease;
+  transition: opacity .12s ease;
+  text-decoration: none;
 }
-.chip-btn:hover { border-color: rgba(139, 92, 246, 0.30); }
-.chip-primary { background: linear-gradient(135deg, #7c3aed, #9333ea); color: #fff; border-color: transparent; }
-.chip-primary:hover { opacity: .9; }
-.chip-danger { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.tg-action-btn:hover { opacity: .85; }
+.tg-action-btn:active { opacity: .7; }
+.tg-action-btn:disabled { opacity: .45; cursor: default; }
 
-/* ── Form inputs ── */
-.form-label {
-  display: block;
+/* Secondary/outline button */
+.tg-btn-secondary {
+  display: inline-block;
+  padding: 7px 14px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--mini-text-dim);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  color: var(--tg-theme-text-color, #000);
+  border: none;
+  cursor: pointer;
+  transition: opacity .12s ease;
+  text-decoration: none;
 }
-.form-input {
+.tg-btn-secondary:hover { opacity: .7; }
+.tg-btn-secondary:disabled { opacity: .45; cursor: default; }
+
+/* Danger button */
+.tg-btn-danger {
+  display: inline-block;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--tg-theme-destructive-text-color, #e53935);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity .12s ease;
+}
+.tg-btn-danger:hover { opacity: .85; }
+.tg-btn-danger:disabled { opacity: .45; cursor: default; }
+
+/* Form inputs — native Telegram feel */
+.tg-input {
   width: 100%;
-  padding: 11px 14px;
-  border-radius: 12px;
-  border: 1.5px solid rgba(139, 92, 246, 0.14);
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--mini-text);
-  font-size: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  color: var(--tg-theme-text-color, #000);
+  font-size: 15px;
   outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
   box-sizing: border-box;
   -webkit-appearance: none;
+  transition: box-shadow .15s ease;
 }
-.form-input:focus {
-  border-color: var(--mini-accent);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+.tg-input:focus {
+  box-shadow: 0 0 0 2px var(--tg-theme-button-color, #7c3aed);
 }
-.form-input::placeholder { color: var(--mini-text-dim); opacity: .7; }
-select.form-input { cursor: pointer; }
+.tg-input::placeholder {
+  color: var(--tg-theme-hint-color, #999);
+}
+select.tg-input { cursor: pointer; }
 
-/* ── Feedback banners ── */
-.feedback-banner {
+/* Form label */
+.tg-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tg-theme-hint-color, #999);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Chip/toggle button — like content type selector */
+.tg-chip {
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  color: var(--tg-theme-text-color, #000);
+  border: none;
+  cursor: pointer;
+  transition: opacity .12s ease;
+}
+.tg-chip:hover { opacity: .8; }
+.tg-chip-active {
+  background: var(--tg-theme-button-color, #7c3aed);
+  color: var(--tg-theme-button-text-color, #fff);
+}
+
+/* Feedback banners */
+.tg-banner-success {
   font-size: 13px;
   font-weight: 500;
   border-radius: 10px;
   padding: 10px 14px;
+  background: #1b5e2014;
+  color: #2e7d32;
 }
-.feedback-banner[data-type="success"] { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-.feedback-banner[data-type="error"] { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.tg-banner-error {
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #c6282814;
+  color: #c62828;
+}
+.tg-banner-warning {
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #f57f1714;
+  color: #e65100;
+}
+
+/* Price badge */
+.tg-price {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tg-theme-button-color, #7c3aed);
+  color: var(--tg-theme-button-text-color, #fff);
+  white-space: nowrap;
+}
+
+/* List row — like Telegram order summary rows */
+.tg-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+/* Content type icon */
+.tg-content-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+}
+
+/* Status badges */
+.tg-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.tg-badge-green { background: #1b5e2020; color: #2e7d32; }
+.tg-badge-blue { background: #1565c020; color: #1565c0; }
+.tg-badge-amber { background: #f57f1720; color: #e65100; }
+.tg-badge-red { background: #c6282820; color: #c62828; }
 
 /* ────────────────────────────────
    Creator cards
