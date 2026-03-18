@@ -10,17 +10,10 @@ import {
 
 function EditSkeleton() {
   return (
-    <div className="p-4 max-w-lg mx-auto animate-pulse">
-      <div className="h-7 w-40 rounded-lg mb-4" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
-      <div className="space-y-4">
-        {[1, 2, 3].map(i => (
-          <div key={i}>
-            <div className="h-4 w-20 rounded mb-1" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
-            <div className="h-12 rounded-xl" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
-          </div>
-        ))}
-        <div className="h-12 rounded-xl" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }} />
-      </div>
+    <div className="p-4 max-w-lg mx-auto animate-pulse space-y-3">
+      <div className="h-10 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      {[1,2,3].map(i => <div key={i} className="h-14 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />)}
+      <div className="h-12 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
     </div>
   );
 }
@@ -57,40 +50,28 @@ export default function EditProduct() {
           headers: iData ? { 'x-telegram-init-data': iData } : {}
         });
         const data = await res.json();
-        if (data.error) {
-          setError(data.error);
-        } else if (data.product) {
+        if (data.error) { setError(data.error); }
+        else if (data.product) {
           setProduct(data.product);
           setTitle(data.product.title);
           setDescription(data.product.description || '');
           setPrice(String(data.product.price_stars));
         }
-      } catch {
-        setError('Failed to load product');
-      }
+      } catch { setError('Failed to load product'); }
       setLoading(false);
     };
     init();
-
     return () => { hideBackButton(); };
   }, [id]);
 
   const handleSave = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSaved(false);
-    hapticImpact('light');
-
-    if (!user || !initData) {
-      setError('Open inside Telegram to edit products.');
-      return;
-    }
-
+    setError(null); setSaved(false); hapticImpact('light');
+    if (!user || !initData) { setError('Open inside Telegram to edit.'); return; }
     const priceNum = parseInt(price);
     if (isNaN(priceNum) || priceNum < 1 || priceNum > 50000) {
       setError('Price must be between 1 and 50,000 Stars.');
-      hapticNotification('error');
-      return;
+      hapticNotification('error'); return;
     }
 
     setSaving(true);
@@ -98,115 +79,81 @@ export default function EditProduct() {
       const res = await fetch('/api/products', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          init_data: initData,
-          product_id: id,
-          title,
-          description,
-          price_stars: priceNum,
-        }),
+        body: JSON.stringify({ init_data: initData, product_id: id, title, description, price_stars: priceNum }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to update product');
-        hapticNotification('error');
-      } else {
-        setSaved(true);
-        setProduct(data.product);
-        hapticNotification('success');
-      }
-    } catch {
-      setError('Network error — please try again.');
-      hapticNotification('error');
-    }
+      if (!res.ok) { setError(data.error || 'Failed to update'); hapticNotification('error'); }
+      else { setSaved(true); setProduct(data.product); hapticNotification('success'); }
+    } catch { setError('Network error — please try again.'); hapticNotification('error'); }
     setSaving(false);
   };
 
-  if (loading) {
-    return <EditSkeleton />;
-  }
+  if (loading) return <EditSkeleton />;
 
   if (error && !product) {
     return (
-      <div className="p-4 text-center">
-        <div className="text-5xl mb-4" aria-hidden="true">&#10060;</div>
+      <div className="p-4 text-center pt-12">
+        <p className="text-4xl mb-3" aria-hidden="true">{'\u{274C}'}</p>
         <p className="font-semibold">Product not found</p>
-        <p className="text-tg-hint text-sm">{error}</p>
-        <a href="/" className="inline-block mt-4 px-4 py-2 rounded-xl text-sm"
-          style={{ background: 'linear-gradient(135deg, #7c3aed, #9333ea)', color: '#fff' }}>
-          Back to Dashboard
-        </a>
+        <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>{error}</p>
+        <a href="/" className="tg-btn inline-block mt-4" style={{ width: 'auto', padding: '10px 20px' }}>Back to Dashboard</a>
       </div>
     );
   }
 
   if (product && user && product.creator_id !== String(user.id)) {
     return (
-      <div className="p-4 text-center">
-        <div className="text-5xl mb-4" aria-hidden="true">&#128274;</div>
+      <div className="p-4 text-center pt-12">
+        <p className="text-4xl mb-3" aria-hidden="true">{'\u{1F512}'}</p>
         <p className="font-semibold">Not your product</p>
-        <p className="text-tg-hint text-sm">You can only edit your own products.</p>
-        <a href="/" className="inline-block mt-4 px-4 py-2 rounded-xl text-sm"
-          style={{ background: 'linear-gradient(135deg, #7c3aed, #9333ea)', color: '#fff' }}>
-          Back to Dashboard
-        </a>
+        <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>You can only edit your own products.</p>
+        <a href="/" className="tg-btn inline-block mt-4" style={{ width: 'auto', padding: '10px 20px' }}>Back to Dashboard</a>
       </div>
     );
   }
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold mb-4">Edit Product</h1>
+    <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
+      <div className="pt-1">
+        <h1 className="text-xl font-bold">Edit offer</h1>
+      </div>
 
-      {!user && (
-        <div className="mb-4 p-3 rounded-xl text-sm text-center" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
-          Open inside Telegram to edit products.
-        </div>
-      )}
-
-      {error && (
-        <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#f8d7da', color: '#842029' }}>
-          {error}
-        </div>
-      )}
-
-      {saved && (
-        <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#d1e7dd', color: '#0f5132' }}>
-          Product updated successfully!
-        </div>
-      )}
+      {!user && <div className="tg-banner-warning">Open inside Telegram to edit.</div>}
+      {error && <div className="tg-banner-error">{error}</div>}
+      {saved && <div className="tg-banner-success">Product updated!</div>}
 
       <form onSubmit={handleSave} className="space-y-4">
-        <div>
-          <label className="form-label">Title</label>
-          <input type="text" value={title} onChange={e => setTitle(e.target.value)} required
-            className="form-input" />
+        <div className="tg-section space-y-4">
+          <div>
+            <label className="tg-label">Title</label>
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} required className="tg-input" />
+          </div>
+          <hr className="tg-separator" />
+          <div>
+            <label className="tg-label">Description</label>
+            <input type="text" value={description} onChange={e => setDescription(e.target.value)} className="tg-input" />
+          </div>
+          <hr className="tg-separator" />
+          <div>
+            <label className="tg-label">Price (Stars)</label>
+            <input type="number" min="1" max="50000" value={price} onChange={e => setPrice(e.target.value)} required className="tg-input" />
+          </div>
         </div>
 
-        <div>
-          <label className="form-label">Description</label>
-          <input type="text" value={description} onChange={e => setDescription(e.target.value)}
-            className="form-input" />
+        <div className="tg-section">
+          <div className="tg-list-row">
+            <span className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Type</span>
+            <span className="text-sm font-semibold">{product?.content_type}</span>
+          </div>
+          <p className="text-xs mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>Content type cannot be changed after creation.</p>
         </div>
 
-        <div>
-          <label className="form-label">Price (Stars)</label>
-          <input type="number" min="1" max="50000" value={price} onChange={e => setPrice(e.target.value)} required
-            className="form-input" />
-        </div>
-
-        <div className="p-3 rounded-xl text-sm" style={{ backgroundColor: 'rgba(242, 234, 255, 0.80)' }}>
-          <p className="text-tg-hint">Type: <span className="font-medium">{product?.content_type}</span></p>
-          <p className="text-xs text-tg-hint mt-1">Content type and content cannot be changed after creation.</p>
-        </div>
-
-        <button type="submit" disabled={saving || !user}
-          className="primary-btn disabled:opacity-50">
-          {saving ? 'Saving...' : 'Save Changes'}
+        <button type="submit" disabled={saving || !user} className="tg-btn disabled:opacity-50">
+          {saving ? 'Saving...' : 'Save changes'}
         </button>
       </form>
 
-      <a href="/" className="block w-full text-center py-3 px-4 rounded-xl font-semibold mt-3 text-tg-hint">
+      <a href="/" className="block w-full text-center py-3 rounded-xl text-sm font-semibold" style={{ color: 'var(--tg-theme-hint-color)' }}>
         Cancel
       </a>
     </div>
