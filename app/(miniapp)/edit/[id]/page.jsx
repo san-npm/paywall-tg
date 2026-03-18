@@ -114,8 +114,9 @@ export default function EditProduct() {
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
-      <div className="pt-1">
-        <h1 className="text-xl font-bold">Edit offer</h1>
+      <div className="pt-2 pb-1">
+        <p className="tg-hero-emoji mb-2" aria-hidden="true">{'\u{270F}\u{FE0F}'}</p>
+        <h1 className="text-2xl font-extrabold tracking-tight">Edit offer</h1>
       </div>
 
       {!user && <div className="tg-banner-warning">Open inside Telegram to edit.</div>}

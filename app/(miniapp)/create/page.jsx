@@ -155,9 +155,9 @@ export default function CreateOffer() {
     const botUsername = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '' : '';
     return (
       <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
-        <div className="text-center pt-4">
-          <p className="text-5xl mb-3" aria-hidden="true">{'\u{1F389}'}</p>
-          <h1 className="text-xl font-bold">Published!</h1>
+        <div className="text-center pt-6">
+          <p className="tg-celebration mb-3" aria-hidden="true">{'\u{1F389}'}</p>
+          <h1 className="text-2xl font-extrabold">Published!</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>{created.title} · {created.price_stars} Stars</p>
         </div>
 
@@ -212,9 +212,10 @@ export default function CreateOffer() {
 
   return (
     <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
-      <div className="pt-1">
-        <h1 className="text-xl font-bold">New offer</h1>
-        <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Create a paid creation in under a minute.</p>
+      <div className="pt-2 pb-1">
+        <p className="tg-hero-emoji mb-2" aria-hidden="true">{'\u{270F}\u{FE0F}'}</p>
+        <h1 className="text-2xl font-extrabold tracking-tight">New offer</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>Create a paid creation in under a minute.</p>
       </div>
 
       {!hasInitData && (
@@ -273,20 +274,16 @@ export default function CreateOffer() {
 
           <div>
             <p className="tg-section-header">Content type</p>
-            <div className="grid grid-cols-5 gap-1">
+            <div className="tg-type-picker">
               {contentTypes.map(({ key, label, icon }) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => { hapticSelection(); setContentType(key); }}
-                  className="text-center py-3 px-1 rounded-xl transition-all"
-                  style={{
-                    background: contentType === key ? 'var(--tg-theme-button-color, #7c3aed)' : 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
-                    color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'var(--tg-theme-text-color, #000)',
-                  }}
+                  className={`tg-type-option ${contentType === key ? 'tg-type-option-active' : ''}`}
                 >
-                  <span className="text-lg" aria-hidden="true">{icon}</span>
-                  <p className="text-xs font-semibold mt-1">{label}</p>
+                  <span className="tg-type-option-icon" aria-hidden="true">{icon}</span>
+                  <span className="tg-type-option-label">{label}</span>
                 </button>
               ))}
             </div>
@@ -301,7 +298,7 @@ export default function CreateOffer() {
           </div>
 
           <button type="submit" disabled={loading} className="tg-btn disabled:opacity-50">
-            {loading ? 'Publishing...' : (termsAccepted ? 'Publish offer' : 'Accept terms to publish')}
+            {loading ? 'Publishing...' : (termsAccepted ? '\u{1F680} Publish offer' : 'Accept terms to publish')}
           </button>
         </form>
       )}
