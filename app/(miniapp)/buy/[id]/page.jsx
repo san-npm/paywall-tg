@@ -167,10 +167,10 @@ export default function BuyProduct() {
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4 pb-8">
       {/* Product card */}
-      <div className="text-center pt-4">
-        <p className="text-5xl mb-3" aria-hidden="true">{CONTENT_ICONS[product.content_type] || '\u{1F4E6}'}</p>
-        <h1 className="text-xl font-bold">{product.title}</h1>
-        {product.description && <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>{product.description}</p>}
+      <div className="text-center pt-6">
+        <p className="tg-hero-emoji mb-3" aria-hidden="true">{CONTENT_ICONS[product.content_type] || '\u{1F4E6}'}</p>
+        <h1 className="text-2xl font-extrabold tracking-tight">{product.title}</h1>
+        {product.description && <p className="text-sm mt-2" style={{ color: 'var(--tg-theme-hint-color)' }}>{product.description}</p>}
       </div>
 
       <div className="tg-section">
@@ -202,8 +202,8 @@ export default function BuyProduct() {
 
       {purchased ? (
         <div className="tg-section text-center space-y-3">
-          <p className="text-3xl" aria-hidden="true">{'\u{2705}'}</p>
-          <p className="text-lg font-bold">Purchased!</p>
+          <p className="tg-celebration" aria-hidden="true">{'\u{2705}'}</p>
+          <p className="text-lg font-extrabold">Purchased!</p>
           {product.content && (
             <div className="p-3 rounded-lg text-left" style={{ background: 'var(--tg-theme-bg-color)' }}>
               {product.content_type === 'link' ? (() => {
