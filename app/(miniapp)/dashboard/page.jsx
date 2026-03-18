@@ -2,6 +2,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { COUNTRIES } from '@/lib/constants';
+import {
+  waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
+  hapticImpact, hapticNotification, hapticSelection,
+  showConfirm, getTg,
+} from '@/lib/telegram';
 
 function DashboardSkeleton() {
   return (
@@ -59,67 +64,16 @@ export default function Home() {
   const [profileFeedback, setProfileFeedback] = useState(null); // { type: 'success'|'error', message: string }
 
   useEffect(() => {
-    const extractInitDataFromUrl = () => {
-      const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tgWebAppData') || '';
-      const fromQuery = new URLSearchParams(window.location.search).get('tgWebAppData') || '';
-      try { return decodeURIComponent(fromHash || fromQuery || ''); } catch { return fromHash || fromQuery || ''; }
-    };
-    const getFromStorage = () => {
-      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
-    };
-    const parseUserFromInitData = (data) => {
-      if (!data) return null;
-      try {
-        const params = new URLSearchParams(data);
-        const userJson = params.get('user');
-        return userJson ? JSON.parse(userJson) : null;
-      } catch { return null; }
-    };
-
     const init = async () => {
       if (typeof window === 'undefined') { setReady(true); return; }
 
-      // Wait for Telegram SDK to load
-      let tg = null;
-      for (let i = 0; i < 15; i++) {
-        if (window.Telegram?.WebApp) { tg = window.Telegram.WebApp; break; }
-        await new Promise(r => setTimeout(r, 150));
-      }
+      const tg = await waitForSdk();
+      if (tg) initMiniApp(tg);
 
-      let u = null;
-      let initData = '';
+      let u = tg?.initDataUnsafe?.user || null;
+      let initData = await resolveInitData(tg);
 
-      if (tg) {
-        tg.ready();
-        tg.expand();
-        u = tg.initDataUnsafe?.user || null;
-
-        // Try initData from SDK, sessionStorage, then URL fallback
-        initData = tg.initData || getFromStorage() || extractInitDataFromUrl();
-
-        // Retry briefly for iOS where initData can appear late
-        if (!initData) {
-          for (let i = 0; i < 10; i++) {
-            initData = tg.initData || '';
-            if (initData) break;
-            await new Promise(r => setTimeout(r, 150));
-          }
-        }
-      }
-
-      // Fallback: try sessionStorage and URL hash even without SDK
-      if (!initData) {
-        initData = getFromStorage() || extractInitDataFromUrl();
-      }
-
-      if (initData) {
-        try { window.sessionStorage.setItem('tg_init_data', initData); } catch {}
-      }
-
-      // Parse user from initData string if SDK didn't provide it
-      if (!u && initData) {
-        u = parseUserFromInitData(initData);
-      }
+      if (!u && initData) u = parseUserFromInitData(initData);
 
       if (u && initData) {
         setUser(u);
@@ -159,9 +113,11 @@ export default function Home() {
   }, []);
 
   const handleDelete = async (offerId, offerTitle) => {
-    if (!confirm(`Delete "${offerTitle}"? This cannot be undone.`)) return;
+    const confirmed = await showConfirm(`Delete "${offerTitle}"? This cannot be undone.`);
+    if (!confirmed) return;
 
-    const tg = window.Telegram?.WebApp;
+    hapticImpact('medium');
+    const tg = getTg();
     const iData = tg?.initData || '';
     setDeleting(offerId);
 
@@ -172,11 +128,12 @@ export default function Home() {
         body: JSON.stringify({ product_id: offerId, init_data: iData }),
       });
       if (res.ok) {
+        hapticNotification('success');
         setOffers(prev => prev.filter(p => p.id !== offerId));
         if (stats) setStats(prev => ({ ...prev, products: Math.max(0, prev.products - 1) }));
       }
     } catch {
-      // no-op
+      hapticNotification('error');
     }
 
     setDeleting(null);
@@ -386,8 +343,10 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || 'Failed to save profile');
       setCreatorProfile(data.profile || creatorProfile);
       setProfileFeedback({ type: 'success', message: 'Profile saved successfully!' });
+      hapticNotification('success');
     } catch (err) {
       setProfileFeedback({ type: 'error', message: err.message || 'Failed to save creator profile' });
+      hapticNotification('error');
     } finally {
       setProfileSaving(false);
     }
@@ -714,7 +673,8 @@ export default function Home() {
               <div className="mt-3 flex gap-2 flex-wrap">
                 <button
                   onClick={() => {
-                    const tg = window.Telegram?.WebApp;
+                    hapticImpact('light');
+                    const tg = getTg();
                     const botUsername = tg?.initDataUnsafe?.bot?.username || '';
                     const buyLink = botUsername
                       ? `https://t.me/${botUsername}?start=buy_${p.id}`

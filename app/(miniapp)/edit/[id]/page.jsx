@@ -1,6 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import {
+  waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
+  hapticImpact, hapticNotification,
+  showBackButton, hideBackButton,
+  getTg,
+} from '@/lib/telegram';
 
 function EditSkeleton() {
   return (
@@ -33,25 +39,24 @@ export default function EditProduct() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let iData = '';
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      tg.BackButton.show();
-      tg.BackButton.onClick(() => window.location.href = '/');
-      const u = tg.initDataUnsafe?.user;
-      iData = tg.initData || '';
+    const init = async () => {
+      const tg = await waitForSdk();
+      if (tg) {
+        initMiniApp(tg);
+        showBackButton(() => { window.location.href = '/'; });
+      }
+
+      let u = tg?.initDataUnsafe?.user || null;
+      const iData = await resolveInitData(tg);
+      if (!u && iData) u = parseUserFromInitData(iData);
       if (u) setUser(u);
       setInitData(iData);
-    }
 
-    // Fetch product data
-    fetch(`/api/products?product_id=${id}`, {
-      headers: iData ? { 'x-telegram-init-data': iData } : {}
-    })
-      .then(r => r.json())
-      .then(data => {
+      try {
+        const res = await fetch(`/api/products?product_id=${id}`, {
+          headers: iData ? { 'x-telegram-init-data': iData } : {}
+        });
+        const data = await res.json();
         if (data.error) {
           setError(data.error);
         } else if (data.product) {
@@ -60,15 +65,21 @@ export default function EditProduct() {
           setDescription(data.product.description || '');
           setPrice(String(data.product.price_stars));
         }
-      })
-      .catch(() => setError('Failed to load product'))
-      .finally(() => setLoading(false));
+      } catch {
+        setError('Failed to load product');
+      }
+      setLoading(false);
+    };
+    init();
+
+    return () => { hideBackButton(); };
   }, [id]);
 
   const handleSave = async (e) => {
     e.preventDefault();
     setError(null);
     setSaved(false);
+    hapticImpact('light');
 
     if (!user || !initData) {
       setError('Open inside Telegram to edit products.');
@@ -78,6 +89,7 @@ export default function EditProduct() {
     const priceNum = parseInt(price);
     if (isNaN(priceNum) || priceNum < 1 || priceNum > 50000) {
       setError('Price must be between 1 and 50,000 Stars.');
+      hapticNotification('error');
       return;
     }
 
@@ -97,12 +109,15 @@ export default function EditProduct() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to update product');
+        hapticNotification('error');
       } else {
         setSaved(true);
         setProduct(data.product);
+        hapticNotification('success');
       }
     } catch {
       setError('Network error — please try again.');
+      hapticNotification('error');
     }
     setSaving(false);
   };
@@ -114,7 +129,7 @@ export default function EditProduct() {
   if (error && !product) {
     return (
       <div className="p-4 text-center">
-        <div className="text-5xl mb-4">❌</div>
+        <div className="text-5xl mb-4" aria-hidden="true">&#10060;</div>
         <p className="font-semibold">Product not found</p>
         <p className="text-tg-hint text-sm">{error}</p>
         <a href="/" className="inline-block mt-4 px-4 py-2 rounded-xl text-sm"
@@ -125,11 +140,10 @@ export default function EditProduct() {
     );
   }
 
-  // Check ownership
   if (product && user && product.creator_id !== String(user.id)) {
     return (
       <div className="p-4 text-center">
-        <div className="text-5xl mb-4">🔒</div>
+        <div className="text-5xl mb-4" aria-hidden="true">&#128274;</div>
         <p className="font-semibold">Not your product</p>
         <p className="text-tg-hint text-sm">You can only edit your own products.</p>
         <a href="/" className="inline-block mt-4 px-4 py-2 rounded-xl text-sm"
@@ -142,11 +156,11 @@ export default function EditProduct() {
 
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <h1 className="text-xl font-bold mb-4">✏️ Edit Product</h1>
+      <h1 className="text-xl font-bold mb-4">Edit Product</h1>
 
       {!user && (
         <div className="mb-4 p-3 rounded-xl text-sm text-center" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
-          ⚠️ Open inside Telegram to edit products.
+          Open inside Telegram to edit products.
         </div>
       )}
 
@@ -158,7 +172,7 @@ export default function EditProduct() {
 
       {saved && (
         <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#d1e7dd', color: '#0f5132' }}>
-          ✅ Product updated successfully!
+          Product updated successfully!
         </div>
       )}
 

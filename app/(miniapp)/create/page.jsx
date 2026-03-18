@@ -1,6 +1,13 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { trackEvent } from '@/lib/analytics';
+import {
+  waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
+  hapticImpact, hapticNotification, hapticSelection,
+  showBackButton, hideBackButton,
+  enableClosingConfirmation, disableClosingConfirmation,
+  getTg,
+} from '@/lib/telegram';
 
 function CreateSkeleton() {
   return (
@@ -36,31 +43,6 @@ export default function CreateOffer() {
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
 
-    const extractInitDataFromUrl = () => {
-      if (typeof window === 'undefined') return '';
-      const fromHash = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tgWebAppData') || '';
-      const fromQuery = new URLSearchParams(window.location.search).get('tgWebAppData') || '';
-      try {
-        return decodeURIComponent(fromHash || fromQuery || '');
-      } catch {
-        return fromHash || fromQuery || '';
-      }
-    };
-
-    const getFromStorage = () => {
-      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
-    };
-
-    // Parse user from initData query string (format: user=<JSON>&...)
-    const parseUserFromInitData = (data) => {
-      if (!data) return null;
-      try {
-        const params = new URLSearchParams(data);
-        const userJson = params.get('user');
-        return userJson ? JSON.parse(userJson) : null;
-      } catch { return null; }
-    };
-
     const bootstrap = async () => {
       if (typeof window === 'undefined') {
         setTermsLoading(false);
@@ -68,60 +50,27 @@ export default function CreateOffer() {
         return;
       }
 
-      // Wait for Telegram SDK to load (script may still be loading)
-      let tg = null;
-      for (let i = 0; i < 15; i += 1) {
-        if (window.Telegram?.WebApp) { tg = window.Telegram.WebApp; break; }
-        await new Promise((r) => setTimeout(r, 150));
-      }
-
-      let resolvedInitData = '';
-
+      const tg = await waitForSdk();
       if (tg) {
-        tg.ready();
-        tg.expand();
-        tg.BackButton.show();
-        tg.BackButton.onClick(() => {
-          window.location.href = '/';
-        });
-
-        // iOS Telegram can expose initData slightly later, so retry briefly.
-        for (let i = 0; i < 10; i += 1) {
-          resolvedInitData = tg.initData || getFromStorage() || extractInitDataFromUrl();
-          if (resolvedInitData) break;
-          // eslint-disable-next-line no-await-in-loop
-          await new Promise((r) => setTimeout(r, 150));
-        }
-
-        const u = tg.initDataUnsafe?.user;
-        if (u) setUser(u);
+        initMiniApp(tg);
+        showBackButton(() => { window.location.href = '/'; });
+        enableClosingConfirmation();
       }
 
-      // Fallback: try sessionStorage and URL hash even without SDK
-      if (!resolvedInitData) {
-        resolvedInitData = getFromStorage() || extractInitDataFromUrl();
-      }
+      let resolvedInit = await resolveInitData(tg);
 
-      if (resolvedInitData) {
-        try { window.sessionStorage.setItem('tg_init_data', resolvedInitData); } catch {}
-      }
+      const u = tg?.initDataUnsafe?.user || parseUserFromInitData(resolvedInit);
+      if (u) setUser(u);
 
-      setInitData(resolvedInitData);
+      setInitData(resolvedInit);
+      setHasInitData(Boolean(resolvedInit));
 
-      // Parse user from initData string if SDK didn't provide it
-      if (!user && resolvedInitData) {
-        const parsed = parseUserFromInitData(resolvedInitData);
-        if (parsed) setUser(parsed);
-      }
-
-      setHasInitData(Boolean(resolvedInitData));
-
-      if (resolvedInitData) {
+      if (resolvedInit) {
         try {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 5000);
           const res = await fetch('/api/creator-terms', {
-            headers: { 'x-telegram-init-data': resolvedInitData },
+            headers: { 'x-telegram-init-data': resolvedInit },
             signal: controller.signal,
           });
           clearTimeout(timeout);
@@ -137,10 +86,15 @@ export default function CreateOffer() {
     };
 
     bootstrap();
+    return () => {
+      hideBackButton();
+      disableClosingConfirmation();
+    };
   }, []);
 
   const handleAcceptTerms = async () => {
-    const tg = window.Telegram?.WebApp;
+    hapticImpact('light');
+    const tg = getTg();
     const stored = (() => {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
@@ -172,6 +126,7 @@ export default function CreateOffer() {
       } else {
         setSessionExpired(false);
         setTermsAccepted(Boolean(data.accepted));
+        hapticNotification('success');
         trackEvent('creator_terms_accepted', { source: 'create_offer', version: data.accepted_version || 'unknown' });
       }
     } catch {
@@ -183,8 +138,9 @@ export default function CreateOffer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    hapticImpact('medium');
 
-    const tg = window.Telegram?.WebApp;
+    const tg = getTg();
     const stored = (() => {
       try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
     })();
@@ -246,6 +202,8 @@ export default function CreateOffer() {
         setError(data.error || 'Failed to create offer.');
       } else if (data.product) {
         setSessionExpired(false);
+        hapticNotification('success');
+        disableClosingConfirmation();
         trackEvent('create_offer_succeeded', { content_type: data.product.content_type, price_stars: data.product.price_stars });
         setCreated(data.product);
       }
@@ -457,7 +415,7 @@ export default function CreateOffer() {
                   <button
                     key={key}
                     type="button"
-                    onClick={() => setContentType(key)}
+                    onClick={() => { hapticSelection(); setContentType(key); }}
                     className="chip-btn"
                     style={{
                       backgroundColor: contentType === key ? '#7c3aed' : undefined,

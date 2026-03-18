@@ -1,7 +1,13 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { ENABLE_FAKE_PAYMENTS, ENABLE_STRIPE } from '@/lib/config';
+import { ENABLE_FAKE_PAYMENTS } from '@/lib/config';
+import {
+  waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
+  hapticImpact, hapticNotification,
+  showMainButton, hideMainButton, setMainButtonLoading,
+  getTg,
+} from '@/lib/telegram';
 
 
 function safeExternalUrl(url) {
@@ -42,56 +48,14 @@ export default function BuyProduct() {
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState(null);
   const [initData, setInitData] = useState('');
-  const [checkoutCurrency, setCheckoutCurrency] = useState('EUR');
   const [verifyingStripe, setVerifyingStripe] = useState(false);
   const [stripeVerified, setStripeVerified] = useState(false);
   const [testing, setTesting] = useState(false);
 
-  useEffect(() => {
-    let u = null;
-    let iData = '';
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      u = tg.initDataUnsafe?.user || null;
-      iData = tg.initData || '';
-      if (u) setUser(u);
-      setInitData(iData);
-    }
+  // Ref to keep handleBuy accessible from MainButton callback
+  const buyRef = useRef(null);
 
-    fetch(`/api/products?product_id=${id}`, {
-      headers: iData ? { 'x-telegram-init-data': iData } : {}
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setProduct(data.product);
-          setPurchased(data.purchased || false);
-        }
-      })
-      .catch(() => setError('Failed to load product'))
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  useEffect(() => {
-    if (!paidStripe || !stripeSessionId || stripeVerified) return;
-    setVerifyingStripe(true);
-    fetch(`/api/checkout/verify?session_id=${encodeURIComponent(stripeSessionId)}`)
-      .then(r => r.json())
-      .then((data) => {
-        if (data?.delivered || data?.alreadyProcessed) {
-          setStripeVerified(true);
-          setPurchased(true);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setVerifyingStripe(false));
-  }, [paidStripe, stripeSessionId, stripeVerified]);
-
-  const refreshPurchaseState = async () => {
+  const refreshPurchaseState = useCallback(async () => {
     setLoading(true);
     try {
       const d = await fetch(`/api/products?product_id=${id}`, {
@@ -104,11 +68,81 @@ export default function BuyProduct() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, initData]);
 
-  const handleBuy = async () => {
+  useEffect(() => {
+    const init = async () => {
+      const tg = await waitForSdk();
+      if (tg) {
+        initMiniApp(tg);
+      }
+
+      let u = tg?.initDataUnsafe?.user || null;
+      const iData = await resolveInitData(tg);
+
+      if (!u && iData) u = parseUserFromInitData(iData);
+      if (u) setUser(u);
+      setInitData(iData);
+
+      try {
+        const res = await fetch(`/api/products?product_id=${id}`, {
+          headers: iData ? { 'x-telegram-init-data': iData } : {}
+        });
+        const data = await res.json();
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setProduct(data.product);
+          setPurchased(data.purchased || false);
+        }
+      } catch {
+        setError('Failed to load product');
+      }
+      setLoading(false);
+    };
+    init();
+
+    return () => { hideMainButton(); };
+  }, [id]);
+
+  // Stripe verification (unchanged)
+  useEffect(() => {
+    if (!paidStripe || !stripeSessionId || stripeVerified) return;
+    setVerifyingStripe(true);
+    fetch(`/api/checkout/verify?session_id=${encodeURIComponent(stripeSessionId)}`)
+      .then(r => r.json())
+      .then((data) => {
+        if (data?.delivered || data?.alreadyProcessed) {
+          setStripeVerified(true);
+          setPurchased(true);
+          hapticNotification('success');
+        }
+      })
+      .catch(() => {})
+      .finally(() => setVerifyingStripe(false));
+  }, [paidStripe, stripeSessionId, stripeVerified]);
+
+  // MainButton: show "Buy for X Stars" when product is loaded and not yet purchased
+  useEffect(() => {
+    if (!product || purchased || !user || loading) {
+      hideMainButton();
+      return;
+    }
+
+    const handler = () => {
+      if (buyRef.current) buyRef.current();
+    };
+    showMainButton(`Buy for ${product.price_stars} Stars`, handler);
+
+    return () => { hideMainButton(); };
+  }, [product, purchased, user, loading]);
+
+  // Keep buyRef in sync
+  const handleBuy = useCallback(async () => {
     if (!user || !initData || buying) return;
     setBuying(true);
+    setMainButtonLoading(true);
+    hapticImpact('medium');
     setError(null);
 
     try {
@@ -121,61 +155,43 @@ export default function BuyProduct() {
 
       if (!res.ok) {
         setError(data.error || 'Failed to create invoice');
+        hapticNotification('error');
         setBuying(false);
+        setMainButtonLoading(false);
         return;
       }
 
-      const tg = window.Telegram?.WebApp;
+      const tg = getTg();
       if (tg?.openInvoice) {
         tg.openInvoice(data.invoice_url, async (status) => {
           if (status === 'paid') {
+            hapticNotification('success');
             await refreshPurchaseState();
           }
           setBuying(false);
+          setMainButtonLoading(false);
         });
       } else {
         window.open(data.invoice_url, '_blank', 'noopener,noreferrer');
         setBuying(false);
+        setMainButtonLoading(false);
       }
     } catch {
       setError('Network error — please try again.');
+      hapticNotification('error');
       setBuying(false);
+      setMainButtonLoading(false);
     }
-  };
+  }, [user, initData, buying, id, refreshPurchaseState]);
 
-  const handleStripeCheckout = async () => {
-    if (!user || !initData || buying) return;
-    setBuying(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ init_data: initData, product_id: id, currency: checkoutCurrency }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to create card checkout');
-        setBuying(false);
-        return;
-      }
-      const tg = window.Telegram?.WebApp;
-      if (tg?.openLink) {
-        tg.openLink(data.checkout_url);
-      } else {
-        window.open(data.checkout_url, '_blank', 'noopener,noreferrer');
-      }
-      setBuying(false);
-    } catch {
-      setError('Network error — please try again.');
-      setBuying(false);
-    }
-  };
+  // Keep ref in sync so MainButton callback always calls latest version
+  useEffect(() => { buyRef.current = handleBuy; }, [handleBuy]);
 
   const handleTestPurchase = async () => {
     if (!user || !initData || testing) return;
     setTesting(true);
     setError(null);
+    hapticImpact('light');
     try {
       const res = await fetch('/api/test-purchase', {
         method: 'POST',
@@ -185,11 +201,14 @@ export default function BuyProduct() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Failed to simulate purchase');
+        hapticNotification('error');
       } else {
+        hapticNotification('success');
         await refreshPurchaseState();
       }
     } catch {
       setError('Network error — please try again.');
+      hapticNotification('error');
     }
     setTesting(false);
   };
@@ -201,16 +220,12 @@ export default function BuyProduct() {
   if (error || !product) {
     return (
       <div className="p-4 text-center">
-        <div className="text-5xl mb-4">❌</div>
+        <div className="text-5xl mb-4" aria-hidden="true">&#10060;</div>
         <p className="font-semibold">Product not found</p>
         <p className="text-tg-hint text-sm">This product may have been removed.</p>
       </div>
     );
   }
-
-  const paymentMethods = String(product.payment_methods || 'stars,stripe').split(',').map(v => v.trim().toLowerCase());
-  const canPayStars = paymentMethods.includes('stars');
-  const canPayStripe = ENABLE_STRIPE && paymentMethods.includes('stripe');
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4">
@@ -221,12 +236,6 @@ export default function BuyProduct() {
           <span className="text-3xl font-extrabold" style={{ color: '#7c3aed' }}>{product.price_stars}</span>
           <span className="text-sm text-tg-hint font-semibold">Stars</span>
         </div>
-        {Number.isFinite(Number(product.price_eur_cents)) && Number(product.price_eur_cents) > 0 && (
-          <p className="text-xs text-tg-hint">or € {(Number(product.price_eur_cents) / 100).toFixed(2)}</p>
-        )}
-        {Number.isFinite(Number(product.price_usd_cents)) && Number(product.price_usd_cents) > 0 && (
-          <p className="text-xs text-tg-hint">or $ {(Number(product.price_usd_cents) / 100).toFixed(2)}</p>
-        )}
         <div className="flex justify-center gap-3 mt-3 text-xs text-tg-hint">
           <span>{product.content_type}</span>
           <span>·</span>
@@ -237,8 +246,8 @@ export default function BuyProduct() {
       {paidStripe && !purchased && (
         <div className="mb-4 p-3 rounded-xl text-sm" style={{ backgroundColor: '#fff7ed', color: '#9a3412' }}>
           {verifyingStripe
-            ? '⏳ Card payment detected. Finalizing delivery now...'
-            : '✅ Card payment completed. Delivery is pending confirmation — then content will appear in Telegram bot chat.'}
+            ? 'Card payment detected. Finalizing delivery now...'
+            : 'Card payment completed. Delivery is pending confirmation — then content will appear in Telegram bot chat.'}
         </div>
       )}
 
@@ -273,12 +282,14 @@ export default function BuyProduct() {
         <div className="text-center">
           {!user && !paidStripe && (
             <div className="mb-3 p-3 rounded-xl text-sm" style={{ backgroundColor: '#fff3cd', color: '#856404' }}>
-              ⚠️ Open inside Telegram to purchase
+              Open inside Telegram to purchase
             </div>
           )}
           {user ? (
             <div className="space-y-2">
-              {canPayStars && (
+              {/* Primary buy action is handled by Telegram's native MainButton.
+                  Fallback inline button for cases where MainButton is unavailable. */}
+              {!getTg()?.MainButton && (
                 <button
                   onClick={handleBuy}
                   disabled={buying}
@@ -288,23 +299,6 @@ export default function BuyProduct() {
                 </button>
               )}
 
-              {canPayStripe && (
-                <>
-                  <div className="flex gap-2 justify-center">
-                    <button type="button" className="chip-btn" onClick={() => setCheckoutCurrency('EUR')} style={{ opacity: checkoutCurrency === 'EUR' ? 1 : 0.6 }}>EUR</button>
-                    <button type="button" className="chip-btn" onClick={() => setCheckoutCurrency('USD')} style={{ opacity: checkoutCurrency === 'USD' ? 1 : 0.6 }}>USD</button>
-                  </div>
-                  <button
-                    onClick={handleStripeCheckout}
-                    disabled={buying}
-                    className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
-                    style={{ backgroundColor: '#111827', color: '#fff' }}
-                  >
-                    {buying ? 'Processing...' : `💳 Pay with card (${checkoutCurrency})`}
-                  </button>
-                </>
-              )}
-
               {ENABLE_FAKE_PAYMENTS && (
                 <button
                   onClick={handleTestPurchase}
@@ -312,7 +306,7 @@ export default function BuyProduct() {
                   className="w-full py-3 px-4 rounded-xl font-semibold disabled:opacity-50"
                   style={{ backgroundColor: '#7c3aed', color: '#fff' }}
                 >
-                  {testing ? 'Running test...' : '🧪 Test purchase (no charge)'}
+                  {testing ? 'Running test...' : 'Test purchase (no charge)'}
                 </button>
               )}
             </div>
@@ -330,7 +324,7 @@ export default function BuyProduct() {
             </>
           )}
           <p className="text-xs text-tg-hint mt-2">
-            Payment options: {canPayStars ? 'Telegram Stars' : ''}{canPayStars && canPayStripe ? ' + ' : ''}{canPayStripe ? 'Card (Stripe)' : ''}
+            Powered by Telegram Stars
           </p>
         </div>
       )}
