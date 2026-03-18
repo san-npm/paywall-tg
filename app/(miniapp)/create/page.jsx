@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { trackEvent } from '@/lib/analytics';
 import {
   waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
@@ -11,13 +11,11 @@ import {
 
 function CreateSkeleton() {
   return (
-    <div className="p-4 max-w-2xl mx-auto animate-pulse">
-      <div className="hero-card h-24 mb-4" />
-      <div className="glass-card h-14 mb-3" />
-      <div className="glass-card h-14 mb-3" />
-      <div className="glass-card h-14 mb-3" />
-      <div className="glass-card h-28 mb-3" />
-      <div className="glass-card h-12" />
+    <div className="p-4 max-w-lg mx-auto animate-pulse space-y-3">
+      <div className="h-10 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      {[1,2,3,4].map(i => <div key={i} className="h-14 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />)}
+      <div className="h-28 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
+      <div className="h-12 rounded-xl" style={{ background: 'var(--tg-theme-secondary-bg-color, #f0f0f0)' }} />
     </div>
   );
 }
@@ -44,11 +42,7 @@ export default function CreateOffer() {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
 
     const bootstrap = async () => {
-      if (typeof window === 'undefined') {
-        setTermsLoading(false);
-        setReady(true);
-        return;
-      }
+      if (typeof window === 'undefined') { setTermsLoading(false); setReady(true); return; }
 
       const tg = await waitForSdk();
       if (tg) {
@@ -58,10 +52,8 @@ export default function CreateOffer() {
       }
 
       let resolvedInit = await resolveInitData(tg);
-
       const u = tg?.initDataUnsafe?.user || parseUserFromInitData(resolvedInit);
       if (u) setUser(u);
-
       setInitData(resolvedInit);
       setHasInitData(Boolean(resolvedInit));
 
@@ -76,9 +68,7 @@ export default function CreateOffer() {
           clearTimeout(timeout);
           const data = await res.json().catch(() => ({}));
           if (res.ok) setTermsAccepted(Boolean(data.accepted));
-        } catch {
-          // keep default false
-        }
+        } catch {}
       }
 
       setTermsLoading(false);
@@ -86,132 +76,76 @@ export default function CreateOffer() {
     };
 
     bootstrap();
-    return () => {
-      hideBackButton();
-      disableClosingConfirmation();
-    };
+    return () => { hideBackButton(); disableClosingConfirmation(); };
   }, []);
 
   const handleAcceptTerms = async () => {
     hapticImpact('light');
     const tg = getTg();
-    const stored = (() => {
-      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
-    })();
+    const stored = (() => { try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; } })();
     const authData = tg?.initData || initData || stored;
-    if (!authData) {
-      setError('Telegram auth missing. Close and reopen mini app from the bot.');
-      return;
-    }
+    if (!authData) { setError('Telegram auth missing. Close and reopen mini app from the bot.'); return; }
 
-    setTermsSubmitting(true);
-    setError(null);
+    setTermsSubmitting(true); setError(null);
     try {
       const res = await fetch('/api/creator-terms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          init_data: authData,
-        }),
+        body: JSON.stringify({ init_data: authData }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         trackEvent('creator_terms_accept_failed', { source: 'create_offer' });
         if (data?.code === 'INITDATA_EXPIRED') {
           setSessionExpired(true);
-          setError('Session expired. Please reopen the mini app from the bot and try again.');
-        } else {
-          setError(data.error || 'Failed to accept creator terms.');
-        }
+          setError('Session expired. Please reopen the mini app from the bot.');
+        } else { setError(data.error || 'Failed to accept creator terms.'); }
       } else {
         setSessionExpired(false);
         setTermsAccepted(Boolean(data.accepted));
         hapticNotification('success');
         trackEvent('creator_terms_accepted', { source: 'create_offer', version: data.accepted_version || 'unknown' });
       }
-    } catch {
-      setError('Network error while accepting terms. Please retry.');
-    }
+    } catch { setError('Network error while accepting terms.'); }
     setTermsSubmitting(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    hapticImpact('medium');
+    setError(null); hapticImpact('medium');
 
     const tg = getTg();
-    const stored = (() => {
-      try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; }
-    })();
+    const stored = (() => { try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; } })();
     const authData = tg?.initData || initData || stored;
-    if (!authData) {
-      setError('Telegram auth missing. Close and reopen mini app from the bot.');
-      return;
-    }
-
-    if (!termsAccepted) {
-      setError('Please accept Creator Terms above before publishing.');
-      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    if (!title || !price || !content) {
-      setError('Please fill in all required fields.');
-      return;
-    }
+    if (!authData) { setError('Telegram auth missing. Close and reopen mini app from the bot.'); return; }
+    if (!termsAccepted) { setError('Please accept Creator Terms first.'); return; }
+    if (!title || !price || !content) { setError('Please fill in all required fields.'); return; }
 
     const priceNum = Number.parseInt(price, 10);
-    if (Number.isNaN(priceNum) || priceNum < 1 || priceNum > 10000) {
-      setError('Price must be between 1 and 10,000 Stars.');
-      return;
-    }
+    if (Number.isNaN(priceNum) || priceNum < 1 || priceNum > 10000) { setError('Price must be between 1 and 10,000 Stars.'); return; }
 
     setLoading(true);
     trackEvent('create_offer_submit_attempted', { content_type: contentType, has_description: Boolean(description), price_stars: priceNum });
     try {
       const normalizedType = (contentType === 'photo' || contentType === 'video') ? 'file' : contentType;
       const mediaKind = contentType === 'photo' ? 'photo' : contentType === 'video' ? 'video' : 'document';
-      const debugRequestId = `dbg_${Date.now().toString(36)}`;
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-debug-request-id': debugRequestId },
-        body: JSON.stringify({
-          init_data: authData,
-          title,
-          description,
-          price_stars: priceNum,
-          payment_methods: ['stars'],
-          content_type: normalizedType,
-          media_kind: mediaKind,
-          content,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ init_data: authData, title, description, price_stars: priceNum, payment_methods: ['stars'], content_type: normalizedType, media_kind: mediaKind, content }),
       });
-
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (data.code === 'TERMS_NOT_ACCEPTED') {
-          setTermsAccepted(false);
-          trackEvent('create_offer_blocked_terms_not_accepted', { source: 'create_offer' });
-        } else if (data.code === 'INITDATA_EXPIRED') {
-          setSessionExpired(true);
-          trackEvent('create_offer_failed_session_expired', { source: 'create_offer' });
-        } else {
-          trackEvent('create_offer_failed', { source: 'create_offer' });
-        }
+        if (data.code === 'TERMS_NOT_ACCEPTED') { setTermsAccepted(false); trackEvent('create_offer_blocked_terms_not_accepted', { source: 'create_offer' }); }
+        else if (data.code === 'INITDATA_EXPIRED') { setSessionExpired(true); trackEvent('create_offer_failed_session_expired', { source: 'create_offer' }); }
+        else { trackEvent('create_offer_failed', { source: 'create_offer' }); }
         setError(data.error || 'Failed to create offer.');
       } else if (data.product) {
-        setSessionExpired(false);
-        hapticNotification('success');
-        disableClosingConfirmation();
+        setSessionExpired(false); hapticNotification('success'); disableClosingConfirmation();
         trackEvent('create_offer_succeeded', { content_type: data.product.content_type, price_stars: data.product.price_stars });
         setCreated(data.product);
       }
-    } catch {
-      trackEvent('create_offer_failed_network', { source: 'create_offer' });
-      setError('Network error. Please try again.');
-    }
-
+    } catch { trackEvent('create_offer_failed_network', { source: 'create_offer' }); setError('Network error. Please try again.'); }
     setLoading(false);
   };
 
@@ -220,244 +154,154 @@ export default function CreateOffer() {
   if (created) {
     const botUsername = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '' : '';
     return (
-      <main className="p-4 max-w-2xl mx-auto space-y-4">
-        <section className="hero-card text-center">
-          <p className="text-3xl mb-2">&#127881;</p>
-          <h1 className="text-2xl font-extrabold">Creation published!</h1>
-          <p className="text-sm text-tg-hint mt-1">{created.title} · {created.price_stars} Stars</p>
-        </section>
+      <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
+        <div className="text-center pt-4">
+          <p className="text-5xl mb-3" aria-hidden="true">{'\u{1F389}'}</p>
+          <h1 className="text-xl font-bold">Published!</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>{created.title} · {created.price_stars} Stars</p>
+        </div>
 
-        <section className="glass-card text-center">
-          <p className="text-xs text-tg-hint uppercase tracking-wide">Your creation code</p>
-          <p className="font-mono text-2xl font-bold mt-1" style={{ color: '#7c3aed', letterSpacing: '0.08em' }}>{created.id}</p>
-        </section>
+        <div className="tg-section text-center">
+          <p className="tg-section-header" style={{ padding: 0 }}>Your creation code</p>
+          <p className="font-mono text-2xl font-bold mt-1" style={{ color: 'var(--tg-theme-button-color, #7c3aed)', letterSpacing: '0.08em' }}>{created.id}</p>
+        </div>
 
         {created.content_type === 'file' && (
-          <section className="glass-card text-sm space-y-3">
-            <p className="font-bold">Next step: attach your media</p>
-            <p className="text-tg-hint">Upload the photo, video, or file that buyers will unlock.</p>
+          <div className="tg-section space-y-3">
+            <p className="font-bold text-sm">Next: attach your media</p>
+            <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Upload the file that buyers will unlock.</p>
             {botUsername ? (
-              <a
-                href={`https://t.me/${botUsername}?start=attach_${created.id}`}
-                className="primary-btn inline-block"
-                style={{ width: 'auto', display: 'inline-block', padding: '10px 20px' }}
-              >
+              <a href={`https://t.me/${botUsername}?start=attach_${created.id}`} className="tg-btn inline-block text-center" style={{ width: '100%' }}>
                 Upload media now
               </a>
             ) : (
-              <code className="block p-2 rounded-lg text-sm" style={{ background: 'var(--surface)' }}>/attach {created.id}</code>
+              <code className="block p-2 rounded-lg text-sm" style={{ background: 'var(--tg-theme-secondary-bg-color)' }}>/attach {created.id}</code>
             )}
-          </section>
+          </div>
         )}
 
-        <section className="glass-card text-sm">
-          <p className="font-bold">Share your creation</p>
-          <p className="text-tg-hint mt-1">Send <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--surface)' }}>/buy {created.id}</code> in any Telegram chat, channel, or group.</p>
-        </section>
+        <div className="tg-section">
+          <p className="font-bold text-sm">Share your creation</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>
+            Send <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--tg-theme-secondary-bg-color)' }}>/buy {created.id}</code> in any Telegram chat.
+          </p>
+        </div>
 
-        <a href="/" className="primary-btn">Back to dashboard</a>
+        <a href="/" className="tg-btn">Back to dashboard</a>
       </main>
     );
   }
 
   const contentTypes = [
-    { key: 'text', label: 'Text' },
-    { key: 'link', label: 'Link' },
-    { key: 'file', label: 'File' },
-    { key: 'photo', label: 'Photo' },
-    { key: 'video', label: 'Video' },
+    { key: 'text', label: 'Text', icon: '\u{1F4DD}' },
+    { key: 'link', label: 'Link', icon: '\u{1F517}' },
+    { key: 'file', label: 'File', icon: '\u{1F4CE}' },
+    { key: 'photo', label: 'Photo', icon: '\u{1F4F7}' },
+    { key: 'video', label: 'Video', icon: '\u{1F3AC}' },
   ];
 
   const contentPlaceholder = {
-    text: 'Paste exactly what buyers unlock after payment. Can be text, a private message, instructions, etc.',
+    text: 'Paste what buyers unlock after payment.',
     link: 'https://your-resource-link.com',
-    file: 'Describe what buyer gets. After publishing, use /attach to upload the file.',
-    photo: 'Describe the photo buyers will unlock. After publishing, use /attach to upload it.',
-    video: 'Describe the video buyers will unlock. After publishing, use /attach to upload it.',
+    file: 'Describe the file. After publishing, use /attach to upload.',
+    photo: 'Describe the photo. After publishing, use /attach to upload.',
+    video: 'Describe the video. After publishing, use /attach to upload.',
   };
 
-  const contentLabel = {
-    text: 'Unlocked content',
-    link: 'Unlocked URL',
-    file: 'File description',
-    photo: 'Photo description',
-    video: 'Video description',
-  };
+  const contentLabel = { text: 'Unlocked content', link: 'Unlocked URL', file: 'File description', photo: 'Photo description', video: 'Video description' };
 
   return (
-    <main className="p-4 max-w-2xl mx-auto space-y-4">
-      <section className="hero-card">
-        <h1 className="text-2xl font-extrabold">Create a paid creation</h1>
-        <p className="text-sm text-tg-hint mt-1">Turn your content into a sellable creation in under a minute.</p>
-        <div className="grid grid-cols-3 gap-2 mt-4">
-          <div className="stat-card">
-            <p className="stat-card-label">Setup</p>
-            <p className="stat-card-value">~60s</p>
-          </div>
-          <div className="stat-card">
-            <p className="stat-card-label">Payments</p>
-            <p className="stat-card-value">Stars</p>
-          </div>
-          <div className="stat-card">
-            <p className="stat-card-label">Share</p>
-            <p className="stat-card-value">/buy</p>
-          </div>
-        </div>
-      </section>
+    <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
+      <div className="pt-1">
+        <h1 className="text-xl font-bold">New offer</h1>
+        <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Create a paid creation in under a minute.</p>
+      </div>
 
       {!hasInitData && (
-        <section className="glass-card text-sm space-y-2">
+        <div className="tg-banner-warning">
           <p className="font-semibold">Telegram auth required</p>
-          <p className="text-tg-hint mt-1">Close and reopen the mini app from the bot chat to authenticate.</p>
-          <button
-            type="button"
-            className="chip-btn"
-            onClick={() => window.Telegram?.WebApp?.close?.()}
-          >
-            Close mini app
-          </button>
-        </section>
+          <p className="text-sm mt-1">Close and reopen from the bot chat.</p>
+          <button type="button" className="tg-btn-secondary mt-2" onClick={() => window.Telegram?.WebApp?.close?.()}>Close mini app</button>
+        </div>
       )}
 
-      {hasInitData && (
-        <section className="glass-card text-sm">
-          {termsLoading ? (
-            <p className="text-tg-hint">Checking Creator Terms...</p>
-          ) : termsAccepted ? (
-            <p className="text-green-700">Creator Terms accepted. Publishing is enabled.</p>
-          ) : (
-            <div className="space-y-2">
-              <p className="font-semibold">Creator Terms required</p>
-              <p className="text-tg-hint">Accept terms once to publish creations and receive payouts.</p>
-              <div className="flex gap-2 flex-wrap">
-                <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read terms</a>
-                <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
-                  {termsSubmitting ? 'Accepting...' : 'Accept terms'}
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
+      {hasInitData && !termsLoading && !termsAccepted && (
+        <div className="tg-section space-y-2">
+          <p className="font-semibold text-sm">Creator Terms required</p>
+          <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Accept once to publish and receive payouts.</p>
+          <div className="flex gap-2 flex-wrap">
+            <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="tg-btn-secondary">Read terms</a>
+            <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="tg-action-btn">
+              {termsSubmitting ? 'Accepting...' : 'Accept terms'}
+            </button>
+          </div>
+        </div>
       )}
 
-      {error && (
-        <section className="glass-card text-sm" style={{ borderColor: '#fca5a5', color: '#b91c1c', background: '#fff1f2' }}>
-          {error}
-        </section>
+      {hasInitData && !termsLoading && termsAccepted && (
+        <div className="tg-banner-success text-sm">Creator Terms accepted.</div>
       )}
+
+      {error && <div className="tg-banner-error">{error}</div>}
 
       {sessionExpired && (
-        <section className="glass-card text-sm space-y-2" style={{ borderColor: '#fde68a', background: '#fffbeb' }}>
-          <p className="font-semibold" style={{ color: '#92400e' }}>Session expired</p>
-          <p className="text-tg-hint">Telegram auth expired. Close and reopen this mini app from the bot chat.</p>
-          <button
-            type="button"
-            className="chip-btn"
-            onClick={() => window.Telegram?.WebApp?.close?.()}
-          >
-            Close mini app
-          </button>
-        </section>
+        <div className="tg-banner-warning">
+          <p className="font-semibold">Session expired</p>
+          <p className="text-sm">Close and reopen from the bot chat.</p>
+          <button type="button" className="tg-btn-secondary mt-2" onClick={() => window.Telegram?.WebApp?.close?.()}>Close mini app</button>
+        </div>
       )}
 
       {hasInitData && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <section className="glass-card space-y-4">
+          <div className="tg-section space-y-4">
             <div>
-              <p className="font-bold text-base">Creation details</p>
-              <p className="text-xs text-tg-hint mt-1">A clear title and concrete outcome drive better conversions.</p>
+              <label className="tg-label">Title</label>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={140} className="tg-input" placeholder="e.g. Viral Hook Swipe File" />
             </div>
-
+            <hr className="tg-separator" />
             <div>
-              <label className="form-label">Creation title</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                maxLength={140}
-                className="form-input"
-                placeholder="Example: Viral Hook Swipe File for Coaches"
-              />
+              <label className="tg-label">Description (optional)</label>
+              <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} className="tg-input" placeholder="What buyers get" />
             </div>
-
+            <hr className="tg-separator" />
             <div>
-              <label className="form-label">Description (optional)</label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={500}
-                className="form-input"
-                placeholder="What buyers get and why it helps them."
-              />
+              <label className="tg-label">Price (Stars)</label>
+              <input type="number" min="1" max="10000" value={price} onChange={(e) => setPrice(e.target.value)} required className="tg-input" placeholder="49" />
             </div>
+          </div>
 
-            <div>
-              <label className="form-label">Price (Stars)</label>
-              <input
-                type="number"
-                min="1"
-                max="10000"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                required
-                className="form-input"
-                placeholder="49"
-              />
-              <p className="text-xs text-tg-hint mt-1">From 1 to 10,000 Stars.</p>
-            </div>
-
-            <div>
-              <label className="form-label">Content type</label>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {contentTypes.map(({ key, label }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => { hapticSelection(); setContentType(key); }}
-                    className="chip-btn"
-                    style={{
-                      backgroundColor: contentType === key ? '#7c3aed' : undefined,
-                      color: contentType === key ? '#fff' : undefined,
-                      borderColor: contentType === key ? 'transparent' : undefined,
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="form-label">{contentLabel[contentType]}</label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                required
-                rows={4}
-                maxLength={10000}
-                className="form-input resize-none"
-                placeholder={contentPlaceholder[contentType]}
-              />
-            </div>
-          </section>
-
-          {!termsLoading && !termsAccepted && (
-            <section className="glass-card text-sm space-y-2">
-              <p className="font-bold">One last step before publishing</p>
-              <p className="text-tg-hint">Accept Creator Terms once. You won't need to do this again.</p>
-              <div className="flex gap-2 flex-wrap">
-                <button type="button" onClick={handleAcceptTerms} disabled={termsSubmitting} className="primary-btn" style={{ width: 'auto', padding: '10px 14px' }}>
-                  {termsSubmitting ? 'Accepting...' : 'Accept terms now'}
+          <div>
+            <p className="tg-section-header">Content type</p>
+            <div className="grid grid-cols-5 gap-1">
+              {contentTypes.map(({ key, label, icon }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => { hapticSelection(); setContentType(key); }}
+                  className="text-center py-3 px-1 rounded-xl transition-all"
+                  style={{
+                    background: contentType === key ? 'var(--tg-theme-button-color, #7c3aed)' : 'var(--tg-theme-secondary-bg-color, #f0f0f0)',
+                    color: contentType === key ? 'var(--tg-theme-button-text-color, #fff)' : 'var(--tg-theme-text-color, #000)',
+                  }}
+                >
+                  <span className="text-lg" aria-hidden="true">{icon}</span>
+                  <p className="text-xs font-semibold mt-1">{label}</p>
                 </button>
-                <a href="/docs/creator-terms" target="_blank" rel="noreferrer" className="chip-btn">Read terms</a>
-              </div>
-            </section>
-          )}
+              ))}
+            </div>
+          </div>
 
-          <button type="submit" disabled={loading} className="primary-btn disabled:opacity-50">
-            {loading ? 'Publishing creation...' : (termsAccepted ? 'Publish creation' : 'Accept terms to publish')}
+          <div className="tg-section">
+            <label className="tg-label">{contentLabel[contentType]}</label>
+            <textarea
+              value={content} onChange={(e) => setContent(e.target.value)} required rows={4} maxLength={10000}
+              className="tg-input resize-none" placeholder={contentPlaceholder[contentType]}
+            />
+          </div>
+
+          <button type="submit" disabled={loading} className="tg-btn disabled:opacity-50">
+            {loading ? 'Publishing...' : (termsAccepted ? 'Publish offer' : 'Accept terms to publish')}
           </button>
         </form>
       )}
