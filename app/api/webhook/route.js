@@ -217,7 +217,8 @@ export async function POST(req) {
           `📦 /create — Create a paid creation\n` +
           `📋 /products — View your products\n` +
           `📊 /dashboard — View sales and earnings\n` +
-          `🛒 /buy <product_id> — Buy a product\n\n` +
+          `🛒 /buy <product_id> — Buy a product\n` +
+          `🛍️ /purchases — View your purchases\n\n` +
           `Tap Open Gategram below to start.`,
           {
             reply_markup: {
@@ -527,6 +528,21 @@ export async function POST(req) {
           : '\u274C Creation not found.', { parse_mode: 'MarkdownV2' });
       }
 
+      // /purchases command
+      else if (text === '/purchases') {
+        await b.api.sendMessage(chatId,
+          `\u{1F6D2} *Your Purchases*\n\n_View all your purchased creations\\._`,
+          {
+            parse_mode: 'MarkdownV2',
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '\u{1F6D2} My Purchases', web_app: { url: `${WEBAPP_URL}/purchases` } }
+              ]]
+            }
+          }
+        );
+      }
+
       // /help command
       else if (text === '/help') {
         await b.api.sendMessage(chatId,
@@ -538,7 +554,8 @@ export async function POST(req) {
           `\u{1F4CB} /products \\— List your products\n` +
           `\u{1F4CA} /dashboard \\— View sales \\& earnings\n\n` +
           `*Buyer commands:*\n` +
-          `\u{1F6D2} /buy \\<id\\> \\— Purchase a creation\n\n` +
+          `\u{1F6D2} /buy \\<id\\> \\— Purchase a creation\n` +
+          `\u{1F6CD}\u{FE0F} /purchases \\— View your purchases\n\n` +
           `*How it works:*\n` +
           `1\\. Create a paid creation \\(text, link, file, or message\\)\n` +
           `2\\. Share the buy link with your audience\n` +
