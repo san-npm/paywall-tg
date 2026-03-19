@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ADMIN_TELEGRAM_IDS } from '@/lib/config';
 import { getPendingDeliveries, getProduct, markDeliveryDone, markDeliveryFailed, getFailedDeliveries } from '@/lib/db';
@@ -12,16 +13,27 @@ function getBot() {
   return bot;
 }
 
+function safeCompare(a, b) {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 function verifyCronAuth(req) {
   const expectedSecret = process.env.CRON_SECRET;
   if (!expectedSecret) return false;
 
-  // Support both x-cron-secret header and Vercel's Authorization: Bearer <secret>
   const cronSecret = req.headers.get('x-cron-secret');
-  if (cronSecret === expectedSecret) return true;
+  if (cronSecret && safeCompare(cronSecret, expectedSecret)) return true;
 
   const authHeader = req.headers.get('authorization');
-  if (authHeader && authHeader === `Bearer ${expectedSecret}`) return true;
+  const bearerPrefix = 'Bearer ';
+  if (authHeader && authHeader.startsWith(bearerPrefix)) {
+    const token = authHeader.slice(bearerPrefix.length);
+    if (safeCompare(token, expectedSecret)) return true;
+  }
 
   return false;
 }

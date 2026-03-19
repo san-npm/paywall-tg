@@ -3,6 +3,7 @@ import { Bot, InputFile } from 'grammy';
 import { BOT_TOKEN } from '@/lib/config';
 import { getProductRaw, attachFileToProduct } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -60,6 +61,12 @@ export async function POST(req) {
   }
 
   const creatorId = String(initData.user.id);
+
+  // Rate limit: 20 uploads per hour per creator
+  const { limited } = await checkRateLimit(`upload:${creatorId}`, 20);
+  if (limited) {
+    return NextResponse.json({ error: 'Too many uploads. Please wait.' }, { status: 429 });
+  }
 
   const product = await getProductRaw(String(productId));
   if (!product) {
