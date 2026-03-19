@@ -511,9 +511,9 @@ export default function Home() {
                     <span className="text-sm">{formatEur(finance.payout_info.gross_eur)}</span>
                   </div>
                   <div className="tg-list-row">
-                    <span className="text-sm">Transfer fee ({finance.payout_info.fee_description})</span>
+                    <span className="text-sm">{finance.payout_info.payout_method === 'paypal' ? 'PayPal fees' : 'Transfer fees'}</span>
                     <span className="text-sm" style={{ color: finance.payout_info.fee_eur > 0 ? 'var(--tg-theme-destructive-text-color, #e53935)' : 'inherit' }}>
-                      {finance.payout_info.fee_eur > 0 ? `-${formatEur(finance.payout_info.fee_eur)}` : 'Free'}
+                      {finance.payout_info.fee_eur > 0 ? `-${formatEur(finance.payout_info.fee_eur)}` : 'No fees'}
                     </span>
                   </div>
                   <hr className="tg-separator" />
@@ -588,20 +588,21 @@ export default function Home() {
                     <button
                       type="button"
                       className="tg-btn-secondary text-xs"
-                      onClick={async () => {
-                        try {
-                          const iData = getIData();
-                          const res = await fetch(`/api/invoice-pdf?payout_id=${p.id}`, { headers: { 'x-telegram-init-data': iData } });
-                          if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Failed to download'); }
-                          const blob = await res.blob();
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a'); a.href = url; a.download = `invoice-GG-${new Date().getFullYear()}-${String(p.id).padStart(5, '0')}.pdf`;
-                          document.body.appendChild(a); a.click(); a.remove();
-                          setTimeout(() => URL.revokeObjectURL(url), 1000);
-                        } catch (err) { setAdminError(err.message || 'Failed to download invoice'); }
+                      onClick={() => {
+                        const iData = getIData();
+                        const url = `/api/invoice-pdf?payout_id=${p.id}&init_data=${encodeURIComponent(iData)}`;
+                        window.open(url, '_blank');
                       }}
                     >Invoice PDF</button>
-                    <button type="button" className="tg-btn-secondary text-xs" onClick={() => downloadPayoutStatementCreator(p.id)}>Statement CSV</button>
+                    <button
+                      type="button"
+                      className="tg-btn-secondary text-xs"
+                      onClick={() => {
+                        const iData = getIData();
+                        const url = `/api/creator-payout-statement?payout_id=${p.id}&init_data=${encodeURIComponent(iData)}`;
+                        window.open(url, '_blank');
+                      }}
+                    >Statement CSV</button>
                   </div>
                 </div>
               ))}
