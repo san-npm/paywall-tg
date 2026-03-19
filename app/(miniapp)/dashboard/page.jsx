@@ -345,6 +345,13 @@ export default function Home() {
         </div>
       )}
 
+      {/* My Purchases link */}
+      {user && (
+        <Link href="/purchases" className="tg-btn-secondary block w-full text-center py-3" onClick={() => hapticImpact('light')}>
+          {'\u{1F6D2}'} My Purchases
+        </Link>
+      )}
+
       {/* Tab bar */}
       {user && (
         <div className="tg-tab-bar">
