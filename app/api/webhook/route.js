@@ -4,7 +4,7 @@ import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TEL
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
   getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
-  setPendingAttach, getPendingAttach, clearPendingAttach
+  setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId, sanitizeErrorMessage } from '@/lib/validate';
 
@@ -162,37 +162,36 @@ export async function POST(req) {
           throw err;
         }
 
-        // Deliver the content
-        const safeTitle = escapeMarkdown(product.title);
-        let contentMessage = '';
-        switch (product.content_type) {
-          case 'text':
-            contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
-            break;
-          case 'link':
-            contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
-            break;
-          case 'file':
-            contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*`;
-            break;
-          case 'message':
-            contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
-            break;
-        }
-
-        await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
-
+        // Deliver the content (with queue fallback on failure)
         try {
-          await deliverPaidMedia(b.api, buyerId, product);
-        } catch (mediaErr) {
-          console.error('deliverPaidMedia failed:', mediaErr?.message || mediaErr);
-          await b.api.sendMessage(buyerId, '\u26A0\uFE0F Media delivery failed. Contact the creator for assistance.').catch(() => {});
-        }
+          const safeTitle = escapeMarkdown(product.title);
+          let contentMessage = '';
+          switch (product.content_type) {
+            case 'text':
+              contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+            case 'link':
+              contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+              break;
+            case 'file':
+              contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*`;
+              break;
+            case 'message':
+              contentMessage = `\u{1F389} *Purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              break;
+          }
 
-        // Notify creator
-        const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;
-        await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' })
-          .catch(err => console.error('Failed to notify creator:', product.creator_id, err.message));
+          await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
+          await deliverPaidMedia(b.api, buyerId, product);
+
+          // Notify creator
+          const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;
+          await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' })
+            .catch(err => console.error('Failed to notify creator:', product.creator_id, err.message));
+        } catch (deliveryErr) {
+          console.error('Content delivery failed, queuing for retry:', deliveryErr?.message || deliveryErr);
+          await enqueueDelivery(productId, buyerId, 'stars');
+        }
       }
 
       return NextResponse.json({ ok: true });
@@ -526,6 +525,28 @@ export async function POST(req) {
         await b.api.sendMessage(chatId, updated
           ? `\u2705 Creation ${enable ? 'enabled' : 'disabled'}: \`${productId}\``
           : '\u274C Creation not found.', { parse_mode: 'MarkdownV2' });
+      }
+
+      // /help command
+      else if (text === '/help') {
+        await b.api.sendMessage(chatId,
+          `\u2753 *Gategram Help*\n\n` +
+          `*Creator commands:*\n` +
+          `\u{1F4E6} /create \\— Open the creation form\n` +
+          `\u26A1 /new \\<price\\> \\<title\\> \\| \\<content\\> \\— Quick\\-create a text product\n` +
+          `\u{1F4CE} /attach \\<id\\> \\— Attach a file to a creation\n` +
+          `\u{1F4CB} /products \\— List your products\n` +
+          `\u{1F4CA} /dashboard \\— View sales \\& earnings\n\n` +
+          `*Buyer commands:*\n` +
+          `\u{1F6D2} /buy \\<id\\> \\— Purchase a creation\n\n` +
+          `*How it works:*\n` +
+          `1\\. Create a paid creation \\(text, link, file, or message\\)\n` +
+          `2\\. Share the buy link with your audience\n` +
+          `3\\. Get paid in Telegram Stars when someone buys\n` +
+          `4\\. Platform takes a 5% fee, you keep 95%\n\n` +
+          `_Need help\\? Contact @gategram\\_support_`,
+          { parse_mode: 'MarkdownV2' }
+        );
       }
 
       // /products

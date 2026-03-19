@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET_ALT } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, enqueueDelivery } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
 
 export const runtime = 'nodejs';
@@ -80,8 +80,9 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
     paymentIntentId,
   );
 
-  await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch((err) => {
-    console.error('Stripe delivery notify failed:', err?.message || err);
+  await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {
+    console.error('Stripe delivery notify failed, queuing for retry:', err?.message || err);
+    await enqueueDelivery(productId, buyerId, 'stripe').catch(() => {});
   });
 }
 
