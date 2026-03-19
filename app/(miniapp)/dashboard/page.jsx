@@ -474,17 +474,23 @@ export default function Home() {
           </div>
 
           {/* Payout request */}
-          {finance.payout_info && finance.totals.pending_stars > 0 && (
+          {finance.payout_info && (
             <div className="tg-section space-y-3">
-              <p className="tg-section-header" style={{ padding: 0 }}>Request payout</p>
-              {!finance.payout_info.profile_complete ? (
+              <p className="tg-section-header" style={{ padding: 0 }}>Payout</p>
+              {finance.totals.pending_stars === 0 ? (
+                <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>
+                  {finance.totals.net_stars > 0
+                    ? 'All earnings have been paid out or are being processed.'
+                    : 'Make your first sale to start earning! Your pending balance will appear here.'}
+                </p>
+              ) : !finance.payout_info.profile_complete ? (
                 <div>
-                  <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Complete your profile first (legal name, email, country, payout details).</p>
+                  <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>You have <strong>{finance.totals.pending_stars} Stars</strong> (~{formatEur(starsToEur(finance.totals.pending_stars))}) pending. Complete your profile to request a payout.</p>
                   <button type="button" className="tg-action-btn mt-2" onClick={() => { hapticSelection(); setActiveTab('profile'); }}>Go to Profile</button>
                 </div>
               ) : !finance.payout_info.eligible ? (
                 <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>
-                  Minimum {finance.payout_info.min_payout_stars} Stars (~{formatEur(starsToEur(finance.payout_info.min_payout_stars))}) required. You have {finance.totals.pending_stars} Stars pending.
+                  You have {finance.totals.pending_stars} Stars pending. Minimum {finance.payout_info.min_payout_stars} Stars (~{formatEur(starsToEur(finance.payout_info.min_payout_stars))}) required to request a payout.
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -599,10 +605,21 @@ export default function Home() {
       )}
 
       {activeTab === 'earnings' && user && !finance?.totals && (
-        <div className="tg-section text-center py-10">
-          <p className="tg-empty-icon mb-3" aria-hidden="true">{'\u{1F4B8}'}</p>
-          <p className="font-bold text-base">No earnings yet</p>
-          <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>Create and share your first offer to start earning!</p>
+        <div className="space-y-4">
+          <div className="tg-section text-center py-10">
+            <p className="tg-empty-icon mb-3" aria-hidden="true">{'\u{1F4B8}'}</p>
+            <p className="font-bold text-base">No earnings yet</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>Create and share your first offer to start earning!</p>
+          </div>
+          <div className="tg-section space-y-2">
+            <p className="tg-section-header" style={{ padding: 0 }}>How payouts work</p>
+            <div className="space-y-1 text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>
+              <p>1. Earn Stars from sales (you keep 95%)</p>
+              <p>2. Once you reach 100 Stars (~{formatEur(starsToEur(100))}), request a payout</p>
+              <p>3. We convert Stars to EUR and transfer to your bank or PayPal</p>
+              <p>4. SEPA transfers are <strong style={{ color: 'var(--tg-theme-text-color)' }}>free</strong>, PayPal has a small fee</p>
+            </div>
+          </div>
         </div>
       )}
 
