@@ -7,7 +7,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test",
+    "test": "node --test test/validate.test.js test/payout-statements.test.js",
+    "test:db": "node --test test/delivery-queue.test.js test/rate-limit.test.js",
+    "test:integration": "node --test test/webhook.test.js test/products-api.test.js",
+    "test:all": "node --test",
     "audit:deps": "npm audit --omit=dev"
   },
   "dependencies": {
