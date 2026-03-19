@@ -18,7 +18,7 @@ const nextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.telegram.org https://t.me https://checkout.stripe.com https://api.stripe.com",
+      "connect-src 'self' blob: https://api.telegram.org https://t.me https://checkout.stripe.com https://api.stripe.com",
       "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org",
       "base-uri 'self'",
       "form-action 'self'",
