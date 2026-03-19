@@ -10,6 +10,7 @@ const nextConfig = {
   },
   // SSR needed for API routes (bot webhook, payments)
   reactStrictMode: true,
+  serverExternalPackages: ['pdfkit'],
   poweredByHeader: false,
   async headers() {
     const csp = [
