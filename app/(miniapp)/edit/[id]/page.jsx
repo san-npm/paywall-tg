@@ -30,6 +30,9 @@ export default function EditProduct() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -148,6 +151,59 @@ export default function EditProduct() {
           </div>
           <p className="text-xs mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>Content type cannot be changed after creation.</p>
         </div>
+
+        {product?.content_type === 'file' && (
+          <div className="tg-section space-y-3">
+            <p className="font-bold text-sm">{product.file_id ? 'Replace media' : 'Upload media'}</p>
+            <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>
+              {product.file_id ? 'Upload a new file to replace the current one.' : 'Upload the file that buyers will unlock.'}
+            </p>
+            {uploadSuccess && <div className="tg-banner-success text-sm">Media uploaded!</div>}
+            <input
+              type="file"
+              accept="image/*,video/*,.pdf,.zip,.rar,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.mp3,.wav,.aac"
+              onChange={(e) => { setSelectedFile(e.target.files?.[0] || null); setUploadSuccess(false); setError(null); }}
+              className="tg-input text-sm"
+              style={{ padding: '10px' }}
+            />
+            {selectedFile && (
+              <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>
+                {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(1)}MB)
+              </p>
+            )}
+            <button
+              type="button"
+              disabled={!selectedFile || uploading}
+              className="tg-action-btn w-full disabled:opacity-50"
+              onClick={async () => {
+                if (!selectedFile || !user || !initData) return;
+                setUploading(true); setError(null); setUploadSuccess(false);
+                const fd = new FormData();
+                fd.append('file', selectedFile);
+                fd.append('product_id', id);
+                fd.append('init_data', initData);
+                try {
+                  const res = await fetch('/api/upload-media', { method: 'POST', body: fd });
+                  const data = await res.json();
+                  if (!res.ok) {
+                    setError(data.error || 'Upload failed');
+                    hapticNotification('error');
+                  } else {
+                    setUploadSuccess(true);
+                    setSelectedFile(null);
+                    hapticNotification('success');
+                  }
+                } catch {
+                  setError('Upload failed. Try again.');
+                  hapticNotification('error');
+                }
+                setUploading(false);
+              }}
+            >
+              {uploading ? 'Uploading...' : '\u{1F4E4} Upload'}
+            </button>
+          </div>
+        )}
 
         <button type="submit" disabled={saving || !user} className="tg-btn disabled:opacity-50">
           {saving ? 'Saving...' : 'Save changes'}

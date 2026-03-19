@@ -37,6 +37,9 @@ export default function CreateOffer() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsSubmitting, setTermsSubmitting] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
 
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
@@ -166,18 +169,65 @@ export default function CreateOffer() {
           <p className="font-mono text-2xl font-bold mt-1" style={{ color: 'var(--tg-theme-button-color, #7c3aed)', letterSpacing: '0.08em' }}>{created.id}</p>
         </div>
 
-        {created.content_type === 'file' && (
+        {created.content_type === 'file' && !uploaded && (
           <div className="tg-section space-y-3">
-            <p className="font-bold text-sm">Next: attach your media</p>
-            <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Upload the file that buyers will unlock.</p>
-            {botUsername ? (
-              <a href={`https://t.me/${botUsername}?start=attach_${created.id}`} className="tg-btn inline-block text-center" style={{ width: '100%' }}>
-                Upload media now
-              </a>
-            ) : (
-              <code className="block p-2 rounded-lg text-sm" style={{ background: 'var(--tg-theme-secondary-bg-color)' }}>/attach {created.id}</code>
+            <p className="font-bold text-sm">Next: upload your media</p>
+            <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Pick the file that buyers will unlock after payment.</p>
+            <input
+              type="file"
+              accept="image/*,video/*,.pdf,.zip,.rar,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.mp3,.wav,.aac"
+              onChange={(e) => { setSelectedFile(e.target.files?.[0] || null); setError(null); }}
+              className="tg-input text-sm"
+              style={{ padding: '10px' }}
+            />
+            {selectedFile && (
+              <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>
+                {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(1)}MB)
+              </p>
+            )}
+            <button
+              type="button"
+              disabled={!selectedFile || uploading}
+              className="tg-btn disabled:opacity-50"
+              onClick={async () => {
+                if (!selectedFile) return;
+                setUploading(true); setError(null);
+                const tg = getTg();
+                const stored = (() => { try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; } })();
+                const authData = tg?.initData || initData || stored;
+                const fd = new FormData();
+                fd.append('file', selectedFile);
+                fd.append('product_id', created.id);
+                fd.append('init_data', authData);
+                try {
+                  const res = await fetch('/api/upload-media', { method: 'POST', body: fd });
+                  const data = await res.json();
+                  if (!res.ok) {
+                    setError(data.error || 'Upload failed');
+                    hapticNotification('error');
+                  } else {
+                    setUploaded(true);
+                    hapticNotification('success');
+                  }
+                } catch {
+                  setError('Upload failed. Try again or send the file directly to the bot.');
+                  hapticNotification('error');
+                }
+                setUploading(false);
+              }}
+            >
+              {uploading ? 'Uploading...' : '\u{1F4E4} Upload file'}
+            </button>
+            {botUsername && (
+              <p className="text-xs text-center" style={{ color: 'var(--tg-theme-hint-color)' }}>
+                File too large? <a href={`https://t.me/${botUsername}?start=attach_${created.id}`} style={{ color: 'var(--tg-theme-link-color, #7c3aed)' }}>Send it via bot chat instead</a>
+              </p>
             )}
           </div>
+        )}
+
+        {created.content_type === 'file' && uploaded && (
+          <div className="tg-banner-success">Media uploaded successfully!</div>
         )}
 
         <div className="tg-section">
@@ -203,9 +253,9 @@ export default function CreateOffer() {
   const contentPlaceholder = {
     text: 'Paste what buyers unlock after payment.',
     link: 'https://your-resource-link.com',
-    file: 'Describe the file. After publishing, use /attach to upload.',
-    photo: 'Describe the photo. After publishing, use /attach to upload.',
-    video: 'Describe the video. After publishing, use /attach to upload.',
+    file: 'Describe the file. You can upload it after publishing.',
+    photo: 'Describe the photo. You can upload it after publishing.',
+    video: 'Describe the video. You can upload it after publishing.',
   };
 
   const contentLabel = { text: 'Unlocked content', link: 'Unlocked URL', file: 'File description', photo: 'Photo description', video: 'Video description' };
