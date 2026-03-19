@@ -8,6 +8,7 @@ import {
   showMainButton, hideMainButton, setMainButtonLoading,
   getTg,
 } from '@/lib/telegram';
+import { starsToEur } from '@/lib/conversion';
 
 const CONTENT_ICONS = { text: '\u{1F4DD}', link: '\u{1F517}', file: '\u{1F4CE}', photo: '\u{1F4F7}', video: '\u{1F3AC}' };
 
@@ -176,7 +177,10 @@ export default function BuyProduct() {
       <div className="tg-section">
         <div className="tg-list-row">
           <span className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Price</span>
-          <span className="text-lg font-bold" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{product.price_stars} Stars</span>
+          <span>
+            <span className="text-lg font-bold" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{product.price_stars} Stars</span>
+            <span className="text-xs ml-1" style={{ color: 'var(--tg-theme-hint-color)' }}>~{starsToEur(product.price_stars).toFixed(2)} EUR</span>
+          </span>
         </div>
         <hr className="tg-separator" />
         <div className="tg-list-row">
