@@ -411,17 +411,9 @@ export default function Home() {
 
               <div className="flex gap-1 justify-center mt-1 flex-wrap">
                 {p.content_type === 'file' && (
-                  <button
-                    onClick={() => {
-                      const tg = window.Telegram?.WebApp;
-                      const botUsername = tg?.initDataUnsafe?.bot?.username || '';
-                      if (botUsername) { window.open(`https://t.me/${botUsername}?start=attach_${p.id}`); }
-                      else { navigator.clipboard?.writeText(`/attach ${p.id}`); }
-                    }}
-                    className="tg-btn-secondary text-xs"
-                  >
-                    {p.file_id ? 'Replace media' : 'Attach media'}
-                  </button>
+                  <a href={`/edit/${p.id}`} className="tg-btn-secondary text-xs">
+                    {p.file_id ? 'Replace media' : 'Upload media'}
+                  </a>
                 )}
                 <button
                   onClick={() => handleDelete(p.id, p.title)}
