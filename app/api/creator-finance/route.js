@@ -22,7 +22,7 @@ export async function GET(req) {
   const payoutMethod = profile?.payout_method || 'bank_transfer';
   const grossEur = Number((pendingStars * eurPerStar).toFixed(2));
   const fee = PAYOUT_FEES[payoutMethod] || PAYOUT_FEES.bank_transfer;
-  const feeEur = Number((grossEur * (fee.percent / 100) + fee.fixed_eur).toFixed(2));
+  const feeEur = grossEur > 0 ? Number((grossEur * (fee.percent / 100) + fee.fixed_eur).toFixed(2)) : 0;
   const netEur = Number((grossEur - feeEur).toFixed(2));
 
   return NextResponse.json({
