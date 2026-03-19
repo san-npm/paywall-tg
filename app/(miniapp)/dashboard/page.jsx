@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { COUNTRIES } from '@/lib/constants';
+import { starsToEur, formatEur, calculatePayoutFees } from '@/lib/conversion';
 import {
   waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
   hapticImpact, hapticNotification, hapticSelection,
@@ -341,6 +342,7 @@ export default function Home() {
           <div className="tg-stat">
             <p className="tg-stat-label">Earned</p>
             <p className="tg-stat-value">{stats.totalStars} <span className="tg-stat-unit">Stars</span></p>
+            <p className="tg-stat-unit">~{starsToEur(stats.totalStars).toFixed(2)} EUR</p>
           </div>
         </div>
       )}
@@ -449,15 +451,100 @@ export default function Home() {
       {activeTab === 'earnings' && user && finance?.totals && (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-2">
-            <div className="tg-stat"><p className="tg-stat-label">Gross</p><p className="tg-stat-value">{finance.totals.gross_stars}</p></div>
-            <div className="tg-stat"><p className="tg-stat-label">Fees</p><p className="tg-stat-value">{finance.totals.fee_stars}</p></div>
-            <div className="tg-stat"><p className="tg-stat-label">Net</p><p className="tg-stat-value" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{finance.totals.net_stars}</p></div>
+            <div className="tg-stat">
+              <p className="tg-stat-label">Net earned</p>
+              <p className="tg-stat-value" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{finance.totals.net_stars}</p>
+              <p className="tg-stat-unit">~{formatEur(starsToEur(finance.totals.net_stars))}</p>
+            </div>
+            <div className="tg-stat">
+              <p className="tg-stat-label">Pending</p>
+              <p className="tg-stat-value">{finance.totals.pending_stars}</p>
+              <p className="tg-stat-unit">~{formatEur(starsToEur(finance.totals.pending_stars))}</p>
+            </div>
+            <div className="tg-stat">
+              <p className="tg-stat-label">Paid out</p>
+              <p className="tg-stat-value">{finance.totals.paid_stars}</p>
+              <p className="tg-stat-unit">~{formatEur(starsToEur(finance.totals.paid_stars))}</p>
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <div className="tg-stat"><p className="tg-stat-label">Pending</p><p className="tg-stat-value">{finance.totals.pending_stars}</p></div>
-            <div className="tg-stat"><p className="tg-stat-label">Paid out</p><p className="tg-stat-value">{finance.totals.paid_stars}</p></div>
+            <div className="tg-stat"><p className="tg-stat-label">Gross</p><p className="tg-stat-value">{finance.totals.gross_stars}</p></div>
+            <div className="tg-stat"><p className="tg-stat-label">Platform fee</p><p className="tg-stat-value">{finance.totals.fee_stars}</p></div>
             <div className="tg-stat"><p className="tg-stat-label">Sales</p><p className="tg-stat-value">{finance.totals.sales_count}</p></div>
           </div>
+
+          {/* Payout request */}
+          {finance.payout_info && finance.totals.pending_stars > 0 && (
+            <div className="tg-section space-y-3">
+              <p className="tg-section-header" style={{ padding: 0 }}>Request payout</p>
+              {!finance.payout_info.profile_complete ? (
+                <div>
+                  <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Complete your profile first (legal name, email, country, payout details).</p>
+                  <button type="button" className="tg-action-btn mt-2" onClick={() => { hapticSelection(); setActiveTab('profile'); }}>Go to Profile</button>
+                </div>
+              ) : !finance.payout_info.eligible ? (
+                <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>
+                  Minimum {finance.payout_info.min_payout_stars} Stars (~{formatEur(starsToEur(finance.payout_info.min_payout_stars))}) required. You have {finance.totals.pending_stars} Stars pending.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <div className="tg-list-row">
+                    <span className="text-sm">Payout amount</span>
+                    <span className="text-sm font-bold">{finance.totals.pending_stars} Stars</span>
+                  </div>
+                  <hr className="tg-separator" />
+                  <div className="tg-list-row">
+                    <span className="text-sm">Gross</span>
+                    <span className="text-sm">{formatEur(finance.payout_info.gross_eur)}</span>
+                  </div>
+                  <div className="tg-list-row">
+                    <span className="text-sm">Transfer fee ({finance.payout_info.fee_description})</span>
+                    <span className="text-sm" style={{ color: finance.payout_info.fee_eur > 0 ? 'var(--tg-theme-destructive-text-color, #e53935)' : 'inherit' }}>
+                      {finance.payout_info.fee_eur > 0 ? `-${formatEur(finance.payout_info.fee_eur)}` : 'Free'}
+                    </span>
+                  </div>
+                  <hr className="tg-separator" />
+                  <div className="tg-list-row">
+                    <span className="text-sm font-bold">You receive</span>
+                    <span className="text-sm font-bold" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{formatEur(finance.payout_info.net_eur)}</span>
+                  </div>
+                  {finance.payout_info.payout_method === 'paypal' && (
+                    <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>
+                      Switch to SEPA bank transfer in your profile to avoid fees.
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className="tg-btn"
+                    disabled={adminBusy}
+                    onClick={async () => {
+                      hapticImpact('medium');
+                      setAdminError(null); setAdminBusy(true);
+                      try {
+                        const tg = window.Telegram?.WebApp;
+                        const iData = tg?.initData || '';
+                        const res = await fetch('/api/creator-payout-invoice', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
+                          body: JSON.stringify({ request_payout: true }),
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) throw new Error(data.error || 'Payout request failed');
+                        hapticNotification('success');
+                        // Refresh finance data
+                        const fres = await fetch('/api/creator-finance', { headers: { 'x-telegram-init-data': iData } });
+                        const fdata = await fres.json().catch(() => null);
+                        if (fdata) setFinance(fdata);
+                      } catch (err) { setAdminError(err.message); hapticNotification('error'); }
+                      finally { setAdminBusy(false); }
+                    }}
+                  >
+                    {adminBusy ? 'Requesting...' : 'Request payout'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {Array.isArray(finance.months) && finance.months.length > 0 && (
             <div className="tg-section space-y-1">
@@ -466,7 +553,7 @@ export default function Home() {
                 <div key={m.month} className="tg-list-row">
                   <span className="text-sm font-semibold">{m.month}</span>
                   <span className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>{m.sales_count} sales</span>
-                  <span className="text-sm font-bold">{m.net_stars} Stars</span>
+                  <span className="text-sm font-bold">{m.net_stars} Stars <span className="font-normal text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>~{formatEur(starsToEur(m.net_stars))}</span></span>
                 </div>
               ))}
             </div>
