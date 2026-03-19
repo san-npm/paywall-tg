@@ -66,6 +66,15 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
 
   if (await hasPurchased(productId, buyerId)) return;
 
+  // Defense-in-depth: verify amount matches expected product price
+  const normalizedCurrency = String(currency || '').toUpperCase();
+  const expectedAmount = normalizedCurrency === 'EUR'
+    ? Number(product.price_eur_cents)
+    : Number(product.price_usd_cents);
+  if (expectedAmount && amountTotal !== expectedAmount) {
+    console.error('Stripe fiat price mismatch', { expected: expectedAmount, got: amountTotal, productId, currency: normalizedCurrency });
+  }
+
   const platformFeeCents = Math.ceil(amountTotal * PLATFORM_FEE_PERCENT / 100);
   const creatorShareCents = amountTotal - platformFeeCents;
 
@@ -105,11 +114,11 @@ export async function POST(req) {
     if (STRIPE_WEBHOOK_SECRET_ALT) {
       try {
         event = stripe.webhooks.constructEvent(payload, signature, STRIPE_WEBHOOK_SECRET_ALT);
-      } catch (errAlt) {
-        return NextResponse.json({ error: `Webhook Error: ${errAlt.message}` }, { status: 400 });
+      } catch {
+        return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
       }
     } else {
-      return NextResponse.json({ error: `Webhook Error: ${errPrimary.message}` }, { status: 400 });
+      return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
     }
   }
 

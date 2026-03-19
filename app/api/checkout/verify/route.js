@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ENABLE_STRIPE, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, enqueueDelivery } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -52,6 +53,10 @@ export async function GET(req) {
   const sessionId = String(searchParams.get('session_id') || '').trim();
   if (!sessionId) return NextResponse.json({ error: 'session_id required' }, { status: 400 });
 
+  // Rate limit by session ID to prevent probing
+  const { limited } = await checkRateLimit(`verify:${sessionId}`, 10);
+  if (limited) return NextResponse.json({ error: 'Too many verification attempts' }, { status: 429 });
+
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   if (!session) return NextResponse.json({ error: 'Checkout session not found' }, { status: 404 });
   if (session.payment_status !== 'paid') return NextResponse.json({ ok: false, paid: false });
@@ -74,6 +79,14 @@ export async function GET(req) {
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   if (await hasPurchased(productId, buyerId)) return NextResponse.json({ ok: true, delivered: true, alreadyProcessed: true });
 
+  // Verify amount matches expected product price (defense-in-depth)
+  const expectedAmount = currency === 'EUR'
+    ? Number(product.price_eur_cents)
+    : Number(product.price_usd_cents);
+  if (expectedAmount && amountTotal !== expectedAmount) {
+    console.error('Checkout verify price mismatch', { expected: expectedAmount, got: amountTotal, productId, currency });
+  }
+
   const platformFeeCents = Math.ceil(amountTotal * PLATFORM_FEE_PERCENT / 100);
   const creatorShareCents = amountTotal - platformFeeCents;
 
@@ -88,7 +101,10 @@ export async function GET(req) {
     paymentIntentId,
   );
 
-  await deliverAndNotify(product, buyerId, creatorShareCents, currency);
+  await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {
+    console.error('Checkout verify delivery failed, queuing for retry:', err?.message || err);
+    await enqueueDelivery(productId, buyerId, 'stripe').catch(() => {});
+  });
 
   return NextResponse.json({ ok: true, delivered: true });
 }

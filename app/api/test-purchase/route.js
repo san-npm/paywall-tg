@@ -3,6 +3,7 @@ import { Bot } from 'grammy';
 import { BOT_TOKEN, ENABLE_FAKE_PAYMENTS, PLATFORM_FEE_PERCENT } from '@/lib/config';
 import { getProduct, hasPurchased, recordPurchase } from '@/lib/db';
 import { validateInitData, escapeMarkdown, isValidProductId } from '@/lib/validate';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -30,6 +31,13 @@ export async function POST(req) {
   }
 
   const buyerId = String(initData.user.id);
+
+  // Rate limit test purchases
+  const { limited } = await checkRateLimit(`testbuy:${buyerId}`, 10);
+  if (limited) {
+    return NextResponse.json({ error: 'Too many test purchases. Please wait.' }, { status: 429 });
+  }
+
   const productId = String(body?.product_id || '');
   if (!isValidProductId(productId)) {
     return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
