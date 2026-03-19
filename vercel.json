@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/delivery-retry",
-      "schedule": "0 */12 * * *"
+      "schedule": "0 8 * * *"
     }
   ]
 }
