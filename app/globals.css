@@ -30,9 +30,13 @@
 }
 
 /* ────────────────────────────────
-   Body / global
+   Gategram brand overrides for Telegram Mini App
+   Forces purple brand identity regardless of user's TG theme.
 ──────────────────────────────── */
 body.miniapp {
+  --tg-theme-button-color: #7c3aed;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-link-color: #7c3aed;
   background-color: var(--tg-theme-bg-color, #ffffff);
   color: var(--tg-theme-text-color, #000000);
   line-height: 1.5;
