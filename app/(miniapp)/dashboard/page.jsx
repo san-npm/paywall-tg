@@ -565,19 +565,32 @@ export default function Home() {
               {finance.payouts.map((p) => (
                 <div key={p.id} className="space-y-2 pb-2" style={{ borderBottom: '0.5px solid var(--tg-theme-hint-color, #99999933)' }}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-bold">{p.amount_stars} Stars</span>
+                    <div>
+                      <span className="text-sm font-bold">{p.amount_stars} Stars</span>
+                      <span className="text-xs ml-1" style={{ color: 'var(--tg-theme-hint-color)' }}>~{formatEur(starsToEur(p.amount_stars))}</span>
+                    </div>
                     <span className={`tg-badge ${p.status === 'paid' ? 'tg-badge-green' : p.status === 'processing' ? 'tg-badge-blue' : 'tg-badge-amber'}`}>{p.status}</span>
                   </div>
                   {p.paid_at && <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>Paid {p.paid_at}</p>}
-                  {p.invoice_ref && <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>Invoice: {p.invoice_ref}</p>}
-                  <button type="button" className="tg-btn-secondary text-xs" onClick={() => downloadPayoutStatementCreator(p.id)}>Download statement</button>
-                  {p.status === 'pending' && (
-                    <div className="space-y-2 pt-1">
-                      <input className="tg-input text-sm" placeholder="Invoice reference*" value={(invoiceForms[p.id]?.invoice_ref || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_ref: e.target.value } }))} />
-                      <input className="tg-input text-sm" placeholder="Invoice URL (optional)" value={(invoiceForms[p.id]?.invoice_url || '')} onChange={(e) => setInvoiceForms(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {}), invoice_url: e.target.value } }))} />
-                      <button type="button" className="tg-action-btn w-full" disabled={invoiceSubmitting === p.id} onClick={() => submitPayoutInvoice(p.id)}>{invoiceSubmitting === p.id ? 'Submitting...' : 'Submit invoice'}</button>
-                    </div>
-                  )}
+                  <div className="flex gap-1 flex-wrap">
+                    <button
+                      type="button"
+                      className="tg-btn-secondary text-xs"
+                      onClick={async () => {
+                        const tg = window.Telegram?.WebApp;
+                        const iData = tg?.initData || '';
+                        try {
+                          const res = await fetch(`/api/invoice-pdf?payout_id=${p.id}`, { headers: { 'x-telegram-init-data': iData } });
+                          if (!res.ok) throw new Error('Failed to download');
+                          const blob = await res.blob();
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a'); a.href = url; a.download = `invoice-GG-${new Date().getFullYear()}-${String(p.id).padStart(5, '0')}.pdf`;
+                          document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+                        } catch { setAdminError('Failed to download invoice'); }
+                      }}
+                    >Invoice PDF</button>
+                    <button type="button" className="tg-btn-secondary text-xs" onClick={() => downloadPayoutStatementCreator(p.id)}>Statement CSV</button>
+                  </div>
                 </div>
               ))}
             </div>
