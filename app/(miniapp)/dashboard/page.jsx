@@ -51,6 +51,7 @@ export default function Home() {
   const [invoiceSubmitting, setInvoiceSubmitting] = useState(null);
   const [profileFeedback, setProfileFeedback] = useState(null);
   const [activeTab, setActiveTab] = useState('offers');
+  const [initDataStr, setInitDataStr] = useState('');
 
   useEffect(() => {
     const init = async () => {
@@ -66,6 +67,7 @@ export default function Home() {
 
       if (u && initData) {
         setUser(u);
+        setInitDataStr(initData);
         Promise.all([
         fetch(`/api/products?creator_id=${u.id}`, {
           headers: { 'x-telegram-init-data': initData }
@@ -101,6 +103,11 @@ export default function Home() {
     init();
   }, []);
 
+  // Reliable initData getter — tries state, then SDK, then sessionStorage
+  const getIData = () => {
+    return initDataStr || window.Telegram?.WebApp?.initData || (() => { try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; } })();
+  };
+
   const handleDelete = async (offerId, offerTitle) => {
     const confirmed = await showConfirm(`Delete "${offerTitle}"? This cannot be undone.`);
     if (!confirmed) return;
@@ -126,8 +133,7 @@ export default function Home() {
   };
 
   const postAdminAction = async (payload) => {
-    const tg = window.Telegram?.WebApp;
-    const iData = tg?.initData || '';
+    const iData = getIData();
     const res = await fetch('/api/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
@@ -174,8 +180,7 @@ export default function Home() {
   };
 
   const refreshPayouts = async () => {
-    const tg = window.Telegram?.WebApp;
-    const iData = tg?.initData || '';
+    const iData = getIData();
     const res = await fetch('/api/admin?kind=payouts', { headers: { 'x-telegram-init-data': iData } });
     const data = await res.json().catch(() => ({}));
     setPayoutQueue(Array.isArray(data?.pending) ? data.pending : []);
@@ -184,8 +189,7 @@ export default function Home() {
 
   const loadPayoutDetails = async (payoutId) => {
     setAdminError(null);
-    const tg = window.Telegram?.WebApp;
-    const iData = tg?.initData || '';
+    const iData = getIData();
     const res = await fetch(`/api/admin?kind=payouts&payout_id=${encodeURIComponent(String(payoutId))}`, {
       headers: { 'x-telegram-init-data': iData }
     });
@@ -229,8 +233,7 @@ export default function Home() {
   const exportCsv = async (kind) => {
     setAdminError(null);
     try {
-      const tg = window.Telegram?.WebApp;
-      const iData = tg?.initData || '';
+      const iData = getIData();
       const params = new URLSearchParams({ format: 'csv', kind, limit: '5000' });
       if (exportFilters.from) params.set('from', exportFilters.from);
       if (exportFilters.to) params.set('to', exportFilters.to);
@@ -244,8 +247,7 @@ export default function Home() {
   const downloadPayoutStatementAdmin = async (payoutId) => {
     setAdminError(null);
     try {
-      const tg = window.Telegram?.WebApp;
-      const iData = tg?.initData || '';
+      const iData = getIData();
       const res = await fetch(`/api/admin?kind=payout_statement_csv&payout_id=${encodeURIComponent(String(payoutId))}`, { headers: { 'x-telegram-init-data': iData } });
       await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
     } catch (err) { setAdminError(err.message || 'Statement download failed'); }
@@ -254,16 +256,14 @@ export default function Home() {
   const downloadPayoutStatementCreator = async (payoutId) => {
     setAdminError(null);
     try {
-      const tg = window.Telegram?.WebApp;
-      const iData = tg?.initData || '';
+      const iData = getIData();
       const res = await fetch(`/api/creator-payout-statement?payout_id=${encodeURIComponent(String(payoutId))}`, { headers: { 'x-telegram-init-data': iData } });
       await downloadCsvResponse(res, `payout-statement-${payoutId}.csv`);
     } catch (err) { setAdminError(err.message || 'Statement download failed'); }
   };
 
   const saveCreatorProfile = async () => {
-    const tg = window.Telegram?.WebApp;
-    const iData = tg?.initData || '';
+    const iData = getIData();
     setProfileSaving(true); setProfileFeedback(null);
     try {
       const res = await fetch('/api/creator-profile', {
@@ -285,8 +285,7 @@ export default function Home() {
   const submitPayoutInvoice = async (payoutId) => {
     const form = invoiceForms[payoutId] || {};
     if (!form.invoice_ref) { setAdminError('Invoice reference is required.'); return; }
-    const tg = window.Telegram?.WebApp;
-    const iData = tg?.initData || '';
+    const iData = getIData();
     setInvoiceSubmitting(payoutId); setAdminError(null);
     try {
       const res = await fetch('/api/creator-payout-invoice', {
@@ -500,7 +499,15 @@ export default function Home() {
                   </div>
                   <hr className="tg-separator" />
                   <div className="tg-list-row">
-                    <span className="text-sm">Gross</span>
+                    <span className="text-sm">Gross sales</span>
+                    <span className="text-sm">{formatEur(starsToEur(finance.totals.gross_stars))} ({finance.totals.gross_stars} Stars)</span>
+                  </div>
+                  <div className="tg-list-row">
+                    <span className="text-sm">Platform fee (5%)</span>
+                    <span className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>-{formatEur(starsToEur(finance.totals.fee_stars))}</span>
+                  </div>
+                  <div className="tg-list-row">
+                    <span className="text-sm">Your share</span>
                     <span className="text-sm">{formatEur(finance.payout_info.gross_eur)}</span>
                   </div>
                   <div className="tg-list-row">
@@ -527,8 +534,7 @@ export default function Home() {
                       hapticImpact('medium');
                       setAdminError(null); setAdminBusy(true);
                       try {
-                        const tg = window.Telegram?.WebApp;
-                        const iData = tg?.initData || '';
+                        const iData = getIData();
                         const res = await fetch('/api/creator-payout-invoice', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json', 'x-telegram-init-data': iData },
@@ -583,16 +589,16 @@ export default function Home() {
                       type="button"
                       className="tg-btn-secondary text-xs"
                       onClick={async () => {
-                        const tg = window.Telegram?.WebApp;
-                        const iData = tg?.initData || '';
                         try {
+                          const iData = getIData();
                           const res = await fetch(`/api/invoice-pdf?payout_id=${p.id}`, { headers: { 'x-telegram-init-data': iData } });
-                          if (!res.ok) throw new Error('Failed to download');
+                          if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Failed to download'); }
                           const blob = await res.blob();
                           const url = URL.createObjectURL(blob);
                           const a = document.createElement('a'); a.href = url; a.download = `invoice-GG-${new Date().getFullYear()}-${String(p.id).padStart(5, '0')}.pdf`;
-                          document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-                        } catch { setAdminError('Failed to download invoice'); }
+                          document.body.appendChild(a); a.click(); a.remove();
+                          setTimeout(() => URL.revokeObjectURL(url), 1000);
+                        } catch (err) { setAdminError(err.message || 'Failed to download invoice'); }
                       }}
                     >Invoice PDF</button>
                     <button type="button" className="tg-btn-secondary text-xs" onClick={() => downloadPayoutStatementCreator(p.id)}>Statement CSV</button>
