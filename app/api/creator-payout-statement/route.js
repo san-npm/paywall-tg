@@ -6,11 +6,10 @@ import { payoutStatementRows, toCsv } from '@/lib/payout-statement';
 export const runtime = 'nodejs';
 
 export async function GET(req) {
-  const initDataRaw = req.headers.get('x-telegram-init-data') || '';
+  const { searchParams } = new URL(req.url);
+  const initDataRaw = req.headers.get('x-telegram-init-data') || searchParams.get('init_data') || '';
   const initData = validateInitData(initDataRaw);
   if (!initData?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  const { searchParams } = new URL(req.url);
   const payoutId = Number(searchParams.get('payout_id'));
   if (!Number.isFinite(payoutId) || payoutId <= 0) {
     return NextResponse.json({ error: 'Valid payout_id required' }, { status: 400 });

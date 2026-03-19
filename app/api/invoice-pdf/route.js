@@ -12,12 +12,12 @@ export const runtime = 'nodejs';
  * Accessible by the creator (for their own payouts) or admin (for any payout).
  */
 export async function GET(req) {
-  const initDataRaw = req.headers.get('x-telegram-init-data');
+  const { searchParams } = new URL(req.url);
+  const initDataRaw = req.headers.get('x-telegram-init-data') || searchParams.get('init_data');
   const initData = validateInitData(initDataRaw);
   if (!initData?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const userId = String(initData.user.id);
-  const { searchParams } = new URL(req.url);
   const payoutId = Number(searchParams.get('payout_id'));
 
   if (!Number.isFinite(payoutId) || payoutId <= 0) {
