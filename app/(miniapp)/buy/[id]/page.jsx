@@ -209,7 +209,7 @@ export default function BuyProduct() {
               {product.content_type === 'link' ? (() => {
                 const safeLink = safeExternalUrl(product.content);
                 if (!safeLink) return <p style={{ color: 'var(--tg-theme-hint-color)' }}>Invalid link content.</p>;
-                return <a href={safeLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--tg-theme-link-color, #2481cc)' }} className="underline">{safeLink}</a>;
+                return <a href={safeLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--tg-theme-link-color, #7c3aed)' }} className="underline">{safeLink}</a>;
               })() : (
                 <p className="whitespace-pre-wrap text-sm">{product.content}</p>
               )}
