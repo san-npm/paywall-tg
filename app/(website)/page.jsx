@@ -34,7 +34,7 @@ export default function HomePage() {
         name: 'What is a Telegram paywall?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'A Telegram paywall lets creators sell access to content or communities directly in Telegram. Buyers pay with Telegram Stars and receive content instantly.',
+          text: 'A Telegram paywall lets creators sell access to content or communities directly in Telegram. Buyers pay with Telegram Stars and receive content instantly — no external checkout page, no account creation, no credit card form.',
         },
       },
       {
@@ -42,7 +42,71 @@ export default function HomePage() {
         name: 'How does community monetization work with Gategram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Creators create paid offers, share buy links, and buyers complete checkout in Telegram. Gategram automates payment validation and delivery.',
+          text: 'Creators create paid offers, set a Stars price, and share a buy link in their channel, group, or DMs. Buyers tap the link, confirm payment with one tap via Telegram Stars (backed by Apple Pay and Google Pay), and content is delivered instantly as a Telegram message. Gategram automates payment validation and delivery.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do I sell content on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Create a paid offer on Gategram (title, price in Stars, and your content), then share the buy link in your Telegram channel or group. Buyers pay natively inside Telegram and receive the content instantly. Setup takes about 2 minutes.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What are Telegram Stars and how do they work?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Telegram Stars are Telegram\'s native in-app currency for digital purchases. Buyers purchase Stars using Apple Pay, Google Pay, or credit card through their app store. Creators receive Stars as payment and can withdraw earnings. Stars enable one-tap checkout without leaving Telegram.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How much does a Telegram paywall cost?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Gategram charges a flat 5% platform fee on each successful sale. There is no monthly fee, no setup fee, and no hidden costs. Creators keep 95% of every sale. The fee is deducted in Stars and rounded up to whole Stars.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I sell digital products on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. You can sell ebooks, PDFs, templates, course access, premium text content, links, files, access credentials, and design assets. Content is delivered as a Telegram message or file the instant payment clears.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do I get paid from Telegram Stars?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Stars accumulate in your creator balance after each sale. Telegram provides withdrawal options to convert Stars into fiat currency. Gategram also provides exportable CSV payout statements for accounting.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is the best Telegram paywall bot?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The best Telegram paywall depends on your use case. For native in-app checkout with instant delivery and minimal setup, Gategram uses Telegram Stars so buyers never leave the app. For subscription-based access management, tools like InviteMember use external payment processors like Stripe.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Gategram vs InviteMember — what is the difference?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'InviteMember focuses on subscription management with external Stripe/PayPal checkout. Gategram focuses on native Telegram Stars checkout for one-time and recurring sales. The key difference is friction: InviteMember sends buyers to a browser for payment, while Gategram keeps the entire flow inside Telegram.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is Telegram Stars payment safe for buyers?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Telegram Stars are processed through Telegram\'s own payment infrastructure, backed by Apple Pay and Google Pay. Buyers see the price before confirming, payment happens in a native Telegram dialog, and no card details are shared with creators or third parties.',
         },
       },
     ],
