@@ -482,6 +482,164 @@ select.tg-input { cursor: pointer; }
 .tg-badge-red { background: #c6282820; color: #c62828; }
 
 /* ────────────────────────────────
+   Website: Background decorations
+──────────────────────────────── */
+.site-rainbow-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 58, 237, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(245, 158, 11, 0.05), transparent),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(16, 185, 129, 0.04), transparent);
+}
+
+.site-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  opacity: 0.5;
+}
+.site-orb-a {
+  width: 400px; height: 400px;
+  top: -100px; left: -80px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.15), transparent 70%);
+  animation: floatY 8s ease-in-out infinite;
+}
+.site-orb-b {
+  width: 300px; height: 300px;
+  top: 40%; right: -60px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.10), transparent 70%);
+  animation: floatY 10s ease-in-out infinite reverse;
+}
+.site-orb-c {
+  width: 350px; height: 350px;
+  bottom: -80px; left: 30%;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.08), transparent 70%);
+  animation: floatY 12s ease-in-out infinite;
+}
+
+/* ────────────────────────────────
+   Website: CTA Buttons
+──────────────────────────────── */
+.site-cta-primary {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  background: var(--site-accent);
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.25);
+}
+.site-cta-primary:hover {
+  background: var(--site-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.35);
+}
+.site-cta-primary:active {
+  transform: translateY(0);
+}
+
+.site-cta-secondary {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 15px;
+  background: transparent;
+  color: var(--site-text);
+  text-decoration: none;
+  text-align: center;
+  border: 1.5px solid var(--site-border);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.site-cta-secondary:hover {
+  border-color: var(--site-accent);
+  color: var(--site-accent);
+  background: rgba(124, 58, 237, 0.04);
+}
+
+/* ────────────────────────────────
+   Website: Chips (hero stats)
+──────────────────────────────── */
+.site-chip {
+  background: var(--site-bg-card);
+  border: 1.5px solid var(--site-border);
+  border-radius: 14px;
+  padding: 12px 16px;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.site-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.08);
+}
+.site-chip-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--site-text-muted);
+  margin: 0;
+}
+.site-chip-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--site-accent);
+  margin: 2px 0 0;
+}
+
+/* ────────────────────────────────
+   Website: Step cards (How it works)
+──────────────────────────────── */
+.site-step {
+  background: var(--site-bg-card);
+  border: 1.5px solid var(--site-border);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.site-step:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.08);
+}
+.site-step-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--site-accent), #a855f7);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+/* ────────────────────────────────
+   Website: Panels (content boxes)
+──────────────────────────────── */
+.site-panel {
+  background: var(--site-bg-card);
+  border: 1.5px solid var(--site-border);
+  border-radius: 16px;
+  padding: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.site-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.06);
+}
+
+/* ────────────────────────────────
    Creator cards
 ──────────────────────────────── */
 .creator-bubble-card {
