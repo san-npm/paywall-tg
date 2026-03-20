@@ -1,9 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { useLang } from './useLang';
 
 export default function Footer() {
-  const { t } = useLang();
   return (
     <footer className="border-t border-site-border bg-site-bg">
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -35,16 +33,18 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="text-site-text font-semibold text-sm mb-3">Trust</h4>
+            <h4 className="text-site-text font-semibold text-sm mb-3">Legal</h4>
             <ul className="space-y-2 text-sm text-site-muted">
+              <li><Link href="/legal/privacy" className="hover:text-site-text">Privacy Policy</Link></li>
+              <li><Link href="/legal/terms" className="hover:text-site-text">Terms of Service</Link></li>
               <li><Link href="/security" className="hover:text-site-text">Security</Link></li>
-              <li><Link href="/changelog" className="hover:text-site-text">Status & updates</Link></li>
+              <li><Link href="/changelog" className="hover:text-site-text">Changelog</Link></li>
             </ul>
           </div>
         </div>
         <div className="border-t border-site-border pt-6 text-sm text-site-dim flex flex-col md:flex-row justify-between gap-2">
-          <p>{t.footerTag}</p>
-          <p>Powered by Telegram Stars.</p>
+          <p>&copy; {new Date().getFullYear()} COMMIT MEDIA SARL. All rights reserved.</p>
+          <p>Made in Luxembourg.</p>
         </div>
       </div>
     </footer>
