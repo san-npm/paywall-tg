@@ -67,12 +67,11 @@ export default function HomePageClient() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl">
-            Sell paid content and private access in Telegram. <span className="text-site-accent">Without checkout friction.</span>
+            Sell in Telegram. Buyers pay in one tap. <span className="text-site-accent">You keep 95%.</span>
           </h1>
 
           <p className="mt-6 text-lg md:text-xl text-site-muted max-w-2xl leading-relaxed">
-            For creators: publish an offer, set your Stars price, and get paid in chat.
-            For buyers: tap, pay, and unlock instantly in the same Telegram flow.
+            External checkout loses you half your buyers. Gategram keeps the entire purchase inside Telegram - native Stars payment, instant delivery, zero redirects. Set up in 2 minutes.
           </p>
 
           <div className="mt-9 flex flex-col sm:flex-row gap-3">
@@ -154,7 +153,8 @@ export default function HomePageClient() {
 
       <section className="px-4 py-16 border-t border-site-border">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">Why creators switch</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Why creators switch from external checkout</h2>
+          <p className="text-site-muted mb-8">Gumroad, LemonSqueezy, Stripe links - they all send your buyer to a browser. That redirect kills conversion. Gategram keeps everything inside Telegram.</p>
           <div className="grid md:grid-cols-4 gap-4 mb-8">
             {proof.map((p) => (
               <article key={p.label} className="site-panel text-center">
@@ -165,12 +165,12 @@ export default function HomePageClient() {
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <article className="site-panel">
-              <p className="text-site-text text-sm leading-relaxed">“I used to lose sales when people had to leave Telegram. Now they buy right in chat and get access instantly.”</p>
-              <p className="text-site-dim text-xs mt-3">— Trading channel owner</p>
+              <p className="font-bold text-site-text text-sm mb-2">Before: external checkout</p>
+              <p className="text-site-muted text-sm leading-relaxed">You share a Gumroad link. Your buyer opens a browser, sees an unknown page, needs to create an account, enters a credit card. Half of them close the tab.</p>
             </article>
             <article className="site-panel">
-              <p className="text-site-text text-sm leading-relaxed">“This replaced my manual payment + invite workflow. It’s way faster and way cleaner for my audience.”</p>
-              <p className="text-site-dim text-xs mt-3">— Crypto educator</p>
+              <p className="font-bold text-site-accent text-sm mb-2">After: Gategram</p>
+              <p className="text-site-muted text-sm leading-relaxed">You share a buy link. Your buyer taps it, confirms with one tap via Stars (Apple Pay / Google Pay backed), and the content appears instantly in chat. No browser, no account, no card form.</p>
             </article>
           </div>
           <div className="mt-8">
