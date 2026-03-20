@@ -3,6 +3,7 @@ import { getCreatorPayoutDetails, getCreatorProfile, getPayoutDetails } from '@/
 import { validateInitData } from '@/lib/validate';
 import { generateInvoicePdf, generateInvoiceNumber } from '@/lib/invoice-pdf';
 import { ADMIN_TELEGRAM_IDS } from '@/lib/config';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -18,6 +19,8 @@ export async function GET(req) {
   if (!initData?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const userId = String(initData.user.id);
+  const { limited } = await checkRateLimit(`invoicepdf:${userId}`, 30);
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   const payoutId = Number(searchParams.get('payout_id'));
 
   if (!Number.isFinite(payoutId) || payoutId <= 0) {

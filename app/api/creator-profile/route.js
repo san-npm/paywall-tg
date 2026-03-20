@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCreatorProfile, getOrCreateCreator, upsertCreatorProfile } from '@/lib/db';
 import { sanitizeCreatorProfileInput, validateInitData } from '@/lib/validate';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -26,6 +27,8 @@ export async function GET(req) {
 export async function POST(req) {
   const identity = auth(req);
   if (!identity) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { limited } = await checkRateLimit(`profile:${identity.creatorId}`, 20);
+  if (limited) return NextResponse.json({ error: 'Too many profile updates' }, { status: 429 });
 
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 }); }
