@@ -55,6 +55,17 @@ export async function POST(req) {
   if (!invoiceRef) {
     return NextResponse.json({ error: 'invoice_ref is required' }, { status: 400 });
   }
+  // Validate invoice_url if provided (prevent javascript:/data: URI injection)
+  if (invoiceUrl) {
+    try {
+      const parsed = new URL(invoiceUrl);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return NextResponse.json({ error: 'invoice_url must be an http or https URL' }, { status: 400 });
+      }
+    } catch {
+      return NextResponse.json({ error: 'invoice_url is not a valid URL' }, { status: 400 });
+    }
+  }
 
   const ok = await submitCreatorPayoutInvoice(creatorId, payoutId, invoiceRef, invoiceUrl || null, invoiceNotes || null);
   if (!ok) {

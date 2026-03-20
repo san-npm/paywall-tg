@@ -3,6 +3,7 @@ import { getCreatorFinancialSummary, getOrCreateCreator, getCreatorProfile } fro
 import { validateInitData } from '@/lib/validate';
 import { DEFAULT_EUR_PER_STAR } from '@/lib/config';
 import { MIN_PAYOUT_STARS, PAYOUT_FEES } from '@/lib/constants';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -12,6 +13,8 @@ export async function GET(req) {
   if (!initData?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const creatorId = String(initData.user.id);
+  const { limited } = await checkRateLimit(`finance:${creatorId}`, 30);
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   await getOrCreateCreator(creatorId, initData.user.username || null, initData.user.first_name || null);
   const summary = await getCreatorFinancialSummary(creatorId);
   const profile = await getCreatorProfile(creatorId);
