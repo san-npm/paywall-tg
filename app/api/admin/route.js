@@ -43,11 +43,11 @@ function getAdminId(req) {
 
 export async function GET(req) {
   const adminId = getAdminId(req);
-  if (!adminId) return NextResponse.json({ is_admin: false }, { status: 200 });
+  if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const format = String(searchParams.get('format') || 'json');
-  const kind = String(searchParams.get('kind') || 'actions');
+  const kind = String(searchParams.get('kind') || 'actions').replace(/[^a-z_]/gi, '');
   const limit = Number.parseInt(searchParams.get('limit') || '1000', 10);
   const fromRaw = searchParams.get('from') || undefined;
   const toRaw = searchParams.get('to') || undefined;

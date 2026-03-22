@@ -72,7 +72,8 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
     ? Number(product.price_eur_cents)
     : Number(product.price_usd_cents);
   if (expectedAmount && amountTotal !== expectedAmount) {
-    console.error('Stripe fiat price mismatch', { expected: expectedAmount, got: amountTotal, productId, currency: normalizedCurrency });
+    console.error('Stripe fiat price mismatch — rejecting', { expected: expectedAmount, got: amountTotal, productId, currency: normalizedCurrency });
+    return;
   }
 
   const platformFeeCents = Math.ceil(amountTotal * PLATFORM_FEE_PERCENT / 100);
