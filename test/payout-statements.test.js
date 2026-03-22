@@ -67,9 +67,9 @@ test('start next dev for endpoint smoke tests', { timeout: 60000 }, async () => 
 
 test('admin payout statement endpoint stays closed to non-admin', { timeout: 30000 }, async () => {
   const res = await fetch(`${BASE}/api/admin?kind=payout_statement_csv&payout_id=1`);
-  assert.equal(res.status, 200);
+  assert.equal(res.status, 403);
   const body = await res.json();
-  assert.equal(body.is_admin, false);
+  assert.equal(body.error, 'Unauthorized');
 });
 
 test('creator payout statement endpoint requires auth', { timeout: 30000 }, async () => {
