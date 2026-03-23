@@ -1,12 +1,26 @@
 import HomePageClient from '../../components/website/HomePageClient';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, SITE_URL } from '@/lib/seo';
 
-export const metadata = buildPageMetadata({
+const baseMeta = buildPageMetadata({
   title: 'Telegram Paywall for Community Monetization',
   description: 'Launch a Telegram paywall to monetize community access, paid content, and digital products with Telegram Stars checkout.',
   path: '/',
   keywords: ['telegram community paywall', 'paid telegram channel', 'telegram creator monetization'],
 });
+
+const SUPPORTED_LANGS = ['es', 'ru', 'pt', 'id', 'ar', 'hi', 'tr', 'fa', 'uk'];
+const hreflangAlternates = { 'x-default': SITE_URL, en: SITE_URL };
+for (const l of SUPPORTED_LANGS) {
+  hreflangAlternates[l] = `${SITE_URL}/${l}`;
+}
+
+export const metadata = {
+  ...baseMeta,
+  alternates: {
+    ...baseMeta.alternates,
+    languages: hreflangAlternates,
+  },
+};
 
 export default function HomePage() {
   const softwareSchema = {

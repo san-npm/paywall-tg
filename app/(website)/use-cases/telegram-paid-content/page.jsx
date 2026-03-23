@@ -9,6 +9,16 @@ export const metadata = buildPageMetadata({
 });
 
 export default function TelegramPaidContent() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://www.gategram.app/use-cases/telegram-paid-content' },
+      { '@type': 'ListItem', position: 3, name: 'Telegram Paid Content', item: 'https://www.gategram.app/use-cases/telegram-paid-content' },
+    ],
+  };
+
   const useCases = [
     {
       title: 'Premium channel posts',
@@ -34,6 +44,7 @@ export default function TelegramPaidContent() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Monetize Telegram content with a clear buyer journey</>}
