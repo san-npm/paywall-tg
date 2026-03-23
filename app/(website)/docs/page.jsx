@@ -9,8 +9,32 @@ export const metadata = buildPageMetadata({
 });
 
 export default function DocsPage() {
+  const howToSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to set up a Telegram paywall with Gategram',
+    description: 'Create a paid content offer and start selling in Telegram with native Stars checkout in under 2 minutes.',
+    step: [
+      { '@type': 'HowToStep', position: 1, name: 'Connect your Telegram bot', text: 'Use your own bot token and webhook. Follow the setup steps and test with /start.' },
+      { '@type': 'HowToStep', position: 2, name: 'Create your first paid content', text: 'Set a title, choose a Stars price, then add text, link, message, or file content.' },
+      { '@type': 'HowToStep', position: 3, name: 'Share your buy link', text: 'Post your buy link in your Telegram channel, group, or DMs. Buyers pay in chat and get content instantly.' },
+      { '@type': 'HowToStep', position: 4, name: 'Track performance', text: 'Use dashboard stats to see views, sales, and earnings. Improve title/price based on what converts.' },
+    ],
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Documentation', item: 'https://www.gategram.app/docs' },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Quickstart"
         title="Start selling in minutes"

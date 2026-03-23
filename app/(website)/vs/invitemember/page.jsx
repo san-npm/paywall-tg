@@ -9,6 +9,16 @@ export const metadata = buildPageMetadata({
 });
 
 export default function VsInviteMember() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://www.gategram.app/vs/invitemember' },
+      { '@type': 'ListItem', position: 3, name: 'Gategram vs InviteMember', item: 'https://www.gategram.app/vs/invitemember' },
+    ],
+  };
+
   const rows = [
     { feature: 'Payment flow', paygate: 'Native Telegram Stars — one tap inside the app', other: 'External Stripe/PayPal checkout — opens browser' },
     { feature: 'Buyer friction', paygate: 'Zero. No account, no email, no card form', other: 'High. Account creation + card details on external page' },
@@ -24,6 +34,7 @@ export default function VsInviteMember() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Comparison"
         title={<>Gategram vs <span className="text-site-muted">InviteMember</span>: checkout clarity wins</>}

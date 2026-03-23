@@ -12,8 +12,18 @@ export default function FeesPage() {
   const examples = [10, 50, 100, 500, 1000];
   const feeFor = (stars) => Math.ceil(stars * 0.05);
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Fees', item: 'https://www.gategram.app/fees' },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Pricing"
         title="Simple pricing creators can explain in one sentence"
