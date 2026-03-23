@@ -17,8 +17,32 @@ export default function HowPaymentsWork() {
     ['You get paid', 'You keep 95% of each sale after the 5% platform fee.'],
   ];
 
+  const howToSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to sell paid content on Telegram with Stars',
+    description: 'Step-by-step guide to the Telegram Stars payment flow for creators selling digital content and community access.',
+    step: steps.map(([title, desc], i) => ({
+      '@type': 'HowToStep',
+      position: i + 1,
+      name: title,
+      text: desc,
+    })),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'How Payments Work', item: 'https://www.gategram.app/how-payments-work' },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Trust"
         title="How payments work, step by step"

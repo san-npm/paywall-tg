@@ -9,8 +9,19 @@ export const metadata = buildPageMetadata({
 });
 
 export default function LemonSqueezyAlternative() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://www.gategram.app/alternatives/lemon-squeezy-telegram' },
+      { '@type': 'ListItem', position: 3, name: 'LemonSqueezy Alternative for Telegram', item: 'https://www.gategram.app/alternatives/lemon-squeezy-telegram' },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Alternative"
         title={<>LemonSqueezy alternative for Telegram creators</>}

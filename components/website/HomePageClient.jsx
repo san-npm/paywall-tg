@@ -3,12 +3,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLang } from './useLang';
 import { trackCta } from './tracking';
+import { getMsg } from '@/lib/i18n';
 
 const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || '/docs#connect-bot';
 
 
-export default function HomePageClient() {
-  const { t } = useLang();
+export default function HomePageClient({ forceLang }) {
+  const { t: defaultT } = useLang();
+  const t = forceLang ? getMsg(forceLang) : defaultT;
 
   const creatorCards = [
     {

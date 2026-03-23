@@ -10,6 +10,16 @@ export const metadata = buildPageMetadata({
 });
 
 export default function SellDigitalProducts() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://www.gategram.app/use-cases/sell-digital-products-on-telegram' },
+      { '@type': 'ListItem', position: 3, name: 'Sell Digital Products on Telegram', item: 'https://www.gategram.app/use-cases/sell-digital-products-on-telegram' },
+    ],
+  };
+
   const products = [
     { icon: '📄', name: 'Ebooks & PDFs', desc: 'Sell guides, reports, and documents. Delivered as a file message the moment payment clears.' },
     { icon: '🎓', name: 'Courses & Lessons', desc: 'Drip content or deliver full course access via private channels or direct messages.' },
@@ -21,6 +31,7 @@ export default function SellDigitalProducts() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Sell digital products on <span className="text-site-accent">Telegram</span> with less friction</>}
