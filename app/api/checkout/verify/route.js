@@ -84,7 +84,8 @@ export async function GET(req) {
     ? Number(product.price_eur_cents)
     : Number(product.price_usd_cents);
   if (expectedAmount && amountTotal !== expectedAmount) {
-    console.error('Checkout verify price mismatch', { expected: expectedAmount, got: amountTotal, productId, currency });
+    console.error('Checkout verify price mismatch — rejecting', { expected: expectedAmount, got: amountTotal, productId, currency });
+    return NextResponse.json({ error: 'Price mismatch' }, { status: 400 });
   }
 
   const platformFeeCents = Math.ceil(amountTotal * PLATFORM_FEE_PERCENT / 100);
