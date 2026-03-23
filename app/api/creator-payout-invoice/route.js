@@ -55,6 +55,12 @@ export async function POST(req) {
   if (!invoiceRef) {
     return NextResponse.json({ error: 'invoice_ref is required' }, { status: 400 });
   }
+  if (invoiceRef.length > 200) {
+    return NextResponse.json({ error: 'invoice_ref too long (max 200 characters)' }, { status: 400 });
+  }
+  if (invoiceNotes.length > 2000) {
+    return NextResponse.json({ error: 'invoice_notes too long (max 2000 characters)' }, { status: 400 });
+  }
   // Validate invoice_url if provided (prevent javascript:/data: URI injection)
   if (invoiceUrl) {
     try {
