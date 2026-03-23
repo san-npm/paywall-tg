@@ -9,6 +9,16 @@ export const metadata = buildPageMetadata({
 });
 
 export default function GumroadAlternative() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://www.gategram.app/alternatives/gumroad-for-telegram' },
+      { '@type': 'ListItem', position: 3, name: 'Gumroad Alternative for Telegram', item: 'https://www.gategram.app/alternatives/gumroad-for-telegram' },
+    ],
+  };
+
   const reasons = [
     {
       title: 'Gumroad sends buyers away from Telegram',
@@ -30,6 +40,7 @@ export default function GumroadAlternative() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Alternative"
         title={<>The Gumroad alternative built for <span className="text-site-accent">Telegram</span></>}
