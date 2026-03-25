@@ -1,6 +1,30 @@
 # Gategram
 
-Telegram Mini App for selling digital content with Telegram Stars payments. Creators set a price, buyers pay with Stars, content is delivered instantly.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![Telegram Stars](https://img.shields.io/badge/Payments-Telegram%20Stars-26A5E4)](https://core.telegram.org/bots/payments-stars)
+
+**Sell digital content on Telegram. 95% yours.**
+
+Gategram is an open-source Telegram Mini App that lets creators sell guides, links, and exclusive content using native Telegram Stars payments. Buyers pay with Apple Pay or Google Pay — right inside Telegram. No external accounts, no redirects, no friction.
+
+### Try it now → [@gategramapp_bot](https://t.me/gategramapp_bot)
+
+---
+
+## Why Gategram?
+
+If you have a Telegram audience, you shouldn't need Gumroad, Patreon, or Stripe to sell them something.
+
+| | Gategram | Gumroad | Patreon | Ko-fi |
+|---|---|---|---|---|
+| **Creator cut** | **95%** | 90% | 88-95% | 95% |
+| **Setup time** | Seconds | Minutes | Minutes | Minutes |
+| **Works inside Telegram** | Yes | No (redirect) | No (redirect) | No (redirect) |
+| **Payment methods** | Apple Pay, Google Pay (via Stars) | Card | Card | Card, PayPal |
+| **Buyer account required** | No (just Telegram) | Email | Email | Email |
+| **Open source** | Yes (MIT) | No | No | No |
+| **Self-hostable** | Yes | No | No | No |
 
 ---
 
@@ -56,7 +80,7 @@ Creator                    Telegram                     Buyer
 | `/products` | List your products with IDs |
 | `/dashboard` | View your earnings and stats |
 
-**Deep links** for sharing: `https://t.me/<your_bot>?start=buy_<product_id>`
+**Deep links** for sharing: `https://t.me/gategramapp_bot?start=buy_<product_id>`
 
 ---
 
@@ -295,6 +319,14 @@ npm run start     # start production server
 ```
 
 **Note:** The webhook requires a public URL. For local development, use a tunnel like [ngrok](https://ngrok.com) or [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/).
+
+---
+
+## Contributing
+
+Contributions welcome! Open an issue or submit a PR.
+
+If you're using Gategram, we'd love to hear about it — open an issue or reach out.
 
 ---
 
