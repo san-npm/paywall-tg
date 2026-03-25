@@ -21,6 +21,10 @@ export default function sitemap() {
     '/vs/invitemember',
     '/legal/privacy',
     '/legal/terms',
+    '/blog',
+    '/blog/how-to-sell-digital-content-on-telegram',
+    '/blog/telegram-stars-payments-guide',
+    '/blog/telegram-paywall-vs-gumroad',
   ];
 
   const pages = routes.map((route) => ({
