@@ -18,7 +18,7 @@ export default function GlobalEmojiBackground() {
           key={cls}
           className={`emoji-float-global ${cls}`}
           src={`https://emojicdn.elk.sh/${encodeURIComponent(em)}?style=apple`}
-          alt=""
+          alt={`Decorative ${em} emoji`}
           loading="lazy"
           decoding="async"
         />

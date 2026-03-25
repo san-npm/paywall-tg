@@ -103,7 +103,7 @@ export default function HomePageClient({ forceLang }) {
             {creatorCards.map((item) => (
               <article key={item.key} className="creator-bubble-card">
                 <div className="creator-icon-wrap" aria-hidden="true">
-                  <Image src={item.icon} alt="" width={88} height={88} className="w-full h-full object-contain" />
+                  <Image src={item.icon} alt={`${item.title} illustration`} width={88} height={88} className="w-full h-full object-contain" />
                 </div>
                 <p className="font-semibold text-lg">{item.title}</p>
                 <p className="text-sm text-site-muted mt-1">{item.desc}</p>
