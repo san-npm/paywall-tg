@@ -1,5 +1,6 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Buy Me a Coffee Alternative for Telegram Creators',
@@ -16,6 +17,37 @@ export default function BuyMeACoffeeAlternative() {
       { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
       { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://www.gategram.app/alternatives/buymeacoffee-telegram' },
       { '@type': 'ListItem', position: 3, name: 'Buy Me a Coffee Alternative for Telegram', item: 'https://www.gategram.app/alternatives/buymeacoffee-telegram' },
+    ],
+  };
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Can I use Buy Me a Coffee on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'You can share Buy Me a Coffee links in Telegram, but buyers are redirected to an external web page for payment. BMC has no native Telegram integration — no in-app checkout, no automatic content delivery. For Telegram creators, Gategram offers a fully native experience with Stars checkout and instant delivery.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is there a Buy Me a Coffee for Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Gategram is the Buy Me a Coffee equivalent built for Telegram. Instead of a web-based tip page, Gategram lets you sell content with native Telegram Stars checkout. Buyers pay with one tap inside the app and receive content instantly as a message. Same 5% fee, but with actual content delivery built in.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What\'s the best tip jar for Telegram creators?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'For Telegram creators, Telegram Stars via Gategram is the most frictionless way to accept payments. Unlike external tip jars (BMC, Ko-fi), Stars payments happen natively inside the app with one tap. You can accept tips by creating low-priced support products, or sell actual content for predictable revenue.',
+        },
+      },
     ],
   };
 
@@ -41,6 +73,7 @@ export default function BuyMeACoffeeAlternative() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <PageHeader
         badge="Alternative"
         title={<>The Buy Me a Coffee alternative for <span className="text-site-accent">Telegram</span></>}
@@ -93,6 +126,41 @@ export default function BuyMeACoffeeAlternative() {
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">Related</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Link href="/alternatives/ko-fi-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Ko-fi Alternative for Telegram</h3>
+              <p className="text-sm text-site-muted">Compare Ko-fi's web tip jar with native Telegram Stars payments.</p>
+            </Link>
+            <Link href="/alternatives/patreon-for-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Patreon Alternative for Telegram</h3>
+              <p className="text-sm text-site-muted">Per-item sales, native checkout, lower fees than Patreon.</p>
+            </Link>
+            <Link href="/community-monetization" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Community Monetization</h3>
+              <p className="text-sm text-site-muted">Strategies for monetizing your Telegram community effectively.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
+        <div className="max-w-3xl mx-auto space-y-3">
+          <h2 className="text-2xl font-bold">Buy Me a Coffee for Telegram FAQ</h2>
+          {[
+            { q: 'Can I use Buy Me a Coffee on Telegram?', a: 'You can share Buy Me a Coffee links in Telegram, but buyers are redirected to an external web page for payment. BMC has no native Telegram integration — no in-app checkout, no automatic content delivery. For Telegram creators, Gategram offers a fully native experience with Stars checkout and instant delivery.' },
+            { q: 'Is there a Buy Me a Coffee for Telegram?', a: 'Gategram is the Buy Me a Coffee equivalent built for Telegram. Instead of a web-based tip page, Gategram lets you sell content with native Telegram Stars checkout. Buyers pay with one tap inside the app and receive content instantly as a message. Same 5% fee, but with actual content delivery built in.' },
+            { q: "What's the best tip jar for Telegram creators?", a: 'For Telegram creators, Telegram Stars via Gategram is the most frictionless way to accept payments. Unlike external tip jars (BMC, Ko-fi), Stars payments happen natively inside the app with one tap. You can accept tips by creating low-priced support products, or sell actual content for predictable revenue.' },
+          ].map((item) => (
+            <div key={item.q} className="site-panel text-sm text-site-muted">
+              <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
+            </div>
+          ))}
         </div>
       </section>
 

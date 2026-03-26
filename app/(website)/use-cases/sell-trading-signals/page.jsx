@@ -1,5 +1,6 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Sell Trading Signals on Telegram',
@@ -19,6 +20,45 @@ export default function SellTradingSignals() {
     ],
   };
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Can I sell trading signals on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. With Gategram, you can sell trading signals as paid content on Telegram. Create a product with your signal (entry, targets, stop loss), set a price in Stars, and share the buy link in your channel. Buyers pay with one tap and receive the signal instantly in chat.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How much should I charge for trading signals?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Pricing depends on your track record, audience size, and signal quality. Most Telegram signal sellers charge between $5-50 per signal or $20-100 for weekly packs. Start with a lower price to build a buyer base, then increase as you demonstrate consistent results.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is it legal to sell trading signals on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Selling trading signals is legal in most jurisdictions, but regulations vary. In the US and EU, you may need to include disclaimers that signals are not financial advice. Always check local regulations regarding financial content distribution and ensure you include appropriate risk disclaimers with your signals.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do I deliver signals after payment?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'With Gategram, delivery is automatic and instant. When a buyer pays via Telegram Stars, the signal content is delivered immediately as a Telegram message. You can include text, charts, files, or links — all delivered in-chat without any manual intervention on your part.',
+        },
+      },
+    ],
+  };
+
   const products = [
     { icon: '📊', name: 'Trade Signals', desc: 'Entry/exit points, stop losses, take profits — delivered as paid messages the moment your analysis is ready.' },
     { icon: '📈', name: 'Market Analysis', desc: 'Daily or weekly market breakdowns, chart analysis, and sector reports sold per issue.' },
@@ -31,6 +71,7 @@ export default function SellTradingSignals() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Sell trading signals on <span className="text-site-accent">Telegram</span> — stop giving alpha away</>}
@@ -89,6 +130,42 @@ export default function SellTradingSignals() {
               </div>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">Related</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Link href="/use-cases/crypto-alpha-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Monetize Crypto Alpha</h3>
+              <p className="text-sm text-site-muted">Sell token research, DeFi strategies, and alpha calls on Telegram.</p>
+            </Link>
+            <Link href="/telegram-paywall" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Telegram Paywall</h3>
+              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout in under 2 minutes.</p>
+            </Link>
+            <Link href="/how-payments-work" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">How Payments Work</h3>
+              <p className="text-sm text-site-muted">Understand the Telegram Stars payment flow from tap to delivery.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
+        <div className="max-w-3xl mx-auto space-y-3">
+          <h2 className="text-2xl font-bold">Selling Trading Signals FAQ</h2>
+          {[
+            { q: 'Can I sell trading signals on Telegram?', a: 'Yes. With Gategram, you can sell trading signals as paid content on Telegram. Create a product with your signal (entry, targets, stop loss), set a price in Stars, and share the buy link in your channel. Buyers pay with one tap and receive the signal instantly in chat.' },
+            { q: 'How much should I charge for trading signals?', a: 'Pricing depends on your track record, audience size, and signal quality. Most Telegram signal sellers charge between $5-50 per signal or $20-100 for weekly packs. Start with a lower price to build a buyer base, then increase as you demonstrate consistent results.' },
+            { q: 'Is it legal to sell trading signals on Telegram?', a: 'Selling trading signals is legal in most jurisdictions, but regulations vary. In the US and EU, you may need to include disclaimers that signals are not financial advice. Always check local regulations regarding financial content distribution and ensure you include appropriate risk disclaimers with your signals.' },
+            { q: 'How do I deliver signals after payment?', a: 'With Gategram, delivery is automatic and instant. When a buyer pays via Telegram Stars, the signal content is delivered immediately as a Telegram message. You can include text, charts, files, or links — all delivered in-chat without any manual intervention on your part.' },
+          ].map((item) => (
+            <div key={item.q} className="site-panel text-sm text-site-muted">
+              <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
+            </div>
+          ))}
         </div>
       </section>
 

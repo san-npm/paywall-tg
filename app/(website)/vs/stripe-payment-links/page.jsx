@@ -1,5 +1,6 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Gategram vs Stripe Payment Links for Telegram',
@@ -19,6 +20,37 @@ export default function VsStripePaymentLinks() {
     ],
   };
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Can I use Stripe to sell on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'You can share Stripe Payment Links inside Telegram, but the buyer will be redirected to a browser-based checkout page. There is no native Stripe integration within Telegram itself. Gategram uses Telegram Stars for a fully in-app payment experience with no browser redirect.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Do Stripe payment links work inside Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Stripe payment links open an external browser checkout when tapped in Telegram. The buyer leaves the app, enters card details on a Stripe-hosted page, and you need separate automation to deliver content. This adds friction and increases drop-off rates compared to native in-app checkout.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What are the fees for Stripe vs Telegram Stars?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Stripe charges 2.9% + 30¢ per transaction, which means small sales lose a larger percentage to fees. Telegram Stars takes a flat 5% with no per-transaction fixed fee, making it more cost-effective for low-price digital products and content sold on Telegram.',
+        },
+      },
+    ],
+  };
+
   const rows = [
     { feature: 'Payment flow', paygate: 'Native Telegram Stars — one tap inside the app', other: 'Opens browser to Stripe-hosted checkout page' },
     { feature: 'Buyer friction', paygate: 'Zero. No redirect, no card form, no email', other: 'High. Browser redirect, email required, card entry' },
@@ -35,6 +67,7 @@ export default function VsStripePaymentLinks() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <PageHeader
         badge="Comparison"
         title={<>Gategram vs <span className="text-site-muted">Stripe Payment Links</span>: stay in chat</>}
@@ -77,6 +110,41 @@ export default function VsStripePaymentLinks() {
               <p className="text-sm text-site-muted">Stripe requires account verification, link configuration, and delivery automation. Gategram: create a product, set a price, share the link. Two minutes, no code, no integrations.</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">Related</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Link href="/alternatives/gumroad-for-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Gumroad Alternative for Telegram</h3>
+              <p className="text-sm text-site-muted">Compare Gumroad's web checkout with native Telegram Stars payments.</p>
+            </Link>
+            <Link href="/fees" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Gategram Pricing</h3>
+              <p className="text-sm text-site-muted">Flat 5% per sale. No monthly fees, no setup costs.</p>
+            </Link>
+            <Link href="/how-payments-work" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">How Payments Work</h3>
+              <p className="text-sm text-site-muted">Understand the Telegram Stars payment flow from tap to delivery.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
+        <div className="max-w-3xl mx-auto space-y-3">
+          <h2 className="text-2xl font-bold">Stripe vs Telegram Stars FAQ</h2>
+          {[
+            { q: 'Can I use Stripe to sell on Telegram?', a: 'You can share Stripe Payment Links inside Telegram, but the buyer will be redirected to a browser-based checkout page. There is no native Stripe integration within Telegram itself. Gategram uses Telegram Stars for a fully in-app payment experience with no browser redirect.' },
+            { q: 'Do Stripe payment links work inside Telegram?', a: 'Stripe payment links open an external browser checkout when tapped in Telegram. The buyer leaves the app, enters card details on a Stripe-hosted page, and you need separate automation to deliver content. This adds friction and increases drop-off rates compared to native in-app checkout.' },
+            { q: 'What are the fees for Stripe vs Telegram Stars?', a: 'Stripe charges 2.9% + 30¢ per transaction, which means small sales lose a larger percentage to fees. Telegram Stars takes a flat 5% with no per-transaction fixed fee, making it more cost-effective for low-price digital products and content sold on Telegram.' },
+          ].map((item) => (
+            <div key={item.q} className="site-panel text-sm text-site-muted">
+              <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
+            </div>
+          ))}
         </div>
       </section>
 

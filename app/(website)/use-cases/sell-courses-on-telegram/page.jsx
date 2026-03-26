@@ -1,5 +1,6 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Sell Online Courses on Telegram',
@@ -19,6 +20,45 @@ export default function SellCoursesOnTelegram() {
     ],
   };
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Can I sell online courses on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. With Gategram, you can sell individual course modules, full courses, or educational materials directly on Telegram. Create a product for each lesson or bundle, set a price in Stars, and share the buy link with your students. No LMS platform or monthly subscription required.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do I deliver course content on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Gategram delivers content automatically after Stars payment. You can include text lessons, PDF files, video links, or any digital material. The student taps Buy, confirms with one tap, and receives the course content instantly as a Telegram message.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is Telegram good for selling educational content?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Telegram is excellent for selling educational content, especially if your audience already follows you there. The native Stars checkout eliminates the friction of sending students to external platforms. You can sell per-module or per-lesson, which is more flexible than monthly subscription models.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: "What's the best way to sell modules or lessons on Telegram?",
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Create each module or lesson as a separate Gategram product with its own price and buy link. Post a free preview or teaser in your channel, then share the buy link for the full lesson. This per-item approach lets students buy only what they need and helps you test pricing.',
+        },
+      },
+    ],
+  };
+
   const products = [
     { icon: '📚', name: 'Course Modules', desc: 'Sell individual lessons or full modules as paid content. Buyers unlock each section with a single tap.' },
     { icon: '🎥', name: 'Video Lessons', desc: 'Upload video files or share private video links. Delivered instantly after Stars payment.' },
@@ -31,6 +71,7 @@ export default function SellCoursesOnTelegram() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Sell online courses on <span className="text-site-accent">Telegram</span> — no LMS required</>}
@@ -93,6 +134,42 @@ export default function SellCoursesOnTelegram() {
               </div>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">Related</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Link href="/use-cases/sell-digital-products-on-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Sell Digital Products on Telegram</h3>
+              <p className="text-sm text-site-muted">Ebooks, templates, and files sold directly inside Telegram.</p>
+            </Link>
+            <Link href="/telegram-paywall" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Telegram Paywall</h3>
+              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout in under 2 minutes.</p>
+            </Link>
+            <Link href="/alternatives/patreon-for-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Patreon Alternative for Telegram</h3>
+              <p className="text-sm text-site-muted">Per-item sales instead of monthly tiers — built for Telegram creators.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
+        <div className="max-w-3xl mx-auto space-y-3">
+          <h2 className="text-2xl font-bold">Selling Courses on Telegram FAQ</h2>
+          {[
+            { q: 'Can I sell online courses on Telegram?', a: 'Yes. With Gategram, you can sell individual course modules, full courses, or educational materials directly on Telegram. Create a product for each lesson or bundle, set a price in Stars, and share the buy link with your students. No LMS platform or monthly subscription required.' },
+            { q: 'How do I deliver course content on Telegram?', a: 'Gategram delivers content automatically after Stars payment. You can include text lessons, PDF files, video links, or any digital material. The student taps Buy, confirms with one tap, and receives the course content instantly as a Telegram message.' },
+            { q: 'Is Telegram good for selling educational content?', a: 'Telegram is excellent for selling educational content, especially if your audience already follows you there. The native Stars checkout eliminates the friction of sending students to external platforms. You can sell per-module or per-lesson, which is more flexible than monthly subscription models.' },
+            { q: "What's the best way to sell modules or lessons on Telegram?", a: 'Create each module or lesson as a separate Gategram product with its own price and buy link. Post a free preview or teaser in your channel, then share the buy link for the full lesson. This per-item approach lets students buy only what they need and helps you test pricing.' },
+          ].map((item) => (
+            <div key={item.q} className="site-panel text-sm text-site-muted">
+              <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
+            </div>
+          ))}
         </div>
       </section>
 
