@@ -1,5 +1,6 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
+import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Monetize Crypto Alpha on Telegram',
@@ -19,6 +20,45 @@ export default function CryptoAlphaTelegram() {
     ],
   };
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How do I monetize crypto research on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'With Gategram, you create paid products for your research — token deep dives, DeFi strategy guides, or alpha calls. Set a price in Stars, share the buy link in your free channel as a teaser, and let buyers unlock the full research with one tap. You keep 95% of every sale.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Can I sell token picks on Telegram?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes. Create a Gategram product with your token picks, analysis, and entry/exit targets. Share the buy link in your Telegram channel alongside a free preview. Buyers pay with Stars and receive the full alpha instantly in chat. Include appropriate disclaimers that this is not financial advice.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: "What's the best way to paywall DeFi alpha?",
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'The most effective approach is posting free market commentary and general analysis publicly, then gating the specific actionable alpha — token names, entry points, yield strategies — behind a Gategram paywall. This gives followers a taste of your research quality while monetizing the premium insights.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How much should I charge for crypto signals?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Crypto signal pricing varies by depth and exclusivity. Individual alpha calls typically sell for $5-25, while weekly research packs range from $20-100. Premium group access can be priced at $50-200. Start with per-item pricing to gauge demand, then adjust based on buyer response and your track record.',
+        },
+      },
+    ],
+  };
+
   const products = [
     { icon: '🔬', name: 'Token Research', desc: 'Deep dives on new tokens, contract analysis, team background, tokenomics breakdown — sold per report.' },
     { icon: '💎', name: 'Alpha Calls', desc: 'Early token picks, presale opportunities, and airdrop strategies. Gate your best finds behind a paywall.' },
@@ -31,6 +71,7 @@ export default function CryptoAlphaTelegram() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Monetize crypto alpha on <span className="text-site-accent">Telegram</span> — stop leaking free research</>}
@@ -93,6 +134,42 @@ export default function CryptoAlphaTelegram() {
               </div>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-center">Related</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Link href="/use-cases/sell-trading-signals" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Sell Trading Signals</h3>
+              <p className="text-sm text-site-muted">Monetize trade alerts, market analysis, and signal packs on Telegram.</p>
+            </Link>
+            <Link href="/telegram-paywall" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">Telegram Paywall</h3>
+              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout in under 2 minutes.</p>
+            </Link>
+            <Link href="/how-payments-work" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
+              <h3 className="font-bold mb-1">How Payments Work</h3>
+              <p className="text-sm text-site-muted">Understand the Telegram Stars payment flow from tap to delivery.</p>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 border-b border-site-border bg-site-elevated">
+        <div className="max-w-3xl mx-auto space-y-3">
+          <h2 className="text-2xl font-bold">Crypto Alpha Monetization FAQ</h2>
+          {[
+            { q: 'How do I monetize crypto research on Telegram?', a: 'With Gategram, you create paid products for your research — token deep dives, DeFi strategy guides, or alpha calls. Set a price in Stars, share the buy link in your free channel as a teaser, and let buyers unlock the full research with one tap. You keep 95% of every sale.' },
+            { q: 'Can I sell token picks on Telegram?', a: 'Yes. Create a Gategram product with your token picks, analysis, and entry/exit targets. Share the buy link in your Telegram channel alongside a free preview. Buyers pay with Stars and receive the full alpha instantly in chat. Include appropriate disclaimers that this is not financial advice.' },
+            { q: "What's the best way to paywall DeFi alpha?", a: 'The most effective approach is posting free market commentary and general analysis publicly, then gating the specific actionable alpha — token names, entry points, yield strategies — behind a Gategram paywall. This gives followers a taste of your research quality while monetizing the premium insights.' },
+            { q: 'How much should I charge for crypto signals?', a: 'Crypto signal pricing varies by depth and exclusivity. Individual alpha calls typically sell for $5-25, while weekly research packs range from $20-100. Premium group access can be priced at $50-200. Start with per-item pricing to gauge demand, then adjust based on buyer response and your track record.' },
+          ].map((item) => (
+            <div key={item.q} className="site-panel text-sm text-site-muted">
+              <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
+            </div>
+          ))}
         </div>
       </section>
 
