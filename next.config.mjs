@@ -12,15 +12,27 @@ const nextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ['pdfkit'],
   poweredByHeader: false,
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.gategram.app' }],
+        destination: 'https://gategram.app/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://telegram.org",
+      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://telegram.org https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' blob: https://api.telegram.org https://t.me https://checkout.stripe.com https://api.stripe.com",
+      "connect-src 'self' https://api.telegram.org https://t.me https://checkout.stripe.com https://api.stripe.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
+      "frame-src 'self' https://js.stripe.com",
       "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org",
+      "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       'upgrade-insecure-requests',
@@ -31,12 +43,13 @@ const nextConfig = {
         source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
           { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
           { key: 'Content-Security-Policy', value: csp },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
         ],
       },
     ];
