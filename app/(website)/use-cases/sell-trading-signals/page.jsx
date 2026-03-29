@@ -14,9 +14,9 @@ export default function SellTradingSignals() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://www.gategram.app/use-cases/sell-trading-signals' },
-      { '@type': 'ListItem', position: 3, name: 'Sell Trading Signals on Telegram', item: 'https://www.gategram.app/use-cases/sell-trading-signals' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://gategram.app/use-cases/sell-trading-signals' },
+      { '@type': 'ListItem', position: 3, name: 'Sell Trading Signals on Telegram', item: 'https://gategram.app/use-cases/sell-trading-signals' },
     ],
   };
 

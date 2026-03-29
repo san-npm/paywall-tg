@@ -14,9 +14,9 @@ export default function VsTribute() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://www.gategram.app/vs/tribute' },
-      { '@type': 'ListItem', position: 3, name: 'Gategram vs Tribute', item: 'https://www.gategram.app/vs/tribute' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://gategram.app/vs/tribute' },
+      { '@type': 'ListItem', position: 3, name: 'Gategram vs Tribute', item: 'https://gategram.app/vs/tribute' },
     ],
   };
 

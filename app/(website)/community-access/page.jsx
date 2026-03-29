@@ -13,8 +13,8 @@ export default function CommunityAccessPage() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Community Access', item: 'https://www.gategram.app/community-access' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Community Access', item: 'https://gategram.app/community-access' },
     ],
   };
 

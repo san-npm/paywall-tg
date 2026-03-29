@@ -13,9 +13,9 @@ export default function GumroadAlternative() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://www.gategram.app/alternatives/gumroad-for-telegram' },
-      { '@type': 'ListItem', position: 3, name: 'Gumroad Alternative for Telegram', item: 'https://www.gategram.app/alternatives/gumroad-for-telegram' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://gategram.app/alternatives/gumroad-for-telegram' },
+      { '@type': 'ListItem', position: 3, name: 'Gumroad Alternative for Telegram', item: 'https://gategram.app/alternatives/gumroad-for-telegram' },
     ],
   };
 
