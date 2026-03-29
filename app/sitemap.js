@@ -11,6 +11,7 @@ export default function sitemap() {
     '/how-payments-work',
     '/security',
     '/changelog',
+    '/how-to-sell-on-telegram',
     '/telegram-paywall',
     '/community-monetization',
     '/community-access',

@@ -14,9 +14,9 @@ export default function VsStripePaymentLinks() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://www.gategram.app/vs/stripe-payment-links' },
-      { '@type': 'ListItem', position: 3, name: 'Gategram vs Stripe Payment Links', item: 'https://www.gategram.app/vs/stripe-payment-links' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://gategram.app/vs/stripe-payment-links' },
+      { '@type': 'ListItem', position: 3, name: 'Gategram vs Stripe Payment Links', item: 'https://gategram.app/vs/stripe-payment-links' },
     ],
   };
 

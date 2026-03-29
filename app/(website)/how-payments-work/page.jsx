@@ -34,8 +34,8 @@ export default function HowPaymentsWork() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'How Payments Work', item: 'https://www.gategram.app/how-payments-work' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'How Payments Work', item: 'https://gategram.app/how-payments-work' },
     ],
   };
 

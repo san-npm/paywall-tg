@@ -2,10 +2,10 @@ import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'Telegram Paid Content Monetization',
-  description: 'Monetize Telegram channels and groups with paid content, community access, and native Stars checkout.',
+  title: 'Telegram Paid Content Unlocker — Sell & Deliver Instantly',
+  description: 'Unlock paid content on Telegram with native Stars checkout. Buyers tap once, content is delivered instantly in chat — no external pages.',
   path: '/use-cases/telegram-paid-content',
-  keywords: ['telegram paid content', 'community access monetization'],
+  keywords: ['telegram paid content unlocker', 'telegram paid content', 'unlock paid content telegram', 'telegram content paywall', 'community access monetization'],
 });
 
 export default function TelegramPaidContent() {
@@ -13,9 +13,9 @@ export default function TelegramPaidContent() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://www.gategram.app/use-cases/telegram-paid-content' },
-      { '@type': 'ListItem', position: 3, name: 'Telegram Paid Content', item: 'https://www.gategram.app/use-cases/telegram-paid-content' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
+      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://gategram.app/use-cases/telegram-paid-content' },
+      { '@type': 'ListItem', position: 3, name: 'Telegram Paid Content Unlocker', item: 'https://gategram.app/use-cases/telegram-paid-content' },
     ],
   };
 
@@ -47,8 +47,8 @@ export default function TelegramPaidContent() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <PageHeader
         badge="Use Case"
-        title={<>Monetize Telegram content with a clear buyer journey</>}
-        description="Creators publish paid posts and access offers. Buyers pay in Telegram Stars and unlock instantly in chat."
+        title={<>Telegram paid content unlocker: sell and deliver in one tap</>}
+        description="Lock any content behind a Stars paywall. Buyers tap Buy, pay natively, and unlock instantly — no redirect, no signup, no friction."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
