@@ -5,7 +5,7 @@ export const metadata = buildPageMetadata({
   title: 'Telegram Paywall for Paid Communities & Content',
   description: 'Set up a Telegram paywall with native Stars checkout. Sell paid content, gate community access, and deliver instantly — without sending buyers to external pages.',
   path: '/telegram-paywall',
-  keywords: ['paywall telegram', 'telegram paywall', 'telegram paywall bot', 'paid telegram community', 'telegram paywall setup'],
+  keywords: ['paywall telegram', 'telegram paywall', 'telegram new paywall', 'telegram new pay wall', 'telegram paywall bot', 'paid telegram community', 'telegram paywall setup', 'telegram paywall 2026'],
 });
 
 export default function TelegramPaywallPage() {

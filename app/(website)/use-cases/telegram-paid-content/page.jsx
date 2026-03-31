@@ -5,7 +5,7 @@ export const metadata = buildPageMetadata({
   title: 'Telegram Paid Content Unlocker — Sell & Deliver Instantly',
   description: 'Unlock paid content on Telegram with native Stars checkout. Buyers tap once, content is delivered instantly in chat — no external pages.',
   path: '/use-cases/telegram-paid-content',
-  keywords: ['telegram paid content unlocker', 'telegram paid content', 'unlock paid content telegram', 'telegram content paywall', 'community access monetization'],
+  keywords: ['telegram paid content unlocker', 'telegram paid content', 'unlock paid content telegram', 'telegram content paywall', 'community access monetization', 'video paywall telegram', 'sell video on telegram', 'telegram video paywall', 'paid video telegram'],
 });
 
 export default function TelegramPaidContent() {
@@ -39,6 +39,11 @@ export default function TelegramPaidContent() {
       title: 'Early access / behind-the-scenes',
       desc: 'Give paying followers first access to your content, unreleased work, or exclusive behind-the-scenes material.',
       example: 'A music producer sells early access to unreleased tracks before they hit streaming platforms.',
+    },
+    {
+      title: 'Paid video content',
+      desc: 'Sell video tutorials, courses, exclusive clips, or premium video content. Upload as a file — delivered instantly via Telegram after Stars payment.',
+      example: 'A filmmaker sells behind-the-scenes footage or a videographer sells editing tutorials as individual paid videos.',
     },
   ];
 
@@ -114,12 +119,20 @@ export default function TelegramPaidContent() {
           <h2 className="text-2xl font-bold">FAQ: paid content in Telegram</h2>
           {[
             {
+              q: 'Can I sell video content behind a Telegram paywall?',
+              a: 'Yes. Upload your video as a file when creating a product. When a buyer pays with Stars, the video is delivered instantly as a Telegram message. You can sell individual videos, video courses, or exclusive video content — all behind a paywall.',
+            },
+            {
+              q: 'How can buyers tell if a video on Telegram is behind a paywall?',
+              a: 'When content is gated through Gategram, buyers see a purchase button with the price in Stars. They tap to buy, confirm the native Stars payment in one tap, and the video or content is delivered immediately in chat. No redirect, no signup.',
+            },
+            {
               q: 'Can I sell both one-time content and recurring access?',
               a: 'Yes. Many creators run one-time paid drops for specific reports while also selling private group access for recurring value.',
             },
             {
               q: 'What content formats work best for paid Telegram offers?',
-              a: 'Short actionable content with clear outcomes performs best: templates, research summaries, tactical guides, and access links to private groups.',
+              a: 'Short actionable content with clear outcomes performs best: templates, research summaries, tactical guides, videos, and access links to private groups.',
             },
             {
               q: 'How should I price paid content?',
