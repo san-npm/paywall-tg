@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCreatorPayoutDetails } from '@/lib/db';
 import { validateInitData } from '@/lib/validate';
 import { payoutStatementRows, toCsv } from '@/lib/payout-statement';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
@@ -10,6 +11,11 @@ export async function GET(req) {
   const initDataRaw = req.headers.get('x-telegram-init-data') || searchParams.get('init_data') || '';
   const initData = validateInitData(initDataRaw);
   if (!initData?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const userId = String(initData.user.id);
+  const { limited } = await checkRateLimit(`payout_csv:${userId}`, 30);
+  if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+
   const payoutId = Number(searchParams.get('payout_id'));
   if (!Number.isFinite(payoutId) || payoutId <= 0) {
     return NextResponse.json({ error: 'Valid payout_id required' }, { status: 400 });

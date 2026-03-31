@@ -11,7 +11,10 @@ export default function WebsiteLayout({ children }) {
     url: SITE_URL,
     logo: `${SITE_URL}/Gategram-icon.png`,
     sameAs: ['https://t.me/gategram_bot'],
-    description: 'Telegram paywall and community monetization platform with native Stars checkout.',
+    description: 'Gategram is a Telegram Mini App that lets creators sell paid content, community access, and digital products using native Telegram Stars checkout.',
+    foundingDate: '2026',
+    foundingLocation: { '@type': 'Place', name: 'Luxembourg' },
+    parentOrganization: { '@type': 'Organization', name: 'Commit Media S.a r.l.' },
   };
 
   return (

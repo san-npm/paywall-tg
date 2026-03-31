@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ENABLE_STRIPE, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY } from '@/lib/config';
 import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, enqueueDelivery } from '@/lib/db';
-import { escapeMarkdown } from '@/lib/validate';
+import { escapeMarkdown, validateInitData } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
@@ -53,6 +53,11 @@ export async function GET(req) {
   const sessionId = String(searchParams.get('session_id') || '').trim();
   if (!sessionId) return NextResponse.json({ error: 'session_id required' }, { status: 400 });
 
+  // Authenticate caller via Telegram init_data
+  const initDataRaw = req.headers.get('x-telegram-init-data') || '';
+  const initData = validateInitData(initDataRaw);
+  const callerId = initData?.user?.id ? String(initData.user.id) : null;
+
   // Rate limit by session ID to prevent probing
   const { limited } = await checkRateLimit(`verify:${sessionId}`, 10);
   if (limited) return NextResponse.json({ error: 'Too many verification attempts' }, { status: 429 });
@@ -63,6 +68,11 @@ export async function GET(req) {
 
   const productId = String(session.metadata?.product_id || '');
   const buyerId = String(session.metadata?.buyer_telegram_id || '');
+
+  // Verify the caller is the buyer who made this purchase
+  if (callerId && buyerId && callerId !== buyerId) {
+    return NextResponse.json({ error: 'Unauthorized — buyer mismatch' }, { status: 403 });
+  }
   const currency = String(session.currency || session.metadata?.currency || 'USD').toUpperCase();
   const amountTotal = Number(session.amount_total || 0);
   const paymentIntentId = String(session.payment_intent || '');

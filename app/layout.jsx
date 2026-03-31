@@ -2,7 +2,8 @@ import './globals.css';
 import Script from 'next/script';
 import { CORE_KEYWORDS, SITE_URL } from '@/lib/seo';
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const GA_MEASUREMENT_ID_RAW = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+const GA_MEASUREMENT_ID = /^G-[A-Z0-9]{6,12}$/.test(GA_MEASUREMENT_ID_RAW) ? GA_MEASUREMENT_ID_RAW : null;
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
