@@ -8,11 +8,13 @@ export const metadata = buildPageMetadata({
   path: '/how-to-sell-on-telegram',
   keywords: [
     'how to sell products on telegram',
+    'sell products on telegram',
     'selling on telegram',
     'sell on telegram',
     'how to sell on telegram',
     'telegram selling guide',
     'sell digital products telegram',
+    'sell video on telegram',
     'telegram commerce',
   ],
 });
