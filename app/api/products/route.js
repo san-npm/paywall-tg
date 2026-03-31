@@ -12,9 +12,7 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const creatorId = searchParams.get('creator_id');
   const productId = searchParams.get('product_id');
-  const initDataParam = searchParams.get('init_data');
-  const initDataHeader = req.headers.get('x-telegram-init-data');
-  const initDataRaw = initDataHeader || initDataParam;
+  const initDataRaw = req.headers.get('x-telegram-init-data') || '';
 
   // Validate buyer identity from initData to prevent content gate bypass
   let authenticatedBuyerId = null;

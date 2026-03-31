@@ -126,10 +126,39 @@ export default function HomePage() {
     ],
   };
 
+  const howToSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to set up a Telegram paywall with Gategram',
+    description: 'Create a paid digital product on Telegram and start selling in under 2 minutes using native Stars checkout.',
+    totalTime: 'PT2M',
+    step: [
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: 'Create your paid content',
+        text: 'Set a title, price in Stars, and paste your content (text, link, or file). Takes under 2 minutes.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: 'Share your Telegram link',
+        text: 'Post the buy link once in your channel, group, or DM.',
+      },
+      {
+        '@type': 'HowToStep',
+        position: 3,
+        name: 'Get paid and auto-deliver',
+        text: 'Buyers pay with Telegram Stars in one tap. Content is delivered instantly as a Telegram message. You keep 95%.',
+      },
+    ],
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
       <HomePageClient />
 
       <section className="py-16 px-4 border-t border-site-border bg-site-elevated">

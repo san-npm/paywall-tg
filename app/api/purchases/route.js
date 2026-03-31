@@ -6,7 +6,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 export const runtime = 'nodejs';
 
 export async function GET(req) {
-  const initDataRaw = req.headers.get('x-telegram-init-data') || new URL(req.url).searchParams.get('init_data');
+  const initDataRaw = req.headers.get('x-telegram-init-data') || '';
   const initData = validateInitData(initDataRaw);
   if (!initData?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
