@@ -53,13 +53,18 @@ export async function GET(req) {
   const sessionId = String(searchParams.get('session_id') || '').trim();
   if (!sessionId) return NextResponse.json({ error: 'session_id required' }, { status: 400 });
 
-  // Authenticate caller via Telegram init_data
+  // Authenticate caller via Telegram init_data. Required — without it, an
+  // unauthenticated caller who learns a session_id can probe Stripe paid
+  // status and force early delivery on behalf of the buyer.
   const initDataRaw = req.headers.get('x-telegram-init-data') || '';
   const initData = validateInitData(initDataRaw);
   const callerId = initData?.user?.id ? String(initData.user.id) : null;
+  if (!callerId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-  // Rate limit by session ID to prevent probing
-  const { limited } = await checkRateLimit(`verify:${sessionId}`, 10);
+  // Rate limit by caller to cap enumeration
+  const { limited } = await checkRateLimit(`verify:${callerId}`, 30);
   if (limited) return NextResponse.json({ error: 'Too many verification attempts' }, { status: 429 });
 
   const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -69,8 +74,8 @@ export async function GET(req) {
   const productId = String(session.metadata?.product_id || '');
   const buyerId = String(session.metadata?.buyer_telegram_id || '');
 
-  // Verify the caller is the buyer who made this purchase
-  if (callerId && buyerId && callerId !== buyerId) {
+  // Caller must be the buyer who initiated this checkout.
+  if (!buyerId || callerId !== buyerId) {
     return NextResponse.json({ error: 'Unauthorized — buyer mismatch' }, { status: 403 });
   }
   const currency = String(session.currency || session.metadata?.currency || 'USD').toUpperCase();
