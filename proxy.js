@@ -16,7 +16,7 @@ const AGENT_LINK_HEADER = [
   '</sitemap.xml>; rel="sitemap"; type="application/xml"',
 ].join(', ');
 
-export function middleware(req) {
+export function proxy(req) {
   if (req.method === 'GET' && prefersMarkdown(req.headers.get('accept'))) {
     const target = new URL(`/api/md${req.nextUrl.pathname}`, req.nextUrl.origin);
     return NextResponse.rewrite(target);
