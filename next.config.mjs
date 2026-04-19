@@ -57,7 +57,7 @@ const nextConfig = {
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
           { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
           { key: 'Content-Security-Policy', value: csp },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=(), interest-cohort=(), idle-detection=()' },
         ],
       },
     ];
