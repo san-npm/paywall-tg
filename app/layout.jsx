@@ -1,6 +1,7 @@
 import './globals.css';
 import Script from 'next/script';
 import { CORE_KEYWORDS, SITE_URL } from '@/lib/seo';
+import WebMcpTools from '@/components/WebMcpTools';
 
 const GA_MEASUREMENT_ID_RAW = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
 const GA_MEASUREMENT_ID = /^G-[A-Z0-9]{6,12}$/.test(GA_MEASUREMENT_ID_RAW) ? GA_MEASUREMENT_ID_RAW : null;
@@ -50,7 +51,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <WebMcpTools />
+        {children}
+      </body>
       {GA_MEASUREMENT_ID ? (
         <>
           <Script

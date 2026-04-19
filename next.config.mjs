@@ -12,6 +12,14 @@ const nextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ['pdfkit'],
   poweredByHeader: false,
+  async rewrites() {
+    // Expose RFC 9727 / agent-discovery paths. Next.js can't host folders
+    // whose name starts with a dot, so forward them to app-router handlers.
+    return [
+      { source: '/.well-known/api-catalog', destination: '/api/well-known/api-catalog' },
+      { source: '/.well-known/openapi.yaml', destination: '/api/well-known/openapi' },
+    ];
+  },
   async redirects() {
     return [
       {
