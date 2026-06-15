@@ -5,35 +5,42 @@ on:
     branches: ["main", "master", "work"]
   pull_request:
 
+# Least-privilege: neither job writes to the repo, so a read-only token is enough
+# and is immune to a permissive org/repo default (audit cicd-1).
+permissions:
+  contents: read
+
 jobs:
   npm-audit:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
 
+      # --ignore-scripts: only resolve/audit the declared tree; never run a
+      # (potentially malicious) dependency lifecycle script in CI (audit cicd-4).
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
+      # Enforcing: fail the job (and block merge) on high/critical prod advisories.
       - name: Run npm audit (prod deps)
-        run: npm audit --omit=dev
+        run: npm audit --omit=dev --audit-level=high
 
   osv-scan:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Run OSV scanner on lockfile
-        uses: google/osv-scanner-action/osv-scanner-action@v2.3.3
+        uses: google/osv-scanner-action/osv-scanner-action@c5996e0193a3df57d695c1b8a1dec2a4c62e8730 # v2.3.3
         with:
           scan-args: |-
             --lockfile=package-lock.json
