@@ -59,7 +59,14 @@ export async function POST(req) {
   const creatorShare = starsPaid - platformFee;
   const fakeChargeId = `test_${productId}_${buyerId}_${Date.now()}`;
 
-  await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, fakeChargeId);
+  try {
+    await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, fakeChargeId);
+  } catch (err) {
+    if (err?.message?.includes('UNIQUE constraint')) {
+      return NextResponse.json({ ok: true, alreadyPurchased: true });
+    }
+    throw err;
+  }
 
   if (BOT_TOKEN) {
     const b = getBot();
@@ -68,16 +75,16 @@ export async function POST(req) {
     let contentMessage = '';
     switch (product.content_type) {
       case 'text':
-        contentMessage = `🧪 *Test purchase successful!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+        contentMessage = `🧪 *Test purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
         break;
       case 'link':
-        contentMessage = `🧪 *Test purchase successful!*\n\n*${safeTitle}*\n\n🔗 ${escapeMarkdown(product.content)}`;
+        contentMessage = `🧪 *Test purchase successful\\!*\n\n*${safeTitle}*\n\n🔗 ${escapeMarkdown(product.content)}`;
         break;
       case 'file':
-        contentMessage = `🧪 *Test purchase successful!*\n\n*${safeTitle}*`;
+        contentMessage = `🧪 *Test purchase successful\\!*\n\n*${safeTitle}*`;
         break;
       default:
-        contentMessage = `🧪 *Test purchase successful!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+        contentMessage = `🧪 *Test purchase successful\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
     }
 
     await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
@@ -86,7 +93,7 @@ export async function POST(req) {
       else await b.api.sendMessage(buyerId, 'Test mode: file is not attached yet for this product.');
     }
 
-    const creatorMsg = `🧪 Test sale\!\n*${safeTitle}*\nSimulated buyer generated ⭐ ${creatorShare} creator share`;
+    const creatorMsg = `🧪 Test sale\\!\n*${safeTitle}*\nSimulated buyer generated ⭐ ${creatorShare} creator share`;
     await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' }).catch(() => {});
   }
 

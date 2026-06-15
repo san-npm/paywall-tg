@@ -3,8 +3,8 @@ import { Bot } from 'grammy';
 import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_FAKE_PAYMENTS } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
-  getCreatorStats, recordPurchase, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
-  setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery
+  getCreatorStats, recordPurchase, reactivatePurchase, getPurchaseByChargeId, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
+  setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery, markDeliveryDoneForTarget
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId, sanitizeErrorMessage } from '@/lib/validate';
 
@@ -131,7 +131,10 @@ export async function POST(req) {
       if (!isValidProductId(productId)) {
         return NextResponse.json({ ok: true });
       }
-      const product = await getProduct(productId);
+      // Use the raw (active-agnostic) read: the buyer has already paid, so a
+      // product deactivated between pre_checkout and this callback must still be
+      // delivered rather than silently dropped.
+      const product = await getProductRaw(productId);
 
       if (product) {
         // Verify payment payload integrity before delivery
@@ -148,21 +151,37 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
+        const chargeId = payment.telegram_payment_charge_id;
         const starsPaid = payment.total_amount;
         const platformFee = Math.ceil(starsPaid * PLATFORM_FEE_PERCENT / 100);
         const creatorShare = starsPaid - platformFee;
 
-        try {
-          await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, payment.telegram_payment_charge_id);
-        } catch (err) {
-          // UNIQUE constraint violation = duplicate, silently skip
-          if (err.message?.includes('UNIQUE constraint')) {
-            return NextResponse.json({ ok: true });
-          }
-          throw err;
+        // Idempotency: a redelivery of the SAME charge (also guarded upstream by
+        // update_id) is a no-op so we never double-deliver or double-count.
+        if (await getPurchaseByChargeId(chargeId)) {
+          return NextResponse.json({ ok: true });
         }
 
-        // Deliver the content (with queue fallback on failure)
+        try {
+          await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, chargeId);
+        } catch (err) {
+          if (err.message?.includes('UNIQUE constraint')) {
+            // A prior, refunded purchase by this buyer blocks a fresh INSERT.
+            // Reactivate it so a paying re-buyer actually gets their content.
+            const reactivated = await reactivatePurchase(productId, buyerId, starsPaid, creatorShare, platformFee, chargeId);
+            if (!reactivated) {
+              // Genuine active duplicate \u2014 already owned. Nothing to deliver.
+              return NextResponse.json({ ok: true });
+            }
+          } else {
+            throw err;
+          }
+        }
+
+        // Durable delivery intent FIRST: if this function is interrupted (e.g.
+        // serverless timeout) after recording the purchase, the retry cron still
+        // delivers from the queue. On synchronous success we close the queue row.
+        await enqueueDelivery(productId, buyerId, 'stars');
         try {
           const safeTitle = escapeMarkdown(product.title);
           let contentMessage = '';
@@ -183,14 +202,15 @@ export async function POST(req) {
 
           await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
           await deliverPaidMedia(b.api, buyerId, product);
+          await markDeliveryDoneForTarget(productId, buyerId);
 
           // Notify creator
           const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;
           await b.api.sendMessage(product.creator_id, creatorMsg, { parse_mode: 'MarkdownV2' })
             .catch(err => console.error('Failed to notify creator:', product.creator_id, err.message));
         } catch (deliveryErr) {
-          console.error('Content delivery failed, queuing for retry:', deliveryErr?.message || deliveryErr);
-          await enqueueDelivery(productId, buyerId, 'stars');
+          // Leave the pending queue row for the retry cron to pick up.
+          console.error('Content delivery failed, queued for retry:', deliveryErr?.message || deliveryErr);
         }
       }
 
@@ -361,16 +381,16 @@ export async function POST(req) {
           let contentMessage = '';
           switch (product.content_type) {
             case 'text':
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
               break;
             case 'link':
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
               break;
             case 'file':
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*`;
               break;
             default:
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
               break;
           }
           await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });
@@ -412,16 +432,16 @@ export async function POST(req) {
           let contentMessage = '';
           switch (product.content_type) {
             case 'text':
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
               break;
             case 'link':
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*\n\n\u{1F517} ${escapeMarkdown(product.content)}`;
               break;
             case 'file':
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*`;
               break;
             default:
-              contentMessage = `\u{1F389} *Already purchased\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
+              contentMessage = `\u{1F389} *Already purchased\\!*\n\n*${safeTitle}*\n\n${escapeMarkdown(product.content)}`;
               break;
           }
           await b.api.sendMessage(chatId, contentMessage, { parse_mode: 'MarkdownV2' });

@@ -45,6 +45,12 @@ export async function GET(req) {
   const adminId = getAdminId(req);
   if (!adminId) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
+  // Throttle the expensive multi-table CSV/export scans (audit ratelimit-5).
+  const exportLimit = await checkRateLimit(`admin:${adminId}:export`, 120);
+  if (exportLimit.limited) {
+    return NextResponse.json({ error: 'Rate limit exceeded for admin export' }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
   const format = String(searchParams.get('format') || 'json');
   const kind = String(searchParams.get('kind') || 'actions').replace(/[^a-z_]/gi, '');

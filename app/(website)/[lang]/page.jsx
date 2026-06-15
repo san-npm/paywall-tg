@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import HomePageClient from '../../../components/website/HomePageClient';
-import { buildPageMetadata, SITE_URL } from '@/lib/seo';
+import { buildPageMetadata, SITE_URL, jsonLd } from '@/lib/seo';
 import { messages } from '@/lib/i18n';
 
 const SUPPORTED_LANGS = ['es', 'ru', 'pt', 'id', 'ar', 'hi', 'tr', 'fa', 'uk'];
@@ -77,17 +77,12 @@ export default async function LangHomePage({ params }) {
     operatingSystem: 'Telegram Mini App',
     description: meta.description,
     inLanguage: meta.htmlLang,
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-      description: 'Free to start, platform fee on successful sales',
-    },
+    // No misleading "price: 0" Offer (sales carry a 5% fee; no genuine ratings).
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(softwareSchema) }} />
       <HomePageClient forceLang={lang} />
     </>
   );

@@ -1,5 +1,5 @@
 import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Community Monetization on Telegram — Native Paywall',
@@ -18,41 +18,45 @@ export default function CommunityMonetizationPage() {
     ],
   };
 
+  // Single source of truth: the visible FAQ and the FAQPage schema are both
+  // built from this array so the structured data matches the DOM verbatim.
+  const faqs = [
+    {
+      q: 'How do I monetize a Telegram community?',
+      a: 'Create paid offers for your content or community access, share buy links in your channel or group, and let buyers pay with Telegram Stars. Native in-app checkout removes the friction of external payment pages, and setup takes about 2 minutes.',
+    },
+    {
+      q: 'What is the best way to monetize a Telegram channel?',
+      a: 'The highest-conversion approach is native in-app checkout. Instead of sending buyers to external payment pages, use Telegram Stars checkout so the entire purchase happens inside the app. Combine a mix of one-time paid content and paid group access.',
+    },
+    {
+      q: 'Do I need external payment tools like Stripe?',
+      a: 'No. Gategram uses Telegram Stars, which is Telegram\'s native payment system. Buyers pay with one tap using Apple Pay or Google Pay through the Stars system. No Stripe, no PayPal, no external checkout pages.',
+    },
+    {
+      q: 'Can I sell both one-time content and recurring access?',
+      a: 'Yes. Sell individual reports, guides, or files alongside ongoing group access. Mix and match based on what your audience values.',
+    },
+    {
+      q: 'What niches work best for Telegram monetization?',
+      a: 'Trading signals, crypto research, fitness coaching, art and design, education, and any niche where creators sell knowledge or exclusive access directly to an engaged audience.',
+    },
+  ];
+
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'How do I monetize a Telegram community?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Create paid offers for your content or community access, share buy links in your channel or group, and let buyers pay with Telegram Stars. Native in-app checkout removes the friction of external payment pages and increases conversion.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What is the best way to monetize a Telegram channel?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'The highest-conversion approach is native in-app checkout. Instead of sending buyers to external payment pages (where 40-70% abandon), use Telegram Stars checkout so the entire purchase happens inside the app. Combine this with a mix of one-time paid content and paid group access.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I monetize a Telegram group without external payment tools?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. Gategram uses Telegram Stars, which is Telegram\'s native payment system. No Stripe, no PayPal, no external checkout pages. Buyers pay with one tap using Apple Pay or Google Pay through the Stars system.',
-        },
-      },
-    ],
+    mainEntity: faqs.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
 
       <PageHeader
         badge="Community Monetization"
@@ -145,28 +149,7 @@ export default function CommunityMonetizationPage() {
       <section className="py-16 px-4 border-b border-site-border">
         <div className="max-w-3xl mx-auto space-y-3">
           <h2 className="text-2xl font-bold">Community monetization FAQ</h2>
-          {[
-            {
-              q: 'How do I monetize a Telegram community?',
-              a: 'Create paid offers, share buy links in your channel or group, and let buyers pay with Telegram Stars. The entire purchase happens inside Telegram — no external pages.',
-            },
-            {
-              q: 'What is the best way to monetize a Telegram channel?',
-              a: 'Native in-app checkout has the highest conversion. Instead of sending buyers to external payment pages, use Stars checkout so the entire purchase happens inside Telegram.',
-            },
-            {
-              q: 'Do I need external payment tools like Stripe?',
-              a: 'No. Gategram uses Telegram Stars, which is Telegram\'s native payment system. Buyers pay with Apple Pay or Google Pay through Stars. No Stripe, no PayPal.',
-            },
-            {
-              q: 'Can I sell both one-time content and recurring access?',
-              a: 'Yes. Sell individual reports, guides, or files alongside ongoing group access. Mix and match based on what your audience values.',
-            },
-            {
-              q: 'What niches work best for Telegram monetization?',
-              a: 'Trading signals, crypto research, fitness coaching, art and design, education, adult content, and any niche where creators sell knowledge or exclusive access directly to an engaged audience.',
-            },
-          ].map((item) => (
+          {faqs.map((item) => (
             <div key={item.q} className="site-panel text-sm text-site-muted">
               <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
             </div>

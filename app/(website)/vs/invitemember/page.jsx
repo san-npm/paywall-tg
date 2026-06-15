@@ -1,5 +1,5 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Gategram vs InviteMember for Telegram Monetization',
@@ -13,9 +13,8 @@ export default function VsInviteMember() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://gategram.app/vs/invitemember' },
-      { '@type': 'ListItem', position: 3, name: 'Gategram vs InviteMember', item: 'https://gategram.app/vs/invitemember' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app/' },
+      { '@type': 'ListItem', position: 2, name: 'Gategram vs InviteMember', item: 'https://gategram.app/vs/invitemember' },
     ],
   };
 
@@ -34,7 +33,7 @@ export default function VsInviteMember() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <PageHeader
         badge="Comparison"
         title={<>Gategram vs <span className="text-site-muted">InviteMember</span>: checkout clarity wins</>}

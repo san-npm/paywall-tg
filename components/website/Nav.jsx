@@ -22,11 +22,11 @@ export default function Nav() {
         </Link>
 
         <div className="hidden md:flex items-center gap-4 text-sm text-site-muted">
-          <Link href="/docs" className="hover:text-site-text transition-colors">{t.navDocs}</Link>
           <Link href="/telegram-paywall" className="hover:text-site-text transition-colors">Telegram Paywall</Link>
+          <Link href="/how-to-sell-on-telegram" className="hover:text-site-text transition-colors">How to Sell</Link>
           <Link href="/community-monetization" className="hover:text-site-text transition-colors">Community Monetization</Link>
           <Link href="/fees" className="hover:text-site-text transition-colors">{t.navFees}</Link>
-          <Link href="/changelog" className="hover:text-site-text transition-colors">{t.navChangelog}</Link>
+          <Link href="/docs" className="hover:text-site-text transition-colors">{t.navDocs}</Link>
 
           <select
             aria-label="Language"
@@ -53,11 +53,12 @@ export default function Nav() {
 
       {open && (
         <div className="md:hidden border-t border-site-border bg-site-bg px-4 py-4 space-y-3">
-          <Link href="/docs" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>{t.navDocs}</Link>
           <Link href="/telegram-paywall" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>Telegram Paywall</Link>
+          <Link href="/how-to-sell-on-telegram" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>How to Sell on Telegram</Link>
           <Link href="/community-monetization" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>Community Monetization</Link>
           <Link href="/community-access" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>Community Access</Link>
           <Link href="/fees" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>{t.navFees}</Link>
+          <Link href="/docs" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>{t.navDocs}</Link>
           <Link href="/changelog" className="block text-site-muted hover:text-site-text" onClick={() => setOpen(false)}>{t.navChangelog}</Link>
           <select aria-label="Language" value={lang} onChange={(e) => setLang(e.target.value)} className="lang-select w-full">
             {LANGS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}

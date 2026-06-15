@@ -1,5 +1,5 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
@@ -14,9 +14,8 @@ export default function AdultContentTelegram() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://gategram.app/use-cases/adult-content-telegram' },
-      { '@type': 'ListItem', position: 3, name: 'Monetize Adult Content on Telegram', item: 'https://gategram.app/use-cases/adult-content-telegram' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app/' },
+      { '@type': 'ListItem', position: 2, name: 'Monetize Adult Content on Telegram', item: 'https://gategram.app/use-cases/adult-content-telegram' },
     ],
   };
 
@@ -70,8 +69,8 @@ export default function AdultContentTelegram() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Monetize adult content on <span className="text-site-accent">Telegram</span> — your platform, your rules</>}

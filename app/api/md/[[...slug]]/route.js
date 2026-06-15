@@ -12,6 +12,9 @@ export function GET() {
     headers: {
       'Content-Type': 'text/markdown; charset=utf-8',
       'X-Markdown-Tokens': String(Math.ceil(body.length / 4)),
+      // Agent/LLM corpus — fetchable by crawlers but must not compete as an
+      // indexed duplicate of the HTML pages (audit AEO finding).
+      'X-Robots-Tag': 'noindex, nofollow',
       Vary: 'Accept',
       'Cache-Control': 'public, max-age=300',
     },

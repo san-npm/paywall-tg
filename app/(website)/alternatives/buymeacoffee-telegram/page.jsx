@@ -1,5 +1,5 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
@@ -14,9 +14,8 @@ export default function BuyMeACoffeeAlternative() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://gategram.app/alternatives/buymeacoffee-telegram' },
-      { '@type': 'ListItem', position: 3, name: 'Buy Me a Coffee Alternative for Telegram', item: 'https://gategram.app/alternatives/buymeacoffee-telegram' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app/' },
+      { '@type': 'ListItem', position: 2, name: 'Buy Me a Coffee Alternative for Telegram', item: 'https://gategram.app/alternatives/buymeacoffee-telegram' },
     ],
   };
 
@@ -72,8 +71,8 @@ export default function BuyMeACoffeeAlternative() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
       <PageHeader
         badge="Alternative"
         title={<>The Buy Me a Coffee alternative for <span className="text-site-accent">Telegram</span></>}
