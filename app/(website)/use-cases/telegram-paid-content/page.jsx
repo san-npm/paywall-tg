@@ -1,5 +1,6 @@
+import Link from 'next/link';
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Telegram Paid Content Unlocker — Sell & Deliver Instantly',
@@ -13,9 +14,8 @@ export default function TelegramPaidContent() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://gategram.app/use-cases/telegram-paid-content' },
-      { '@type': 'ListItem', position: 3, name: 'Telegram Paid Content Unlocker', item: 'https://gategram.app/use-cases/telegram-paid-content' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app/' },
+      { '@type': 'ListItem', position: 2, name: 'Telegram Paid Content Unlocker', item: 'https://gategram.app/use-cases/telegram-paid-content' },
     ],
   };
 
@@ -49,7 +49,7 @@ export default function TelegramPaidContent() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Telegram paid content unlocker: sell and deliver in one tap</>}
@@ -105,12 +105,17 @@ export default function TelegramPaidContent() {
       </section>
 
       <section className="py-12 px-4 border-b border-site-border">
-        <div className="max-w-3xl mx-auto site-panel text-sm text-site-muted">
+        <div className="max-w-3xl mx-auto space-y-4">
+          <p className="text-sm text-site-muted leading-relaxed">
+            Wondering whether buyers can get around the paywall? <Link href="/telegram-paid-content-unlocker" className="text-site-accent underline">Can you unlock Telegram paid content for free?</Link> The honest answer is no — content is delivered server-side only after a verified Stars payment, which is exactly what keeps your paid content protected.
+          </p>
+          <div className="site-panel text-sm text-site-muted">
           <p className="font-semibold text-site-text mb-2">References</p>
           <ul className="list-disc pl-5 space-y-1">
             <li><a className="text-site-accent underline" href="https://core.telegram.org/bots/payments-stars" target="_blank" rel="noopener noreferrer">Telegram Stars payments documentation</a></li>
             <li><a className="text-site-accent underline" href="https://baymard.com/lists/cart-abandonment-rate" target="_blank" rel="noopener noreferrer">Baymard checkout abandonment and friction benchmarks</a></li>
           </ul>
+          </div>
         </div>
       </section>
 

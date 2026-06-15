@@ -1,5 +1,5 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'LemonSqueezy Alternative for Telegram',
@@ -13,15 +13,14 @@ export default function LemonSqueezyAlternative() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://gategram.app/alternatives/lemon-squeezy-telegram' },
-      { '@type': 'ListItem', position: 3, name: 'LemonSqueezy Alternative for Telegram', item: 'https://gategram.app/alternatives/lemon-squeezy-telegram' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app/' },
+      { '@type': 'ListItem', position: 2, name: 'LemonSqueezy Alternative for Telegram', item: 'https://gategram.app/alternatives/lemon-squeezy-telegram' },
     ],
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <PageHeader
         badge="Alternative"
         title={<>LemonSqueezy alternative for Telegram creators</>}

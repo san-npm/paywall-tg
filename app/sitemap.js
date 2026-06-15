@@ -3,6 +3,9 @@ import { SITE_URL } from '@/lib/seo';
 const I18N_LANGS = ['es', 'ru', 'pt', 'id', 'ar', 'hi', 'tr', 'fa', 'uk'];
 
 export default function sitemap() {
+  // Build-time date — refreshed on every deploy instead of a frozen literal that
+  // goes stale (audit on-page finding). Bump deploys when content changes.
+  const lastModified = new Date();
   const routes = [
     '/',
     '/docs',
@@ -16,6 +19,7 @@ export default function sitemap() {
     '/community-monetization',
     '/community-access',
     '/use-cases/telegram-paid-content',
+    '/telegram-paid-content-unlocker',
     '/use-cases/sell-digital-products-on-telegram',
     '/alternatives/gumroad-for-telegram',
     '/alternatives/lemon-squeezy-telegram',
@@ -37,7 +41,7 @@ export default function sitemap() {
 
   const pages = routes.map((route) => ({
     url: `${SITE_URL}${route}`,
-    lastModified: new Date('2026-03-23'),
+    lastModified,
     changeFrequency: route === '/' ? 'daily' : 'weekly',
     priority: route === '/' ? 1 : 0.7,
   }));
@@ -46,7 +50,7 @@ export default function sitemap() {
   for (const lang of I18N_LANGS) {
     pages.push({
       url: `${SITE_URL}/${lang}`,
-      lastModified: new Date('2026-03-23'),
+      lastModified,
       changeFrequency: 'weekly',
       priority: 0.8,
     });
