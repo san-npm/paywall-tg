@@ -8,23 +8,28 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test test/validate.test.js test/payout-statements.test.js",
-    "test:db": "node --test test/delivery-queue.test.js test/rate-limit.test.js",
+    "test:db": "node --test test/delivery-queue.test.js test/rate-limit.test.js test/purchase-refund.test.js",
     "test:integration": "node --test test/webhook.test.js test/products-api.test.js",
     "test:all": "node --test",
     "audit:deps": "npm audit --omit=dev"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.0",
-    "grammy": "^1.30.0",
-    "next": "^16.1.6",
-    "pdfkit": "^0.18.0",
+    "@libsql/client": "~0.17.3",
+    "grammy": "~1.44.0",
+    "next": "~16.2.9",
+    "pdfkit": "^0.19.1",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "stripe": "^17.7.0"
+    "stripe": "~17.7.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.0",
-    "postcss": "^8.4.0",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3.4.0"
+  },
+  "overrides": {
+    "qs": "^6.15.2",
+    "ws": "^8.20.1",
+    "postcss": "^8.5.10"
   }
 }
