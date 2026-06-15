@@ -1,5 +1,5 @@
 import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'How Telegram Paywall Payments Work',
@@ -41,8 +41,8 @@ export default function HowPaymentsWork() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <PageHeader
         badge="Trust"
         title="How payments work, step by step"

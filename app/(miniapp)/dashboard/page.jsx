@@ -108,6 +108,27 @@ export default function Home() {
     return initDataStr || window.Telegram?.WebApp?.initData || (() => { try { return window.sessionStorage.getItem('tg_init_data') || ''; } catch { return ''; } })();
   };
 
+  // Download a protected file by sending the Telegram credential in a header
+  // (never the URL) and saving the response blob. Avoids leaking init_data into
+  // access logs / browser history / Referer (audit auth-1).
+  const downloadWithAuth = async (url, filename) => {
+    try {
+      const res = await fetch(url, { headers: { 'x-telegram-init-data': getIData() } });
+      if (!res.ok) { hapticNotification('error'); return; }
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objUrl), 10000);
+    } catch {
+      hapticNotification('error');
+    }
+  };
+
   const handleDelete = async (offerId, offerTitle) => {
     const confirmed = await showConfirm(`Delete "${offerTitle}"? This cannot be undone.`);
     if (!confirmed) return;
@@ -588,20 +609,12 @@ export default function Home() {
                     <button
                       type="button"
                       className="tg-btn-secondary text-xs"
-                      onClick={() => {
-                        const iData = getIData();
-                        const url = `/api/invoice-pdf?payout_id=${p.id}&init_data=${encodeURIComponent(iData)}`;
-                        window.open(url, '_blank');
-                      }}
+                      onClick={() => downloadWithAuth(`/api/invoice-pdf?payout_id=${p.id}`, `invoice-${p.id}.pdf`)}
                     >Invoice PDF</button>
                     <button
                       type="button"
                       className="tg-btn-secondary text-xs"
-                      onClick={() => {
-                        const iData = getIData();
-                        const url = `/api/creator-payout-statement?payout_id=${p.id}&init_data=${encodeURIComponent(iData)}`;
-                        window.open(url, '_blank');
-                      }}
+                      onClick={() => downloadWithAuth(`/api/creator-payout-statement?payout_id=${p.id}`, `payout-statement-${p.id}.csv`)}
                     >Statement CSV</button>
                   </div>
                 </div>

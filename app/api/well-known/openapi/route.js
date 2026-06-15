@@ -55,30 +55,51 @@ paths:
         '401': { description: Missing or invalid initData }
   /api/checkout:
     post:
-      summary: Create a checkout session
+      summary: Create a Stripe card checkout session
+      description: >-
+        Requires a valid Telegram Mini App initData token (init_data) and is
+        unavailable to generic web agents. Card payments must be enabled for the
+        product. Returns a Stripe Checkout URL.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [product_id]
+              required: [init_data, product_id]
               properties:
+                init_data: { type: string, description: Telegram Mini App initData token }
+                product_id: { type: string }
+                currency: { type: string, enum: [EUR, USD], default: EUR }
+      responses:
+        '200': { description: Checkout session created (checkout_url, session_id) }
+        '400': { description: Invalid payload or card payments disabled for product }
+        '401': { description: Missing or invalid Telegram authentication }
+        '403': { description: Card payments are disabled }
+        '404': { description: Product not found }
+        '429': { description: Rate limited }
+  /api/invoice:
+    post:
+      summary: Create a Telegram Stars invoice link
+      description: >-
+        Requires a valid Telegram Mini App initData token (init_data). Returns a
+        Telegram Stars invoice link the buyer opens to pay in-app. Not a PDF.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [init_data, product_id]
+              properties:
+                init_data: { type: string, description: Telegram Mini App initData token }
                 product_id: { type: string }
       responses:
-        '200': { description: Checkout session created }
-        '400': { description: Invalid payload }
-  /api/invoice:
-    get:
-      summary: Fetch an invoice PDF URL for a completed purchase
-      parameters:
-        - in: query
-          name: purchase_id
-          required: true
-          schema: { type: string }
-      responses:
-        '200': { description: Invoice metadata }
-        '404': { description: Not found }
+        '200': { description: Invoice link created (invoice_url) }
+        '400': { description: Invalid payload, own product, or already purchased }
+        '401': { description: Missing or invalid Telegram authentication }
+        '404': { description: Product not found }
+        '429': { description: Rate limited }
 `;
 
 export function GET() {

@@ -1,5 +1,5 @@
 import HomePageClient from '../../components/website/HomePageClient';
-import { buildPageMetadata, SITE_URL } from '@/lib/seo';
+import { buildPageMetadata, SITE_URL, jsonLd } from '@/lib/seo';
 
 const baseMeta = buildPageMetadata({
   title: 'Telegram Paywall for Community Monetization',
@@ -26,16 +26,14 @@ export default function HomePage() {
   const softwareSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
+    '@id': `${SITE_URL}/#software`,
+    url: SITE_URL,
     name: 'Gategram',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Telegram Mini App',
     description: 'Telegram paywall and community monetization app for paid content and access using Telegram Stars.',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-      description: 'Free to start, platform fee on successful sales',
-    },
+    // No price/aggregateRating Offer: a "price: 0" Offer is misleading (sales
+    // carry a 5% fee) and cannot earn a rich result without genuine ratings.
     keywords: 'paywall telegram, community monetization, telegram monetization, community access',
   };
 
@@ -156,23 +154,23 @@ export default function HomePage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(softwareSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(howToSchema) }} />
       <HomePageClient />
 
       <section className="py-16 px-4 border-t border-site-border bg-site-elevated">
         <div className="max-w-4xl mx-auto space-y-6">
-          <h2 className="text-2xl font-bold">Telegram paywall, community access, and monetization — direct answers</h2>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <article className="site-panel">
-              <h3 className="font-bold mb-2">Best way to monetize a Telegram community?</h3>
-              <p className="text-site-muted">Use a native in-app checkout flow. Reducing checkout friction is one of the highest-leverage conversion moves for community monetization.</p>
-            </article>
-            <article className="site-panel">
-              <h3 className="font-bold mb-2">What should a Telegram paywall optimize first?</h3>
-              <p className="text-site-muted">Checkout completion rate, instant delivery reliability, and clear pricing. Those three metrics usually define whether paid access scales.</p>
-            </article>
+          <h2 className="text-2xl font-bold">Telegram paywall FAQ — direct answers</h2>
+          {/* Visible FAQ mirrors the FAQPage schema verbatim so structured data
+              and on-page content match (Google FAQ content policy). */}
+          <div className="space-y-3">
+            {faqSchema.mainEntity.map((qa) => (
+              <article key={qa.name} className="site-panel">
+                <h3 className="font-bold mb-2">{qa.name}</h3>
+                <p className="text-site-muted">{qa.acceptedAnswer.text}</p>
+              </article>
+            ))}
           </div>
 
           <div className="site-panel text-sm text-site-muted">

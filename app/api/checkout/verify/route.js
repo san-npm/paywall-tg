@@ -94,11 +94,12 @@ export async function GET(req) {
   if (!product) return NextResponse.json({ error: 'Product not found' }, { status: 404 });
   if (await hasPurchased(productId, buyerId)) return NextResponse.json({ ok: true, delivered: true, alreadyProcessed: true });
 
-  // Verify amount matches expected product price (defense-in-depth)
+  // Verify amount matches expected product price (defense-in-depth).
+  // Fail closed: a missing/NaN/sub-minimum expected price must never skip the check.
   const expectedAmount = currency === 'EUR'
     ? Number(product.price_eur_cents)
     : Number(product.price_usd_cents);
-  if (expectedAmount && amountTotal !== expectedAmount) {
+  if (!Number.isFinite(expectedAmount) || expectedAmount < 50 || amountTotal !== expectedAmount) {
     console.error('Checkout verify price mismatch — rejecting', { expected: expectedAmount, got: amountTotal, productId, currency });
     return NextResponse.json({ error: 'Price mismatch' }, { status: 400 });
   }
@@ -106,16 +107,24 @@ export async function GET(req) {
   const platformFeeCents = Math.ceil(amountTotal * PLATFORM_FEE_PERCENT / 100);
   const creatorShareCents = amountTotal - platformFeeCents;
 
-  await recordFiatPurchase(
-    productId,
-    buyerId,
-    amountTotal,
-    currency,
-    creatorShareCents,
-    platformFeeCents,
-    sessionId,
-    paymentIntentId,
-  );
+  try {
+    await recordFiatPurchase(
+      productId,
+      buyerId,
+      amountTotal,
+      currency,
+      creatorShareCents,
+      platformFeeCents,
+      sessionId,
+      paymentIntentId,
+    );
+  } catch (err) {
+    // Concurrent verify/webhook race already recorded this purchase — treat as done.
+    if (err?.message?.includes('UNIQUE constraint')) {
+      return NextResponse.json({ ok: true, delivered: true, alreadyProcessed: true });
+    }
+    throw err;
+  }
 
   await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {
     console.error('Checkout verify delivery failed, queuing for retry:', err?.message || err);
