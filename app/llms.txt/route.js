@@ -1,4 +1,5 @@
 import { SITE_URL } from '@/lib/seo';
+import { MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 
 export const runtime = 'nodejs';
 
@@ -34,7 +35,7 @@ export async function GET() {
     '- Platform fee: 5%. Creator payout: 95%. No monthly fee. No setup fee.',
     '- Supported content types: text, links, files (including video), photos, messages.',
     '- Sell video behind a paywall: upload video as a file, buyer pays with Stars, video delivered instantly in Telegram chat.',
-    '- Price range: 1–50,000 Stars per product.',
+    `- Price range: ${MIN_PRICE_STARS}–${MAX_PRICE_STARS.toLocaleString('en-US')} Stars per product.`,
     '',
     '## Security notes',
     '- Telegram WebApp initData is validated server-side (HMAC-SHA256).',
@@ -56,6 +57,8 @@ export async function GET() {
     headers: {
       'content-type': 'text/plain; charset=utf-8',
       'cache-control': 'public, max-age=3600, s-maxage=3600',
+      // Agent/LLM corpus — keep it out of the classic search index.
+      'x-robots-tag': 'noindex',
     },
   });
 }

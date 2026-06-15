@@ -1,6 +1,6 @@
 import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import Link from 'next/link';
-import { buildPageMetadata } from '@/lib/seo';
+import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Sell Digital Products on Telegram',
@@ -14,9 +14,8 @@ export default function SellDigitalProducts() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app' },
-      { '@type': 'ListItem', position: 2, name: 'Use Cases', item: 'https://gategram.app/use-cases/sell-digital-products-on-telegram' },
-      { '@type': 'ListItem', position: 3, name: 'Sell Digital Products on Telegram', item: 'https://gategram.app/use-cases/sell-digital-products-on-telegram' },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://gategram.app/' },
+      { '@type': 'ListItem', position: 2, name: 'Sell Digital Products on Telegram', item: 'https://gategram.app/use-cases/sell-digital-products-on-telegram' },
     ],
   };
 
@@ -31,7 +30,7 @@ export default function SellDigitalProducts() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <PageHeader
         badge="Use Case"
         title={<>Sell digital products on <span className="text-site-accent">Telegram</span> with less friction</>}
