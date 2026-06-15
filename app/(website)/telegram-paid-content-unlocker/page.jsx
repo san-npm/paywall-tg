@@ -3,7 +3,7 @@ import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
 import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'Can You Unlock Telegram Paid Content for Free? (Honest Answer)',
+  title: 'Can You Unlock Telegram Paid Content for Free?',
   description: 'No — there is no legitimate unlocker that bypasses a Telegram Stars paywall. Here is why paid content is secure, the only real way to access it, and how creators protect and sell it.',
   path: '/telegram-paid-content-unlocker',
   keywords: ['telegram paid content unlocker', 'telegram star content unlocker', 'see telegram paid content for free', 'bypass telegram stars paywall', 'unlock telegram paid content'],

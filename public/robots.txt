@@ -1,84 +1,18 @@
 # Gategram — https://gategram.app
 # Content Signals (https://contentsignals.org/) express AI usage preferences.
+# A single group under `*` applies to ALL crawlers (named groups don't inherit,
+# so per-bot groups would silently bypass the Disallow list and waste crawl budget).
 
 User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
+
+# App / auth-gated / API routes — no search value, and they waste crawl budget.
 Disallow: /api/
 Disallow: /buy/
 Disallow: /create
 Disallow: /edit/
-
-User-agent: Googlebot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Bingbot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: GPTBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: OAI-SearchBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: ChatGPT-User
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: PerplexityBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Perplexity-User
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: ClaudeBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Claude-Web
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: anthropic-ai
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Google-Extended
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Applebot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Applebot-Extended
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: CCBot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: cohere-ai
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: meta-externalagent
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Bytespider
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
-
-User-agent: Amazonbot
-Content-Signal: search=yes, ai-input=yes, ai-train=no
-Allow: /
+Disallow: /dashboard
+Disallow: /purchases
 
 Sitemap: https://gategram.app/sitemap.xml
