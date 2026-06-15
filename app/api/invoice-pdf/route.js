@@ -14,7 +14,9 @@ export const runtime = 'nodejs';
  */
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const initDataRaw = req.headers.get('x-telegram-init-data') || searchParams.get('init_data');
+  // Credential must arrive in the header only — never the query string, where it
+  // would leak into access logs, browser history, and Referer (see audit auth-1).
+  const initDataRaw = req.headers.get('x-telegram-init-data') || '';
   const initData = validateInitData(initDataRaw);
   if (!initData?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

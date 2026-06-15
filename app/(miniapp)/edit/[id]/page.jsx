@@ -72,8 +72,8 @@ export default function EditProduct() {
     setError(null); setSaved(false); hapticImpact('light');
     if (!user || !initData) { setError('Open inside Telegram to edit.'); return; }
     const priceNum = parseInt(price);
-    if (isNaN(priceNum) || priceNum < 1 || priceNum > 50000) {
-      setError('Price must be between 1 and 50,000 Stars.');
+    if (isNaN(priceNum) || priceNum < 1 || priceNum > 10000) {
+      setError('Price must be between 1 and 10,000 Stars.');
       hapticNotification('error'); return;
     }
 
@@ -140,7 +140,7 @@ export default function EditProduct() {
           <hr className="tg-separator" />
           <div>
             <label className="tg-label">Price (Stars)</label>
-            <input type="number" min="1" max="50000" value={price} onChange={e => setPrice(e.target.value)} required className="tg-input" />
+            <input type="number" min="1" max="10000" value={price} onChange={e => setPrice(e.target.value)} required className="tg-input" />
           </div>
         </div>
 

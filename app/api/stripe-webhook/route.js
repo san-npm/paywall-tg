@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET_ALT } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, enqueueDelivery } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, enqueueDelivery, markFiatPurchaseRefundedByPaymentIntent } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
 
 export const runtime = 'nodejs';
@@ -71,7 +71,8 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
   const expectedAmount = normalizedCurrency === 'EUR'
     ? Number(product.price_eur_cents)
     : Number(product.price_usd_cents);
-  if (expectedAmount && amountTotal !== expectedAmount) {
+  // Fail closed: a missing/NaN/sub-minimum expected price must never skip the check.
+  if (!Number.isFinite(expectedAmount) || expectedAmount < 50 || amountTotal !== expectedAmount) {
     console.error('Stripe fiat price mismatch — rejecting', { expected: expectedAmount, got: amountTotal, productId, currency: normalizedCurrency });
     return;
   }
@@ -144,6 +145,34 @@ export async function POST(req) {
       amountTotal: Number(pi.amount_received || pi.amount || 0),
       paymentIntentId: String(pi.id || ''),
     });
+  }
+
+  // Refund / chargeback / dispute: revoke access and reverse the sale so the
+  // buyer no longer keeps the content for free and the creator share is removed
+  // from the payout queue. Keyed by payment_intent.
+  if (
+    event.type === 'charge.refunded' ||
+    event.type === 'refund.created' ||
+    event.type === 'refund.updated' ||
+    event.type === 'charge.dispute.created' ||
+    event.type === 'charge.dispute.funds_withdrawn'
+  ) {
+    const obj = event.data.object;
+    const paymentIntentId = String(obj.payment_intent || '');
+    if (paymentIntentId) {
+      const reversed = await markFiatPurchaseRefundedByPaymentIntent(paymentIntentId);
+      if (reversed?.product_id && BOT_TOKEN) {
+        const product = await getProduct(reversed.product_id).catch(() => null);
+        if (product?.creator_id) {
+          const safeTitle = escapeMarkdown(product.title || 'your creation');
+          await getBot().api.sendMessage(
+            String(product.creator_id),
+            `\u{1F4B8} *Refund / chargeback*\n\n*${safeTitle}*\nA card payment was reversed; the sale has been removed from your balance\\.`,
+            { parse_mode: 'MarkdownV2' },
+          ).catch(() => {});
+        }
+      }
+    }
   }
 
   return NextResponse.json({ received: true });

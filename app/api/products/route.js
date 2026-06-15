@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
-import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms } from '@/lib/db';
-import { validateInitData, validateInitDataDetailed, isValidProductId, generateShortId } from '@/lib/validate';
+import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms, toPublicProduct } from '@/lib/db';
+import { validateInitData, validateInitDataDetailed, isValidProductId, generateShortId, getForwardedClientIp } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { VALID_CONTENT_TYPES, VALID_PAYMENT_METHODS } from '@/lib/constants';
 
@@ -30,14 +30,22 @@ export async function GET(req) {
     const product = await getProduct(productId);
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // Increment view counter (skip if viewer is the creator)
-    if (!authenticatedBuyerId || authenticatedBuyerId !== product.creator_id) {
-      await incrementViews(productId);
+    const isOwner = Boolean(authenticatedBuyerId) && authenticatedBuyerId === product.creator_id;
+
+    // Increment view counter (skip if viewer is the creator). Rate-limit the
+    // public read path by IP and only sample the write so an unauthenticated
+    // caller can't hammer a DB write per request (audit ratelimit-1).
+    if (!isOwner) {
+      const ip = getForwardedClientIp(req.headers.get('x-forwarded-for')) || 'unknown';
+      const { limited } = await checkRateLimit(`product_view:${ip}`, 600);
+      if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      if (Math.random() < 0.25) { incrementViews(productId).catch(() => {}); }
     }
 
-    // Don't expose content unless authenticated buyer has purchased
+    // Don't expose content unless authenticated buyer has purchased; never expose
+    // file_id or owner-only metadata to non-owners (audit authz-3 / sqldb-4).
     const purchased = authenticatedBuyerId ? await hasPurchased(productId, authenticatedBuyerId) : false;
-    const safeProduct = { ...product, content: purchased ? product.content : undefined, file_id: undefined };
+    const safeProduct = toPublicProduct(product, { includeContent: purchased || isOwner, isOwner });
     return NextResponse.json({ product: safeProduct, purchased });
   }
 
@@ -46,9 +54,7 @@ export async function GET(req) {
     if (!authenticatedBuyerId || authenticatedBuyerId !== creatorId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-    const products = (await getCreatorProducts(creatorId)).map(p => ({
-      ...p, content: undefined, file_id: undefined
-    }));
+    const products = (await getCreatorProducts(creatorId)).map(p => toPublicProduct(p, { isOwner: true }));
     const stats = await getCreatorStats(creatorId);
     return NextResponse.json({ products, stats });
   }
@@ -176,7 +182,7 @@ export async function POST(req) {
       eurCents,
       effectiveMethods.join(','),
     );
-    return NextResponse.json({ product });
+    return NextResponse.json({ product: toPublicProduct(product, { includeContent: true, isOwner: true }) });
   } catch (err) {
     console.error('Create product error:', err);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
@@ -281,7 +287,7 @@ export async function PATCH(req) {
     return NextResponse.json({ error: 'Product not found or not owned by you' }, { status: 404 });
   }
 
-  // Strip sensitive fields
-  const safeProduct = { ...product, content: undefined, file_id: undefined };
+  // Strip sensitive fields (owner view, no content needed on update ack)
+  const safeProduct = toPublicProduct(product, { isOwner: true });
   return NextResponse.json({ product: safeProduct });
 }
