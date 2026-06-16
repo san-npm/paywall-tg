@@ -172,7 +172,7 @@ export default function SellTradingSignals() {
         title="Your signals are worth more than free"
         description="Set a price on your analysis and let Telegram handle the checkout."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"
       />

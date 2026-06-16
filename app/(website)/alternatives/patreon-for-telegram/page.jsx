@@ -176,7 +176,7 @@ export default function PatreonAlternative() {
         title="Monetize on Telegram without the Patreon tax"
         description="Per-item sales, native checkout, 5% flat fee. Built for where your audience actually is."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"
       />

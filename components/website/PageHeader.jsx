@@ -28,7 +28,7 @@ export function PageCTA({ title, description, primary, primaryHref, secondary, s
         <p className="text-site-muted mb-8">{description || 'Start in minutes and get paid from your community.'}</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href={primaryHref || '/docs#connect-bot'}
+            href={primaryHref || 'https://t.me/gategramapp_bot'}
             className="px-6 py-3 rounded-lg bg-site-accent text-white font-semibold hover:bg-site-accent-hover transition-colors"
           >
             {primary || 'Monetize your content'}

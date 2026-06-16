@@ -155,7 +155,7 @@ export default function TelegramPaidContent() {
         title="Ready to launch paid Telegram content?"
         description="Set up once, share your link, and let buyers pay and unlock without leaving Telegram."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

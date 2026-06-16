@@ -131,7 +131,7 @@ export default function SellDigitalProducts() {
         title="Ready to sell your first digital product on Telegram?"
         description="Launch quickly with native checkout your audience already trusts."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"
       />

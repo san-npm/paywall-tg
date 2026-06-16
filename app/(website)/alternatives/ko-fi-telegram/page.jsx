@@ -166,7 +166,7 @@ export default function KoFiAlternative() {
         title="Stop sending buyers to a browser"
         description="Sell content where your audience lives — inside Telegram."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"
       />
