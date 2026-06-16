@@ -176,7 +176,7 @@ export default function SellCoursesOnTelegram() {
         title="Skip the $149/month course platform"
         description="Sell lessons directly on Telegram. No LMS, no monthly fees, just content and checkout."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"
       />

@@ -41,7 +41,7 @@ export default function HowToSellOnTelegram() {
         '@type': 'HowToStep',
         position: 1,
         name: 'Open the Gategram bot in Telegram',
-        text: 'Search for @gategram_bot in Telegram or tap the link on gategram.app. The bot opens directly in Telegram — no signup required.',
+        text: 'Search for @gategramapp_bot in Telegram or tap the link on gategram.app. The bot opens directly in Telegram — no signup required.',
       },
       {
         '@type': 'HowToStep',
@@ -131,7 +131,7 @@ export default function HowToSellOnTelegram() {
     {
       num: '1',
       title: 'Open the Gategram bot',
-      desc: 'Search @gategram_bot in Telegram or tap "Start selling" below. No account creation, no signup form.',
+      desc: 'Search @gategramapp_bot in Telegram or tap "Start selling" below. No account creation, no signup form.',
     },
     {
       num: '2',
@@ -267,7 +267,7 @@ export default function HowToSellOnTelegram() {
         title="Ready to start selling on Telegram?"
         description="Create your first product in under 2 minutes. No signup, no website needed."
         primary="Start selling"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

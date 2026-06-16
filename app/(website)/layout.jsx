@@ -10,7 +10,7 @@ export default function WebsiteLayout({ children }) {
     name: 'Gategram',
     url: SITE_URL,
     logo: `${SITE_URL}/Gategram-icon.png`,
-    sameAs: ['https://t.me/gategram_bot'],
+    sameAs: ['https://t.me/gategramapp_bot'],
     description: 'Gategram is a Telegram Mini App that lets creators sell paid content, community access, and digital products using native Telegram Stars checkout.',
     foundingDate: '2026',
     foundingLocation: { '@type': 'Place', name: 'Luxembourg' },

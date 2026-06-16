@@ -106,7 +106,7 @@ export default function LemonSqueezyAlternative() {
         title="Ready for Telegram-native checkout instead of hosted pages?"
         description="Set up quickly, share one link, and let buyers complete payment without leaving Telegram."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See payment flow"
         secondaryHref="/how-payments-work"
       />

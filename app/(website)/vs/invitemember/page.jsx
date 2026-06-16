@@ -83,7 +83,7 @@ export default function VsInviteMember() {
         title="Want to switch from external checkout to native Telegram payments?"
         description="Go live fast and give buyers a cleaner path from click to unlock."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

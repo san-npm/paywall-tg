@@ -7,7 +7,7 @@ import { LANGS } from '@/lib/i18n';
 import { useLang } from './useLang';
 import { trackCta } from './tracking';
 
-const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || '/docs#connect-bot';
+const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || 'https://t.me/gategramapp_bot';
 
 export default function Nav() {
   const [open, setOpen] = useState(false);

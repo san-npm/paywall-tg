@@ -96,7 +96,7 @@ export default function HowPaymentsWork() {
         title="Want to launch this payment flow in your Telegram audience?"
         description="Set up once, share your link, and let buyers pay and unlock in chat."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="View security page"
         secondaryHref="/security"
       />

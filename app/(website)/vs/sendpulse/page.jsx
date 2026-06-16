@@ -151,7 +151,7 @@ export default function VsSendPulse() {
         title="Skip the marketing suite — just sell your content"
         description="Two minutes to your first product. No chatbot flows required."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

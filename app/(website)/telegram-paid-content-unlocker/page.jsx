@@ -133,7 +133,7 @@ export default function TelegramPaidContentUnlockerPage() {
         title="Want to protect and sell your content?"
         description="Put your content behind a native Stars paywall so only paying buyers ever receive it — set up in about 2 minutes."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

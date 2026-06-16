@@ -151,7 +151,7 @@ export default function VsStripePaymentLinks() {
         title="Skip the browser redirect — sell directly in Telegram"
         description="Native Stars checkout, instant delivery, no Stripe account needed."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />
