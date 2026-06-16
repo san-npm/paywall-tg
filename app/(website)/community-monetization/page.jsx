@@ -168,7 +168,7 @@ export default function CommunityMonetizationPage() {
         title="Start monetizing your Telegram community"
         description="Set up in 2 minutes. Native checkout, instant delivery, 95% payout."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"
       />

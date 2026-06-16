@@ -98,7 +98,7 @@ export default function GumroadAlternative() {
         title="Want to replace Gumroad checkout friction?"
         description="Launch your Telegram-native flow and keep buyers inside chat from tap to unlock."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"
       />

@@ -286,7 +286,7 @@ export default function TelegramPaywallPage() {
         title="Launch your Telegram paywall"
         description="Create your first paid offer in under 2 minutes. Native Stars checkout, instant delivery, 95% payout."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

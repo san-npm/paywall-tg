@@ -176,7 +176,7 @@ export default function AdultContentTelegram() {
         title="Your content, your audience, your revenue"
         description="Stop giving 20% to platforms. Sell directly on Telegram with a 5% fee."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"
       />

@@ -176,7 +176,7 @@ export default function CryptoAlphaTelegram() {
         title="Your research has value — price it accordingly"
         description="Gate your crypto alpha behind Stars payments. Instant checkout, instant delivery."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"
       />

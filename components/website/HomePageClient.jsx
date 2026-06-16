@@ -6,7 +6,7 @@ import { useLang } from './useLang';
 import { trackCta } from './tracking';
 import { getMsg } from '@/lib/i18n';
 
-const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || '/docs#connect-bot';
+const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL || 'https://t.me/gategramapp_bot';
 
 const RTL_LANGS = ['ar', 'fa'];
 

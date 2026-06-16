@@ -91,7 +91,7 @@ export default function FeesPage() {
         title="Ready to launch with pricing your audience understands?"
         description="Start in minutes, keep 95%, and give buyers a clear in-app checkout flow."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See payment flow"
         secondaryHref="/how-payments-work"
       />

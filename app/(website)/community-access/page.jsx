@@ -144,7 +144,7 @@ export default function CommunityAccessPage() {
         title="Start selling community access"
         description="Set up in 2 minutes. Native Stars checkout, instant invite delivery, 95% payout."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />
