@@ -151,7 +151,7 @@ export default function VsTribute() {
         title="Lower fees, faster setup, native checkout"
         description="Switch from external payment pages to Telegram-native Stars checkout."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"
       />

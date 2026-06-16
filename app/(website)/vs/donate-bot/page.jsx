@@ -151,7 +151,7 @@ export default function VsDonateBot() {
         title="Ready to sell content instead of asking for tips?"
         description="Set a price, list your product, and let buyers unlock it with one tap."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"
       />

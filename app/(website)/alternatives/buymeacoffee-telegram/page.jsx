@@ -167,7 +167,7 @@ export default function BuyMeACoffeeAlternative() {
         title="Sell content, not coffee"
         description="Native Telegram checkout. Instant delivery. Built for creators who sell on Telegram."
         primary="Start in 2 minutes"
-        primaryHref="/docs#connect-bot"
+        primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"
       />
