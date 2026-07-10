@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ENABLE_STRIPE, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, enqueueDelivery } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery } from '@/lib/db';
 import { escapeMarkdown, validateInitData } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
-const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+// Pin the API version explicitly to the one stripe-node 17.7.0 already targets.
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-02-24.acacia' }) : null;
 let bot;
 function getBot() {
   if (!bot) bot = new Bot(BOT_TOKEN);
@@ -119,11 +120,20 @@ export async function GET(req) {
       paymentIntentId,
     );
   } catch (err) {
-    // Concurrent verify/webhook race already recorded this purchase — treat as done.
     if (err?.message?.includes('UNIQUE constraint')) {
-      return NextResponse.json({ ok: true, delivered: true, alreadyProcessed: true });
+      // A prior refunded fiat purchase by this buyer blocks a fresh INSERT on
+      // UNIQUE(product_id, buyer_telegram_id). Reactivate it so a paying re-buyer
+      // actually gets their content; if nothing was refunded it is a concurrent
+      // verify/webhook race that already recorded the sale, so treat as done.
+      const reactivated = await reactivateFiatPurchase(
+        productId, buyerId, amountTotal, currency, creatorShareCents, platformFeeCents, sessionId, paymentIntentId,
+      );
+      if (!reactivated) {
+        return NextResponse.json({ ok: true, delivered: true, alreadyProcessed: true });
+      }
+    } else {
+      throw err;
     }
-    throw err;
   }
 
   await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {

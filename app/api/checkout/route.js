@@ -7,7 +7,9 @@ import { checkRateLimit } from '@/lib/rateLimit';
 
 export const runtime = 'nodejs';
 
-const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+// Pin the API version explicitly to the one stripe-node 17.7.0 already targets,
+// so behavior stays frozen and visible and does not silently shift on an SDK bump.
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-02-24.acacia' }) : null;
 
 export async function POST(req) {
   if (!ENABLE_STRIPE) {
