@@ -9,6 +9,7 @@ import {
   markPurchaseRefunded,
   hasPurchased,
   recordFiatPurchase,
+  reactivateFiatPurchase,
   markFiatPurchaseRefundedByPaymentIntent,
 } from '../lib/db.js';
 
@@ -74,4 +75,34 @@ test('pay-1: Stripe refund/chargeback revokes access and reverses the sale', asy
   // Idempotent: a duplicate refund event is a no-op
   const again = await markFiatPurchaseRefundedByPaymentIntent('pi_test_1');
   assert.equal(again, null, 'second refund event reverses nothing');
+});
+
+test('pay-3: refunded fiat purchase can be re-bought via reactivateFiatPurchase', async () => {
+  await getOrCreateCreator(CREATOR, 'creator', 'Creator');
+  const pid = 'fiatreb3';
+  await createProduct(pid, CREATOR, 'Fiat rebuy product', '', 100, 'text', 'secret-body', null, 'document', 500, 500, 'stars,stripe');
+
+  const buyer = '900005';
+  await recordFiatPurchase(pid, buyer, 500, 'USD', 475, 25, 'cs_A', 'pi_A');
+  assert.equal(await hasPurchased(pid, buyer), true);
+  assert.equal(Number((await getProductRaw(pid)).sales_count), 1);
+
+  // Refund revokes access and reverses the sale.
+  await markFiatPurchaseRefundedByPaymentIntent('pi_A');
+  assert.equal(await hasPurchased(pid, buyer), false, 'refund revokes access');
+  assert.equal(Number((await getProductRaw(pid)).sales_count), 0);
+
+  // Re-buy: a fresh INSERT would throw UNIQUE(product_id,buyer); reactivate instead.
+  let threw = false;
+  try {
+    await recordFiatPurchase(pid, buyer, 500, 'USD', 475, 25, 'cs_B', 'pi_B');
+  } catch (err) {
+    threw = err?.message?.includes('UNIQUE constraint');
+    assert.ok(threw, 'expected the UNIQUE-constraint path for a refunded fiat re-buy');
+    const reactivated = await reactivateFiatPurchase(pid, buyer, 500, 'USD', 475, 25, 'cs_B', 'pi_B');
+    assert.equal(reactivated, true, 'reactivateFiatPurchase must restore the refunded row');
+  }
+  assert.equal(threw, true, 'second fiat insert should hit the UNIQUE path that reactivation handles');
+  assert.equal(await hasPurchased(pid, buyer), true, 're-buyer regains access');
+  assert.equal(Number((await getProductRaw(pid)).sales_count), 1, 'sales_count restored');
 });
