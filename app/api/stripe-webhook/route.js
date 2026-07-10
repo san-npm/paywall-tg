@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET_ALT } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, enqueueDelivery, markFiatPurchaseRefundedByPaymentIntent } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery, markFiatPurchaseRefundedByPaymentIntent } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
 
 export const runtime = 'nodejs';
 
-const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+// Pin the API version explicitly to the one stripe-node 17.7.0 already targets.
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-02-24.acacia' }) : null;
 let bot;
 function getBot() {
   if (!bot) bot = new Bot(BOT_TOKEN);
@@ -80,16 +81,30 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
   const platformFeeCents = Math.ceil(amountTotal * PLATFORM_FEE_PERCENT / 100);
   const creatorShareCents = amountTotal - platformFeeCents;
 
-  await recordFiatPurchase(
-    productId,
-    buyerId,
-    amountTotal,
-    currency,
-    creatorShareCents,
-    platformFeeCents,
-    sessionId,
-    paymentIntentId,
-  );
+  try {
+    await recordFiatPurchase(
+      productId,
+      buyerId,
+      amountTotal,
+      currency,
+      creatorShareCents,
+      platformFeeCents,
+      sessionId,
+      paymentIntentId,
+    );
+  } catch (err) {
+    if (err?.message?.includes('UNIQUE constraint')) {
+      // A prior refunded fiat purchase by this buyer blocks a fresh INSERT on
+      // UNIQUE(product_id, buyer_telegram_id). Reactivate it so a paying re-buyer
+      // gets their content; if nothing was refunded the buyer already owns it, so stop.
+      const reactivated = await reactivateFiatPurchase(
+        productId, buyerId, amountTotal, currency, creatorShareCents, platformFeeCents, sessionId, paymentIntentId,
+      );
+      if (!reactivated) return;
+    } else {
+      throw err;
+    }
+  }
 
   await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {
     console.error('Stripe delivery notify failed, queuing for retry:', err?.message || err);

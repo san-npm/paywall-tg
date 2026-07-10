@@ -6,3 +6,4 @@ node_modules/
 data/*.db
 .vercel
 .tmp-*.mjs
+.DS_Store
