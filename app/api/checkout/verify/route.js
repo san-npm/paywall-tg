@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ENABLE_STRIPE, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasStripeFulfillment, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery } from '@/lib/db';
 import { escapeMarkdown, validateInitData } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
@@ -87,7 +87,14 @@ export async function GET(req) {
     return NextResponse.json({ error: 'Missing metadata on checkout session' }, { status: 400 });
   }
 
-  if (await hasFiatPurchaseBySession(sessionId) || (paymentIntentId && await hasFiatPurchaseByPaymentIntent(paymentIntentId))) {
+  if (
+    await hasFiatPurchaseBySession(sessionId)
+    || (paymentIntentId && await hasFiatPurchaseByPaymentIntent(paymentIntentId))
+    // Authoritative replay guard: a session/payment_intent consumed by an
+    // earlier (now refunded and reactivated-away) purchase must not re-grant
+    // access when its old, still payment_status='paid' session is re-submitted.
+    || await hasStripeFulfillment(sessionId, paymentIntentId)
+  ) {
     return NextResponse.json({ ok: true, delivered: true, alreadyProcessed: true });
   }
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_WEBHOOK_SECRET_ALT } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery, markFiatPurchaseRefundedByPaymentIntent } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasStripeFulfillment, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery, markFiatPurchaseRefundedByPaymentIntent } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
 
 export const runtime = 'nodejs';
@@ -61,6 +61,9 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
 
   if (sessionId && await hasFiatPurchaseBySession(sessionId)) return;
   if (paymentIntentId && await hasFiatPurchaseByPaymentIntent(paymentIntentId)) return;
+  // Authoritative replay guard: a consumed session/payment_intent is never
+  // fulfilled twice, even after a reactivate overwrote the row's ids.
+  if (await hasStripeFulfillment(sessionId, paymentIntentId)) return;
 
   const product = await getProduct(productId);
   if (!product) return;
