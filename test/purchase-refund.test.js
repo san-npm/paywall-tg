@@ -10,6 +10,8 @@ import {
   hasPurchased,
   recordFiatPurchase,
   reactivateFiatPurchase,
+  hasStripeFulfillment,
+  hasFiatPurchaseBySession,
   markFiatPurchaseRefundedByPaymentIntent,
 } from '../lib/db.js';
 
@@ -105,4 +107,32 @@ test('pay-3: refunded fiat purchase can be re-bought via reactivateFiatPurchase'
   assert.equal(threw, true, 'second fiat insert should hit the UNIQUE path that reactivation handles');
   assert.equal(await hasPurchased(pid, buyer), true, 're-buyer regains access');
   assert.equal(Number((await getProductRaw(pid)).sales_count), 1, 'sales_count restored');
+});
+
+test('pay-4: replaying an old refunded-then-reactivated session cannot re-grant access', async () => {
+  await getOrCreateCreator(CREATOR, 'creator', 'Creator');
+  const pid = 'fiatledg4';
+  await createProduct(pid, CREATOR, 'Ledger product', '', 100, 'text', 'secret-body', null, 'document', 500, 500, 'stars,stripe');
+  const buyer = '900006';
+
+  // Buy A, refund A, re-buy B (reactivate overwrites the row ids A -> B), refund B.
+  await recordFiatPurchase(pid, buyer, 500, 'USD', 475, 25, 'cs_A4', 'pi_A4');
+  await markFiatPurchaseRefundedByPaymentIntent('pi_A4');
+  try {
+    await recordFiatPurchase(pid, buyer, 500, 'USD', 475, 25, 'cs_B4', 'pi_B4');
+  } catch (err) {
+    assert.ok(err?.message?.includes('UNIQUE constraint'));
+    await reactivateFiatPurchase(pid, buyer, 500, 'USD', 475, 25, 'cs_B4', 'pi_B4');
+  }
+  await markFiatPurchaseRefundedByPaymentIntent('pi_B4');
+  assert.equal(await hasPurchased(pid, buyer), false, 'both charges refunded means no access');
+
+  // The mutable row no longer holds session A (it was overwritten to B), which
+  // is exactly the gap the ledger closes.
+  assert.equal(await hasFiatPurchaseBySession('cs_A4'), false, 'row lost session A after reactivation');
+  // The append-only ledger still remembers BOTH consumed sessions/intents, so a
+  // replay of the old paid-but-refunded session A is caught and cannot re-grant.
+  assert.equal(await hasStripeFulfillment('cs_A4', 'pi_A4'), true, 'session A stays consumed');
+  assert.equal(await hasStripeFulfillment('cs_B4', 'pi_B4'), true, 'session B stays consumed');
+  assert.equal(await hasStripeFulfillment('cs_never', 'pi_never'), false, 'an unseen session is not consumed');
 });
