@@ -106,7 +106,9 @@ export async function POST(req) {
     },
   });
 
-  recordEvent({ eventType: 'checkout_start', productId: String(product_id), creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card', currency: normalizedCurrency } });
+  // Awaited so a serverless handler does not abandon the write on return;
+  // recordEvent is best-effort (never throws), so awaiting is safe.
+  await recordEvent({ eventType: 'checkout_start', productId: String(product_id), creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card', currency: normalizedCurrency } });
 
   return NextResponse.json({ checkout_url: session.url, session_id: session.id });
 }
