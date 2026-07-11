@@ -10,11 +10,15 @@ import {
 
 /**
  * Requires TURSO_DATABASE_URL (use a local file: URL when running standalone).
+ * Events are append-only, so ids are unique per run to keep exact-count
+ * assertions correct even when the same DB is reused across runs.
  */
 
+const RUN = `${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
+
 test('funnel: recordEvent counts and derives conversion', async () => {
-  const pid = 'evtprod1';
-  const creator = '800001';
+  const pid = `evtprod_${RUN}`;
+  const creator = `8000_${RUN}`;
   // 4 views, 2 checkout starts, 1 paid, 1 delivered for this product.
   for (let i = 0; i < 4; i++) await recordEvent({ eventType: 'product_view', productId: pid, creatorId: creator, source: 'miniapp' });
   for (let i = 0; i < 2; i++) await recordEvent({ eventType: 'checkout_start', productId: pid, creatorId: creator, source: 'bot' });
@@ -39,25 +43,27 @@ test('funnel: recordEvent never throws on a bad payload', async () => {
 });
 
 test('creator_channels: upsert, list, update, deactivate, can_post gating', async () => {
-  const creator = '800100';
-  await upsertCreatorChannel(creator, '-100123', 'My Channel', 'channel', true);
+  const creator = `chan_${RUN}`;
+  const chanA = `-100${RUN.replace(/[^0-9]/g, '').slice(0, 6) || '123'}1`;
+  const chanB = `-100${RUN.replace(/[^0-9]/g, '').slice(0, 6) || '456'}2`;
+  await upsertCreatorChannel(creator, chanA, 'My Channel', 'channel', true);
   let chans = await getCreatorChannels(creator);
   assert.equal(chans.length, 1);
   assert.equal(chans[0].chat_title, 'My Channel');
 
   // Upsert same channel updates title in place (no duplicate row).
-  await upsertCreatorChannel(creator, '-100123', 'Renamed Channel', 'channel', true);
+  await upsertCreatorChannel(creator, chanA, 'Renamed Channel', 'channel', true);
   chans = await getCreatorChannels(creator);
   assert.equal(chans.length, 1);
   assert.equal(chans[0].chat_title, 'Renamed Channel');
 
   // A second channel with no post rights is not returned as a broadcast target.
-  await upsertCreatorChannel(creator, '-100456', 'No Post Rights', 'channel', false);
+  await upsertCreatorChannel(creator, chanB, 'No Post Rights', 'channel', false);
   chans = await getCreatorChannels(creator);
   assert.equal(chans.length, 1, 'can_post=0 channel is excluded');
 
   // Deactivation (bot removed/demoted) drops it from the list.
-  await deactivateCreatorChannel(creator, '-100123');
+  await deactivateCreatorChannel(creator, chanA);
   chans = await getCreatorChannels(creator);
   assert.equal(chans.length, 0);
 });
