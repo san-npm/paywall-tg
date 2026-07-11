@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
-import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms, toPublicProduct } from '@/lib/db';
+import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms, toPublicProduct, recordEvent } from '@/lib/db';
 import { validateInitData, validateInitDataDetailed, isValidProductId, generateShortId, getForwardedClientIp } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { VALID_CONTENT_TYPES, VALID_PAYMENT_METHODS } from '@/lib/constants';
@@ -40,6 +40,8 @@ export async function GET(req) {
       const { limited } = await checkRateLimit(`product_view:${ip}`, 600);
       if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
       if (Math.random() < 0.25) { incrementViews(productId).catch(() => {}); }
+      // Funnel event (unsampled, best-effort): the top of the buy funnel.
+      recordEvent({ eventType: 'product_view', productId, creatorId: product.creator_id, buyerId: authenticatedBuyerId || null, source: 'miniapp' });
     }
 
     // Don't expose content unless authenticated buyer has purchased; never expose

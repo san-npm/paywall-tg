@@ -4,7 +4,8 @@ import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TEL
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
   getCreatorStats, recordPurchase, reactivatePurchase, getPurchaseByChargeId, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
-  setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery, markDeliveryDoneForTarget
+  setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery, markDeliveryDoneForTarget,
+  upsertCreatorChannel, deactivateCreatorChannel, getCreatorChannels, recordEvent
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId, sanitizeErrorMessage } from '@/lib/validate';
 
@@ -33,6 +34,24 @@ async function deliverPaidMedia(api, chatId, product) {
   }
 }
 
+// Post a product as a text card with a Buy button into a channel/group the bot
+// administers. Intentionally text-only: it must NEVER include the product's
+// file_id or content, which are the paid goods. Records a broadcast event.
+async function postProductToChannel(api, chatId, product, botUsername) {
+  const methods = String(product.payment_methods || 'stars,stripe').split(',').map((v) => v.trim().toLowerCase());
+  const priceLine = methods.includes('stripe')
+    ? `⭐ ${product.price_stars} Stars or card`
+    : `⭐ ${product.price_stars} Stars`;
+  const desc = product.description ? `\n\n${String(product.description).slice(0, 300)}` : '';
+  const text = `\u{1F4E6} ${product.title}\n${priceLine}${desc}`;
+  const buyUrl = `https://t.me/${botUsername}?start=buy_${product.id}`;
+  await api.sendMessage(String(chatId), text, {
+    reply_markup: { inline_keyboard: [[{ text: '⭐ Buy now', url: buyUrl }]] },
+    link_preview_options: { is_disabled: true },
+  });
+  await recordEvent({ eventType: 'broadcast', productId: product.id, creatorId: product.creator_id, source: 'bot', meta: { chat_id: String(chatId) } });
+}
+
 export async function POST(req) {
   if (!BOT_TOKEN) return NextResponse.json({ ok: false }, { status: 500 });
 
@@ -59,6 +78,95 @@ export async function POST(req) {
   const b = getBot();
 
   try {
+    // The bot's own admin status changed in a chat. Telegram sends my_chat_member
+    // only about this bot, so new_chat_member is always the bot. When a creator
+    // adds it as a channel/group admin, remember that chat as a broadcast target.
+    if (body.my_chat_member) {
+      const upd = body.my_chat_member;
+      const chat = upd.chat || {};
+      const status = upd.new_chat_member?.status;
+      const addedBy = upd.from?.id ? String(upd.from.id) : '';
+      const isBroadcastable = chat.type === 'channel' || chat.type === 'supergroup' || chat.type === 'group';
+      if (addedBy && isBroadcastable) {
+        if (status === 'administrator') {
+          const canPost = chat.type === 'channel' ? !!upd.new_chat_member?.can_post_messages : true;
+          await upsertCreatorChannel(addedBy, chat.id, chat.title || null, chat.type, canPost);
+          await b.api.sendMessage(addedBy,
+            `✅ Connected "${chat.title || 'your channel'}". Post a product to it any time with /broadcast.`,
+          ).catch(() => {});
+        } else if (status === 'left' || status === 'kicked' || status === 'member' || status === 'restricted') {
+          await deactivateCreatorChannel(addedBy, chat.id).catch(() => {});
+        }
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    // Inline button taps (broadcast flow).
+    if (body.callback_query) {
+      const cq = body.callback_query;
+      const data = String(cq.data || '');
+      const fromId = cq.from?.id ? String(cq.from.id) : '';
+      const dmChatId = cq.message?.chat?.id;
+
+      if (data.startsWith('bcast:')) {
+        const [, productId = '', targetArg = ''] = data.split(':');
+        if (!isValidProductId(productId)) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Invalid product.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        const product = await getProductRaw(productId);
+        if (!product) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Product not found.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        if (String(product.creator_id) !== fromId) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Not your product.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+
+        const channels = await getCreatorChannels(fromId);
+        if (channels.length === 0) {
+          await b.api.answerCallbackQuery(cq.id).catch(() => {});
+          if (dmChatId) {
+            await b.api.sendMessage(dmChatId,
+              'To post to a channel, add this bot as an admin (with "Post messages") to your channel or group, then tap "Post to my channel" again.',
+            ).catch(() => {});
+          }
+          return NextResponse.json({ ok: true });
+        }
+
+        let target = targetArg;
+        if (!target) {
+          if (channels.length === 1) {
+            target = String(channels[0].chat_id);
+          } else {
+            const kb = channels.slice(0, 20).map((c) => [{ text: (c.chat_title || String(c.chat_id)).slice(0, 60), callback_data: `bcast:${productId}:${c.chat_id}` }]);
+            await b.api.answerCallbackQuery(cq.id).catch(() => {});
+            if (dmChatId) await b.api.sendMessage(dmChatId, 'Which channel?', { reply_markup: { inline_keyboard: kb } }).catch(() => {});
+            return NextResponse.json({ ok: true });
+          }
+        }
+        if (!channels.some((c) => String(c.chat_id) === String(target))) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Channel not connected.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+
+        try {
+          const botUsername = (await b.api.getMe()).username;
+          await postProductToChannel(b.api, target, product, botUsername);
+          await b.api.answerCallbackQuery(cq.id, { text: 'Posted!' }).catch(() => {});
+          if (dmChatId) await b.api.sendMessage(dmChatId, `📢 Posted "${product.title}" to your channel.`).catch(() => {});
+        } catch (e) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Post failed.' }).catch(() => {});
+          if (dmChatId) await b.api.sendMessage(dmChatId, `⚠️ Could not post: ${e?.description || e?.message || 'unknown error'}. Make sure the bot is an admin with post rights.`).catch(() => {});
+        }
+        return NextResponse.json({ ok: true });
+      }
+
+      await b.api.answerCallbackQuery(cq.id).catch(() => {});
+      return NextResponse.json({ ok: true });
+    }
+
     // Handle pre_checkout_query (must respond within 10 seconds)
     if (body.pre_checkout_query) {
       const query = body.pre_checkout_query;
@@ -178,10 +286,13 @@ export async function POST(req) {
           }
         }
 
+        await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
+
         // Durable delivery intent FIRST: if this function is interrupted (e.g.
         // serverless timeout) after recording the purchase, the retry cron still
         // delivers from the queue. On synchronous success we close the queue row.
         await enqueueDelivery(productId, buyerId, 'stars');
+        await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
         try {
           const safeTitle = escapeMarkdown(product.title);
           let contentMessage = '';
@@ -292,8 +403,28 @@ export async function POST(req) {
           `\u2705 *Product created\\!*\n\n` +
           `\u{1F4E6} *${safeTitle}*\n\u2B50 ${price} Stars\n\u{1F194} \`${id}\`\n\n` +
           `Share this link:\n${escapeMarkdown(shareUrl)}`,
-          { parse_mode: 'MarkdownV2' }
+          {
+            parse_mode: 'MarkdownV2',
+            reply_markup: { inline_keyboard: [[{ text: '\uD83D\uDCE2 Post to my channel', callback_data: `bcast:${id}` }]] },
+          }
         );
+      }
+
+      // /broadcast: list the creator's products, each with a post-to-channel button
+      else if (text === '/broadcast' || text.startsWith('/broadcast ')) {
+        const products = await getCreatorProducts(userId);
+        if (!products.length) {
+          await b.api.sendMessage(chatId, 'No products yet. Use /create to make one, then post it to your channel.');
+        } else {
+          const kb = products.slice(0, 20).map((p) => [{
+            text: `\uD83D\uDCE2 ${String(p.title).slice(0, 40)} (${p.price_stars}\u2B50)`,
+            callback_data: `bcast:${p.id}`,
+          }]);
+          await b.api.sendMessage(chatId,
+            'Pick a product to post to your channel. (Add this bot as an admin of your channel first.)',
+            { reply_markup: { inline_keyboard: kb } },
+          );
+        }
       }
 
       // /attach <product_id> — prompts creator to send a file
@@ -411,7 +542,9 @@ export async function POST(req) {
 
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
-        ]);      }
+        ]);
+        await recordEvent({ eventType: 'checkout_start', productId, creatorId: product.creator_id, buyerId: userId, source: 'bot', meta: { rail: 'stars' } });
+      }
 
       // /buy <id>
       else if (text.startsWith('/buy ')) {
@@ -462,7 +595,9 @@ export async function POST(req) {
 
         await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, TELEGRAM_CURRENCY, [
           { label: product.title, amount: product.price_stars }
-        ]);      }
+        ]);
+        await recordEvent({ eventType: 'checkout_start', productId, creatorId: product.creator_id, buyerId: userId, source: 'bot', meta: { rail: 'stars' } });
+      }
 
       // /testbuy <id> (no-charge simulation)
       else if (text.startsWith('/testbuy ') || text.startsWith('/testbuy@')) {
