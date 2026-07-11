@@ -5,6 +5,7 @@ import {
   getFunnelSummary,
   upsertCreatorChannel,
   deactivateCreatorChannel,
+  deactivateChannel,
   getCreatorChannels,
 } from '../lib/db.js';
 
@@ -66,4 +67,21 @@ test('creator_channels: upsert, list, update, deactivate, can_post gating', asyn
   await deactivateCreatorChannel(creator, chanA);
   chans = await getCreatorChannels(creator);
   assert.equal(chans.length, 0);
+});
+
+test('creator_channels: chat-wide deactivation covers every creator on that chat', async () => {
+  const chat = `-100chat_${RUN}`;
+  const creatorX = `cx_${RUN}`;
+  const creatorY = `cy_${RUN}`;
+  // Two creators both connected the same chat (e.g. co-admins).
+  await upsertCreatorChannel(creatorX, chat, 'Shared', 'channel', true);
+  await upsertCreatorChannel(creatorY, chat, 'Shared', 'channel', true);
+  assert.equal((await getCreatorChannels(creatorX)).length, 1);
+  assert.equal((await getCreatorChannels(creatorY)).length, 1);
+
+  // The bot is removed by whoever: the chat is deactivated for BOTH creators,
+  // not just the one who performed the removal.
+  await deactivateChannel(chat);
+  assert.equal((await getCreatorChannels(creatorX)).length, 0);
+  assert.equal((await getCreatorChannels(creatorY)).length, 0);
 });
