@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { ENABLE_STRIPE, STRIPE_SECRET_KEY, WEBAPP_URL } from '@/lib/config';
-import { getProduct, hasPurchased } from '@/lib/db';
+import { getProduct, hasPurchased, recordEvent } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
@@ -105,6 +105,10 @@ export async function POST(req) {
       },
     },
   });
+
+  // Awaited so a serverless handler does not abandon the write on return;
+  // recordEvent is best-effort (never throws), so awaiting is safe.
+  await recordEvent({ eventType: 'checkout_start', productId: String(product_id), creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card', currency: normalizedCurrency } });
 
   return NextResponse.json({ checkout_url: session.url, session_id: session.id });
 }

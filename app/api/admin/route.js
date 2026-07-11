@@ -16,6 +16,7 @@ import {
   markPayoutProcessing,
   getPayoutDetails,
   getMonthlyReconciliation,
+  getFunnelSummary,
 } from '@/lib/db';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { payoutStatementRows, toCsv } from '@/lib/payout-statement';
@@ -104,6 +105,12 @@ export async function GET(req) {
       return NextResponse.json({ is_admin: true, kind, filters, ...queue, details });
     }
     return NextResponse.json({ is_admin: true, kind, filters, ...queue });
+  }
+
+  if (kind === 'funnel') {
+    const product_id = searchParams.get('product_id') || undefined;
+    const summary = await getFunnelSummary({ from, to, creatorId: creator_id, productId: product_id });
+    return NextResponse.json({ is_admin: true, kind, filters: { from, to, creator_id, product_id }, ...summary });
   }
 
   const rows = kind === 'purchases'
