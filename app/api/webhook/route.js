@@ -151,6 +151,22 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
+        // The creator may have lost their own admin rights while the bot stayed
+        // on, leaving a stale creator_channels row. Verify at post time that the
+        // caller still administers the target; if not, refuse and deactivate it.
+        try {
+          const member = await b.api.getChatMember(String(target), Number(fromId));
+          if (member.status !== 'administrator' && member.status !== 'creator') {
+            await deactivateCreatorChannel(fromId, target).catch(() => {});
+            await b.api.answerCallbackQuery(cq.id, { text: "You're no longer an admin of that channel." }).catch(() => {});
+            return NextResponse.json({ ok: true });
+          }
+        } catch {
+          await deactivateCreatorChannel(fromId, target).catch(() => {});
+          await b.api.answerCallbackQuery(cq.id, { text: 'Cannot verify your channel access.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+
         try {
           const botUsername = (await b.api.getMe()).username;
           await postProductToChannel(b.api, target, product, botUsername);
@@ -292,7 +308,6 @@ export async function POST(req) {
         // serverless timeout) after recording the purchase, the retry cron still
         // delivers from the queue. On synchronous success we close the queue row.
         await enqueueDelivery(productId, buyerId, 'stars');
-        await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
         try {
           const safeTitle = escapeMarkdown(product.title);
           let contentMessage = '';
@@ -314,6 +329,7 @@ export async function POST(req) {
           await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
           await deliverPaidMedia(b.api, buyerId, product);
           await markDeliveryDoneForTarget(productId, buyerId);
+          await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
 
           // Notify creator
           const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;

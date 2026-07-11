@@ -145,11 +145,13 @@ export async function GET(req) {
 
   await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card' } });
 
-  await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {
+  try {
+    await deliverAndNotify(product, buyerId, creatorShareCents, currency);
+    await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card' } });
+  } catch (err) {
     console.error('Checkout verify delivery failed, queuing for retry:', err?.message || err);
     await enqueueDelivery(productId, buyerId, 'stripe').catch(() => {});
-  });
-  await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card' } });
+  }
 
   return NextResponse.json({ ok: true, delivered: true });
 }

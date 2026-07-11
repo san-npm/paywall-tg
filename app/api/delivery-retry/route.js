@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ADMIN_TELEGRAM_IDS } from '@/lib/config';
-import { getPendingDeliveries, getProduct, markDeliveryDone, markDeliveryFailed, getFailedDeliveries } from '@/lib/db';
+import { getPendingDeliveries, getProduct, markDeliveryDone, markDeliveryFailed, getFailedDeliveries, recordEvent } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
 
 export const runtime = 'nodejs';
@@ -90,6 +90,7 @@ async function processDeliveryQueue() {
 
       await deliverContent(b.api, String(delivery.buyer_telegram_id), product);
       await markDeliveryDone(delivery.id);
+      await recordEvent({ eventType: 'delivered', productId: delivery.product_id, creatorId: product.creator_id, buyerId: delivery.buyer_telegram_id, source: 'retry', meta: { rail: delivery.purchase_type || 'stars' } });
       results.push({ id: delivery.id, status: 'done' });
     } catch (err) {
       await markDeliveryFailed(delivery.id, err?.message || 'Unknown error');

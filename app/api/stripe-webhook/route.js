@@ -111,11 +111,13 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
 
   await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'web', meta: { rail: 'card' } });
 
-  await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {
+  try {
+    await deliverAndNotify(product, buyerId, creatorShareCents, currency);
+    await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'web', meta: { rail: 'card' } });
+  } catch (err) {
     console.error('Stripe delivery notify failed, queuing for retry:', err?.message || err);
     await enqueueDelivery(productId, buyerId, 'stripe').catch(() => {});
-  });
-  await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'web', meta: { rail: 'card' } });
+  }
 }
 
 export async function POST(req) {
