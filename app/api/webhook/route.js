@@ -5,7 +5,7 @@ import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
   getCreatorStats, recordPurchase, reactivatePurchase, getPurchaseByChargeId, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
   setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery, markDeliveryDoneForTarget,
-  upsertCreatorChannel, deactivateCreatorChannel, getCreatorChannels, recordEvent
+  upsertCreatorChannel, deactivateCreatorChannel, deactivateChannel, getCreatorChannels, recordEvent
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId, sanitizeErrorMessage } from '@/lib/validate';
 
@@ -122,7 +122,9 @@ export async function POST(req) {
             `✅ Connected "${chat.title || 'your channel'}". Post a product to it any time with /broadcast.`,
           ).catch(() => {});
         } else if (status === 'left' || status === 'kicked' || status === 'member' || status === 'restricted') {
-          await deactivateCreatorChannel(addedBy, chat.id).catch(() => {});
+          // The bot lost admin/post rights in this chat, so no creator can post
+          // there any more, whoever performed the change. Deactivate chat-wide.
+          await deactivateChannel(chat.id).catch(() => {});
         }
       }
       return NextResponse.json({ ok: true });
@@ -148,6 +150,11 @@ export async function POST(req) {
         }
         if (String(product.creator_id) !== fromId) {
           await b.api.answerCallbackQuery(cq.id, { text: 'Not your product.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        // Do not promote a product that /start buy_ can no longer sell.
+        if (!product.active) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'This product is no longer active.' }).catch(() => {});
           return NextResponse.json({ ok: true });
         }
 
