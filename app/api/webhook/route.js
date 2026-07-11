@@ -34,19 +34,46 @@ async function deliverPaidMedia(api, chatId, product) {
   }
 }
 
+function productMethods(product) {
+  return String(product.payment_methods || 'stars,stripe').split(',').map((v) => v.trim().toLowerCase());
+}
+
+// Present the buy options honoring the product's configured payment_methods:
+// a Stars invoice when the product accepts Stars, otherwise a web_app button to
+// the Mini App card checkout. Never sends a Stars invoice for a card-only product.
+async function presentBuyOptions(api, chatId, product, productId, buyerId) {
+  const methods = productMethods(product);
+  if (methods.includes('stars')) {
+    await api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
+      { label: product.title, amount: product.price_stars },
+    ]);
+    await recordEvent({ eventType: 'checkout_start', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
+  } else if (methods.includes('stripe')) {
+    await api.sendMessage(String(chatId), `Tap to pay by card for "${product.title}".`, {
+      reply_markup: { inline_keyboard: [[{ text: '💳 Pay by card', web_app: { url: `${WEBAPP_URL}/buy/${productId}` } }]] },
+    });
+    await recordEvent({ eventType: 'checkout_start', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'card' } });
+  } else {
+    await api.sendMessage(String(chatId), 'This product is not available for purchase right now.');
+  }
+}
+
 // Post a product as a text card with a Buy button into a channel/group the bot
 // administers. Intentionally text-only: it must NEVER include the product's
 // file_id or content, which are the paid goods. Records a broadcast event.
 async function postProductToChannel(api, chatId, product, botUsername) {
-  const methods = String(product.payment_methods || 'stars,stripe').split(',').map((v) => v.trim().toLowerCase());
-  const priceLine = methods.includes('stripe')
-    ? `⭐ ${product.price_stars} Stars or card`
-    : `⭐ ${product.price_stars} Stars`;
+  const methods = productMethods(product);
+  const acceptsStars = methods.includes('stars');
+  const acceptsCard = methods.includes('stripe');
+  const priceLine = acceptsStars
+    ? `⭐ ${product.price_stars} Stars${acceptsCard ? ' or card' : ''}`
+    : '💳 Pay by card';
+  const buyLabel = acceptsStars ? '⭐ Buy now' : '💳 Buy now';
   const desc = product.description ? `\n\n${String(product.description).slice(0, 300)}` : '';
   const text = `\u{1F4E6} ${product.title}\n${priceLine}${desc}`;
   const buyUrl = `https://t.me/${botUsername}?start=buy_${product.id}`;
   await api.sendMessage(String(chatId), text, {
-    reply_markup: { inline_keyboard: [[{ text: '⭐ Buy now', url: buyUrl }]] },
+    reply_markup: { inline_keyboard: [[{ text: buyLabel, url: buyUrl }]] },
     link_preview_options: { is_disabled: true },
   });
   await recordEvent({ eventType: 'broadcast', productId: product.id, creatorId: product.creator_id, source: 'bot', meta: { chat_id: String(chatId) } });
@@ -556,10 +583,7 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
-          { label: product.title, amount: product.price_stars }
-        ]);
-        await recordEvent({ eventType: 'checkout_start', productId, creatorId: product.creator_id, buyerId: userId, source: 'bot', meta: { rail: 'stars' } });
+        await presentBuyOptions(b.api, chatId, product, productId, userId);
       }
 
       // /buy <id>
@@ -609,10 +633,7 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, TELEGRAM_CURRENCY, [
-          { label: product.title, amount: product.price_stars }
-        ]);
-        await recordEvent({ eventType: 'checkout_start', productId, creatorId: product.creator_id, buyerId: userId, source: 'bot', meta: { rail: 'stars' } });
+        await presentBuyOptions(b.api, chatId, product, productId, userId);
       }
 
       // /testbuy <id> (no-charge simulation)
