@@ -109,15 +109,19 @@ async function finalizeFiatPurchase({ productId, buyerId, amountTotal, currency,
     }
   }
 
-  await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'web', meta: { rail: 'card' } });
-
+  // Analytics writes stay off the pre-delivery critical path: deliver (or queue
+  // a retry) first, then record, so a slow event insert can never delay or, on a
+  // timeout + Stripe retry, strand delivery of an already-recorded purchase.
+  let delivered = false;
   try {
     await deliverAndNotify(product, buyerId, creatorShareCents, currency);
-    await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'web', meta: { rail: 'card' } });
+    delivered = true;
   } catch (err) {
     console.error('Stripe delivery notify failed, queuing for retry:', err?.message || err);
     await enqueueDelivery(productId, buyerId, 'stripe').catch(() => {});
   }
+  await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'web', meta: { rail: 'card' } });
+  if (delivered) await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'web', meta: { rail: 'card' } });
 }
 
 export async function POST(req) {

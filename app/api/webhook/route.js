@@ -336,12 +336,13 @@ export async function POST(req) {
           }
         }
 
-        await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
-
         // Durable delivery intent FIRST: if this function is interrupted (e.g.
         // serverless timeout) after recording the purchase, the retry cron still
         // delivers from the queue. On synchronous success we close the queue row.
+        // Analytics writes stay AFTER this so a slow event insert can never sit
+        // between the payment and the durable delivery intent.
         await enqueueDelivery(productId, buyerId, 'stars');
+        await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
         try {
           const safeTitle = escapeMarkdown(product.title);
           let contentMessage = '';
