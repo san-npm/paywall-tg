@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ENABLE_STRIPE, PLATFORM_FEE_PERCENT, STRIPE_SECRET_KEY } from '@/lib/config';
-import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasStripeFulfillment, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery } from '@/lib/db';
+import { getProduct, hasFiatPurchaseByPaymentIntent, hasFiatPurchaseBySession, hasStripeFulfillment, hasPurchased, recordFiatPurchase, reactivateFiatPurchase, enqueueDelivery, recordEvent } from '@/lib/db';
 import { escapeMarkdown, validateInitData } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
 
@@ -143,10 +143,13 @@ export async function GET(req) {
     }
   }
 
+  await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card' } });
+
   await deliverAndNotify(product, buyerId, creatorShareCents, currency).catch(async (err) => {
     console.error('Checkout verify delivery failed, queuing for retry:', err?.message || err);
     await enqueueDelivery(productId, buyerId, 'stripe').catch(() => {});
   });
+  await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'card' } });
 
   return NextResponse.json({ ok: true, delivered: true });
 }
