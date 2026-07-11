@@ -95,7 +95,8 @@ export async function POST(req) {
       [{ label: product.title, amount: product.price_stars }]
     );
 
-    recordEvent({ eventType: 'checkout_start', productId: normalizedProductId, creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'stars' } });
+    // Awaited (best-effort, never throws) so serverless does not drop it.
+    await recordEvent({ eventType: 'checkout_start', productId: normalizedProductId, creatorId: product.creator_id, buyerId, source: 'miniapp', meta: { rail: 'stars' } });
 
     return jsonWithRequestId({ invoice_url: invoiceLink }, requestId, 200);
   } catch (err) {

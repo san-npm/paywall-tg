@@ -40,8 +40,10 @@ export async function GET(req) {
       const { limited } = await checkRateLimit(`product_view:${ip}`, 600);
       if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
       if (Math.random() < 0.25) { incrementViews(productId).catch(() => {}); }
-      // Funnel event (unsampled, best-effort): the top of the buy funnel.
-      recordEvent({ eventType: 'product_view', productId, creatorId: product.creator_id, buyerId: authenticatedBuyerId || null, source: 'miniapp' });
+      // Funnel event (unsampled, best-effort): the top of the buy funnel. Awaited
+      // so serverless does not drop it; the events table is append-only (no row
+      // contention like the sampled view counter) and this path is rate-limited.
+      await recordEvent({ eventType: 'product_view', productId, creatorId: product.creator_id, buyerId: authenticatedBuyerId || null, source: 'miniapp' });
     }
 
     // Don't expose content unless authenticated buyer has purchased; never expose
