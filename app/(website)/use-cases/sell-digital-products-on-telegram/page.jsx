@@ -4,7 +4,7 @@ import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Sell Digital Products on Telegram',
-  description: 'Sell ebooks, files, templates, and premium content with a Telegram paywall and instant Stars-based checkout.',
+  description: 'Sell ebooks, files, templates, and premium content with a Telegram paywall and native Stars checkout.',
   path: '/use-cases/sell-digital-products-on-telegram',
   keywords: ['sell digital products telegram', 'telegram creator monetization'],
 });
@@ -22,10 +22,10 @@ export default function SellDigitalProducts() {
   const products = [
     { icon: '📄', name: 'Ebooks & PDFs', desc: 'Sell guides, reports, and documents. Delivered as a file message the moment payment clears.' },
     { icon: '🎓', name: 'Courses & Lessons', desc: 'Drip content or deliver full course access via private channels or direct messages.' },
-    { icon: '📋', name: 'Templates & Tools', desc: 'Notion templates, spreadsheets, Figma files — link delivery in one tap.' },
-    { icon: '🔑', name: 'Access & Credentials', desc: 'API keys, software licenses, membership passes — text-based instant delivery.' },
+    { icon: '📋', name: 'Templates & Tools', desc: 'Notion templates, spreadsheets, and Figma files delivered through a link.' },
+    { icon: '🔑', name: 'Access & Credentials', desc: 'API keys, software licenses, membership passes — text-based automatic delivery.' },
     { icon: '🎨', name: 'Design Assets', desc: 'Icons, presets, mockups, fonts — file delivery right in the Telegram chat.' },
-    { icon: '💬', name: 'Premium Content', desc: 'Exclusive messages, predictions, signals, analysis — paid text delivered instantly.' },
+    { icon: '💬', name: 'Premium Content', desc: 'Exclusive messages, predictions, signals, analysis — paid text delivered automatically.' },
   ];
 
   return (
@@ -34,7 +34,7 @@ export default function SellDigitalProducts() {
       <PageHeader
         badge="Use Case"
         title={<>Sell digital products on <span className="text-site-accent">Telegram</span> with less friction</>}
-        description="Creators list offers in minutes. Buyers pay with Stars and get files, links, or access instantly in chat."
+        description="Creators list offers in minutes. Buyers pay with Stars and get files, links, or access automatically in chat."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -58,11 +58,11 @@ export default function SellDigitalProducts() {
           <div className="space-y-4">
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1 text-red-400">Buyer sees your product in a Telegram channel</h3>
-              <p className="text-sm text-site-muted">They tap the link. A browser opens. They see a checkout page from a service they don&rsquo;t recognize. They need to create an account, enter their email, add a credit card. Half of them close the tab.</p>
+              <p className="text-sm text-site-muted">They tap the link. A browser opens, and the service may ask for an account, email, and payment details before the buyer can return to Telegram.</p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1 text-green-400">With Gategram: buyer taps Buy inside Telegram</h3>
-              <p className="text-sm text-site-muted">The native Stars payment dialog appears. One tap to confirm. Content delivered as a message instantly. No browser, no account creation, no credit card form. The buyer never left the conversation.</p>
+              <p className="text-sm text-site-muted">The native Stars payment dialog appears for confirmation. Content is then queued as a Telegram message. There is no Gategram card form or separate account.</p>
             </div>
           </div>
         </div>
@@ -70,13 +70,13 @@ export default function SellDigitalProducts() {
 
       <section className="py-16 px-4 border-b border-site-border">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-8 text-center">How to start selling in 2 minutes</h2>
+          <h2 className="text-2xl font-bold mb-8 text-center">How to start selling</h2>
           <ol className="space-y-4">
             {[
               { step: '1', title: 'Open the Gategram bot', desc: 'Tap "Create your first product" below. The bot opens inside Telegram.' },
               { step: '2', title: 'Set your product details', desc: 'Title, price in Stars, and paste your content (text, link, or upload a file).' },
               { step: '3', title: 'Share the buy link', desc: 'Drop it in your channel, group, or DMs. Anyone who taps it gets the native purchase flow.' },
-              { step: '4', title: 'Get paid', desc: 'Stars land in your balance. You keep 95%. Telegram takes 5%.' },
+              { step: '4', title: 'Track your creator share', desc: 'Gategram records at least 95% as your creator share, then applies the published payout rate after the holding period.' },
             ].map((s) => (
               <div key={s.step} className="flex gap-4 p-5 rounded-xl border border-site-border bg-site-card">
                 <div className="w-8 h-8 rounded-full bg-site-accent text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -98,7 +98,7 @@ export default function SellDigitalProducts() {
           {[
             {
               q: 'Can I sell one-time offers, not just subscriptions?',
-              a: 'Yes. You can sell one-time ebooks, files, premium posts, and access links with instant delivery after payment.',
+              a: 'Yes. You can sell one-time ebooks, files, premium posts, and access links with automatic delivery after payment.',
             },
             {
               q: 'Why does native checkout help conversion?',
@@ -130,7 +130,7 @@ export default function SellDigitalProducts() {
       <PageCTA
         title="Ready to sell your first digital product on Telegram?"
         description="Launch quickly with native checkout your audience already trusts."
-        primary="Start in 2 minutes"
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"

@@ -52,11 +52,11 @@ export default function VsSendPulse() {
 
   const rows = [
     { feature: 'Focus', paygate: 'Sell content on Telegram — one thing, done well', other: 'Marketing automation suite (email, SMS, chatbots, CRM)' },
-    { feature: 'Payment flow', paygate: 'Native Telegram Stars — one tap', other: 'External payment processors via chatbot flows' },
-    { feature: 'Setup time', paygate: '2 minutes. Create product, share link', other: '30-60 minutes. Build chatbot flow, connect payment, design sequences' },
-    { feature: 'Content delivery', paygate: 'Instant — file, text, or link in Telegram', other: 'Requires chatbot flow logic to deliver after payment' },
-    { feature: 'Learning curve', paygate: 'Near zero. Create, price, share', other: 'Steep. Visual chatbot builder, flow logic, triggers, conditions' },
-    { feature: 'Pricing', paygate: 'Free to start, 5% per sale via Stars', other: 'Free tier limited, paid plans from $8-12/mo for features' },
+    { feature: 'Payment flow', paygate: 'Native Telegram Stars invoice', other: 'External payment processors via chatbot flows' },
+    { feature: 'Setup', paygate: 'Create an offer and share its link', other: 'Build a chatbot flow and configure payments' },
+    { feature: 'Content delivery', paygate: 'Automatic — file, text, or link in Telegram', other: 'Configured through chatbot flow logic' },
+    { feature: 'Setup model', paygate: 'Create, price, share', other: 'Visual chatbot builder with flows and triggers' },
+    { feature: 'Pricing model', paygate: 'No monthly fee; up to 5% per Stars sale', other: 'Separate third-party pricing' },
     { feature: 'Telegram integration', paygate: 'Native — built for Telegram only', other: 'One of many channels (email, Instagram, WhatsApp, etc.)' },
     { feature: 'Overkill factor', paygate: 'Purpose-built for content sales', other: 'Full marketing suite when you just need to sell a PDF' },
     { feature: 'Analytics', paygate: 'Sales and revenue per product', other: 'Full funnel analytics, email open rates, chatbot metrics' },
@@ -106,7 +106,7 @@ export default function VsSendPulse() {
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1">You want native Telegram checkout</h3>
-              <p className="text-sm text-site-muted">SendPulse routes payments through external processors. Gategram uses Telegram Stars — the native payment method your buyers already have set up through Apple Pay or Google Pay.</p>
+              <p className="text-sm text-site-muted">Gategram uses Telegram Stars for digital-goods payments and keeps invoice confirmation inside Telegram.</p>
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function VsSendPulse() {
             </Link>
             <Link href="/telegram-paywall" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Telegram Paywall</h3>
-              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout in under 2 minutes.</p>
+              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout without code.</p>
             </Link>
           </div>
         </div>
@@ -149,8 +149,8 @@ export default function VsSendPulse() {
 
       <PageCTA
         title="Skip the marketing suite — just sell your content"
-        description="Two minutes to your first product. No chatbot flows required."
-        primary="Start in 2 minutes"
+        description="Create a paid offer without building a chatbot flow."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"

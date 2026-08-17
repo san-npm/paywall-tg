@@ -41,11 +41,11 @@ export default function LemonSqueezyAlternative() {
                 desc: 'LemonSqueezy gives you a hosted checkout page or an embed. For Telegram users, that means leaving the app. Gategram\'s Stars checkout is a native Telegram dialog — no redirect, no page load, no friction.',
               },
               {
-                title: 'Better economics for small products',
-                desc: 'LemonSqueezy takes 5% + 50c per transaction. On a $3 product, that\'s 67c (22%). With Gategram\'s flat 5% via Stars, you pay 15c. The math gets better on every small sale.',
+                title: 'A fee designed for whole-Star payments',
+                desc: 'Gategram charges at most 5% of each Stars payment and rounds the fee down to whole Stars. Compare that with Lemon Squeezy\'s current published pricing, tax model, and feature set for your own offer.',
               },
               {
-                title: 'Instant delivery without webhooks',
+                title: 'Automatic delivery without webhooks',
                 desc: 'With LemonSqueezy, you need to configure webhooks or use their API to deliver content. Gategram handles delivery automatically — content goes to the buyer as a Telegram message the moment they pay.',
               },
             ].map((item, i) => (
@@ -74,11 +74,11 @@ export default function LemonSqueezyAlternative() {
                 {[
                   { f: 'Target', p: 'Telegram creators', l: 'SaaS & general digital sales' },
                   { f: 'Checkout', p: 'Native Telegram Stars dialog', l: 'Hosted checkout page / overlay' },
-                  { f: 'Fee', p: '5% flat (Stars)', l: '5% + 50c per transaction' },
-                  { f: 'Delivery', p: 'Instant Telegram message', l: 'Email / webhook integration' },
-                  { f: 'Setup', p: '2 minutes, no config', l: '15+ minutes, Stripe + tax setup' },
-                  { f: 'Buyer friction', p: 'One tap, no account', l: 'Email + card on external page' },
-                  { f: 'Tax handling', p: 'Via Telegram (Stars)', l: 'Built-in tax compliance' },
+                  { f: 'Fee', p: 'At most 5% of Stars, rounded down', l: 'See current published pricing' },
+                  { f: 'Delivery', p: 'Automatic Telegram message', l: 'Separate delivery configuration' },
+                  { f: 'Setup', p: 'A few steps, no code', l: 'Hosted-store configuration' },
+                  { f: 'Buyer flow', p: 'Stars invoice in Telegram', l: 'Hosted checkout flow' },
+                  { f: 'Tax handling', p: 'Telegram handles the Stars payment rail', l: 'See provider terms' },
                 ].map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}>
                     <td className="p-4 text-site-muted font-medium">{row.f}</td>
@@ -97,7 +97,7 @@ export default function LemonSqueezyAlternative() {
           <h2 className="text-2xl font-bold mb-4">When to use LemonSqueezy instead</h2>
           <p className="text-site-muted text-sm leading-relaxed max-w-xl mx-auto">
             If you sell SaaS subscriptions, need advanced tax compliance, or your audience isn&rsquo;t primarily on Telegram — LemonSqueezy is the better tool.
-            Gategram is specifically built for creators who sell to a Telegram audience and want the highest possible conversion rate.
+            Gategram is specifically built for creators who want to test a native Stars flow with a Telegram audience.
           </p>
         </div>
       </section>
@@ -105,7 +105,7 @@ export default function LemonSqueezyAlternative() {
       <PageCTA
         title="Ready for Telegram-native checkout instead of hosted pages?"
         description="Set up quickly, share one link, and let buyers complete payment without leaving Telegram."
-        primary="Start in 2 minutes"
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See payment flow"
         secondaryHref="/how-payments-work"

@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Ko-fi Alternative for Telegram Creators',
-  description: 'Alternative to Ko-fi for Telegram: native Stars checkout, instant in-chat delivery, no browser redirect. Built for Telegram creators.',
+  description: 'Alternative to Ko-fi for Telegram: native Stars checkout, automatic in-chat delivery, no browser redirect. Built for Telegram creators.',
   path: '/alternatives/ko-fi-telegram',
   keywords: ['ko-fi alternative telegram', 'ko-fi telegram', 'telegram tip alternative'],
 });
@@ -36,7 +36,7 @@ export default function KoFiAlternative() {
         name: 'Is there a Ko-fi alternative for Telegram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Gategram is the Ko-fi alternative designed for Telegram creators. Instead of a web-based tip jar, Gategram offers native Telegram Stars checkout with instant in-chat content delivery. No monthly fee (Ko-fi Gold costs $6/month), just a 5% commission per sale.',
+          text: 'Gategram is designed for one-time content sales in Telegram. It offers native Telegram Stars checkout, automated in-chat delivery, no monthly fee, and a platform fee capped at 5%. Check Ko-fi\'s current pricing for a direct comparison.',
         },
       },
       {
@@ -44,7 +44,7 @@ export default function KoFiAlternative() {
         name: 'How does Ko-fi compare to Telegram Stars for tips?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Ko-fi tips happen on an external web page and require the supporter to leave Telegram. Telegram Stars tips happen natively inside the app with one tap, backed by Apple Pay and Google Pay. For Telegram audiences, Stars-based payments have significantly lower friction and higher conversion rates.',
+          text: 'Ko-fi tips happen on an external web page. Telegram Stars payments use Telegram\'s in-app dialog. The flows have different steps; measure conversion with your own audience before choosing.',
         },
       },
     ],
@@ -57,7 +57,7 @@ export default function KoFiAlternative() {
     },
     {
       title: 'Ko-fi is a tip jar — not a content delivery system',
-      desc: 'Ko-fi is designed for "buy me a coffee" tips and a basic shop. It doesn\'t deliver content inside Telegram after payment. With Gategram, you sell content and the buyer gets it instantly as a Telegram message — file, text, or link.',
+      desc: 'Ko-fi is designed for "buy me a coffee" tips and a basic shop. It doesn\'t deliver content inside Telegram after payment. With Gategram, you sell content and the buyer gets it automatically as a Telegram message — file, text, or link.',
     },
     {
       title: 'Ko-fi Gold costs $6/month for basic features',
@@ -76,7 +76,7 @@ export default function KoFiAlternative() {
       <PageHeader
         badge="Alternative"
         title={<>The Ko-fi alternative that stays in <span className="text-site-accent">Telegram</span></>}
-        description="Ko-fi is a web-based tip jar and shop. Gategram is built for Telegram — native checkout, instant delivery, no browser redirect."
+        description="Ko-fi is a web-based tip jar and shop. Gategram is built for Telegram — native checkout, automatic delivery, no browser redirect."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -110,9 +110,9 @@ export default function KoFiAlternative() {
                   { f: 'Built for', p: 'Telegram creators', g: 'General creators (web-based)' },
                   { f: 'Checkout', p: 'Native Telegram Stars', g: 'External Ko-fi page (browser)' },
                   { f: 'Fee', p: '5% (Telegram Stars)', g: '0% on tips (Ko-fi Gold: $6/mo for shop)' },
-                  { f: 'Content delivery', p: 'Instant in-chat message', g: 'Email or Ko-fi download page' },
+                  { f: 'Content delivery', p: 'Automatic in-chat message', g: 'Web shop delivery flow' },
                   { f: 'Buyer account', p: 'Not needed', g: 'Optional but adds friction' },
-                  { f: 'Setup time', p: '2 minutes', g: '10-15 minutes' },
+                  { f: 'Setup', p: 'Create an offer and share its link', g: 'Configure a web shop or supporter page' },
                   { f: 'Mobile experience', p: 'One-tap Stars payment in Telegram', g: 'Mobile browser checkout' },
                 ].map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}>
@@ -137,11 +137,11 @@ export default function KoFiAlternative() {
             </Link>
             <Link href="/alternatives/patreon-for-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Patreon Alternative for Telegram</h3>
-              <p className="text-sm text-site-muted">Per-item sales, native checkout, lower fees than Patreon.</p>
+              <p className="text-sm text-site-muted">Compare one-time Stars sales with membership platforms.</p>
             </Link>
             <Link href="/fees" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Gategram Pricing</h3>
-              <p className="text-sm text-site-muted">Flat 5% per sale. No monthly fees like Ko-fi Gold.</p>
+              <p className="text-sm text-site-muted">Platform fee capped at 5%, with no monthly fee.</p>
             </Link>
           </div>
         </div>
@@ -152,8 +152,8 @@ export default function KoFiAlternative() {
           <h2 className="text-2xl font-bold">Ko-fi for Telegram FAQ</h2>
           {[
             { q: 'Can I use Ko-fi on Telegram?', a: 'You can share Ko-fi links in Telegram, but buyers will be redirected to an external browser page to complete payment. Ko-fi has no native Telegram integration — no in-app checkout, no automatic content delivery in chat. Gategram is built specifically for Telegram with native Stars checkout.' },
-            { q: 'Is there a Ko-fi alternative for Telegram?', a: 'Gategram is the Ko-fi alternative designed for Telegram creators. Instead of a web-based tip jar, Gategram offers native Telegram Stars checkout with instant in-chat content delivery. No monthly fee (Ko-fi Gold costs $6/month), just a 5% commission per sale.' },
-            { q: 'How does Ko-fi compare to Telegram Stars for tips?', a: 'Ko-fi tips happen on an external web page and require the supporter to leave Telegram. Telegram Stars tips happen natively inside the app with one tap, backed by Apple Pay and Google Pay. For Telegram audiences, Stars-based payments have significantly lower friction and higher conversion rates.' },
+            { q: 'Is there a Ko-fi alternative for Telegram?', a: 'Gategram is designed for one-time content sales in Telegram. It offers native Telegram Stars checkout, automated in-chat delivery, no monthly fee, and a platform fee capped at 5%. Check Ko-fi\'s current pricing for a direct comparison.' },
+            { q: 'How does Ko-fi compare to Telegram Stars for tips?', a: 'Ko-fi uses an external web page, while Telegram Stars use Telegram\'s in-app dialog. Compare the steps, fees, and measured results for your own audience.' },
           ].map((item) => (
             <div key={item.q} className="site-panel text-sm text-site-muted">
               <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
@@ -165,7 +165,7 @@ export default function KoFiAlternative() {
       <PageCTA
         title="Stop sending buyers to a browser"
         description="Sell content where your audience lives — inside Telegram."
-        primary="Start in 2 minutes"
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"

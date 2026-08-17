@@ -1,6 +1,8 @@
-# Gategram Creator Terms (v1 Draft)
+# Gategram Creator Terms (v1 — superseded draft)
 
-> **Important:** This is an operational draft for implementation. It is **not legal advice**. Have Luxembourg counsel review before publishing.
+> Superseded on 2026-08-17 by [`creator-terms-v2.md`](./creator-terms-v2.md). Do not use this draft for new acceptances.
+
+> Historical implementation draft only.
 
 Last updated: 2026-03-12
 Operator: **COMMIT MEDIA S.A R.L.** (VAT: LU34811132, RCS: B276192)

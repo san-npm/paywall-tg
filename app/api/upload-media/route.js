@@ -124,7 +124,8 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Failed to attach file to product' }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, file_kind: fileKind });
+    const updatedProduct = await getProductRaw(String(productId));
+    return NextResponse.json({ ok: true, file_kind: fileKind, published: Number(updatedProduct?.active || 0) === 1 });
   } catch (err) {
     console.error('Upload media error:', err);
     return NextResponse.json({ error: 'Upload failed. Try sending the file directly to the bot.' }, { status: 500 });

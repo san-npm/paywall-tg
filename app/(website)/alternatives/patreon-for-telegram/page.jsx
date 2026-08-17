@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Patreon Alternative for Telegram Creators',
-  description: 'Alternative to Patreon for Telegram creators: per-item sales, native Stars checkout, 5% flat fee, no monthly subscription model required.',
+  description: 'A Patreon alternative for Telegram creators focused on one-time offers, native Stars checkout, and a platform fee capped at 5%.',
   path: '/alternatives/patreon-for-telegram',
   keywords: ['patreon alternative telegram', 'telegram patreon alternative', 'patreon for telegram creators'],
 });
@@ -44,7 +44,7 @@ export default function PatreonAlternative() {
         name: "What's cheaper than Patreon for Telegram creators?",
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "Gategram charges a flat 5% via Telegram Stars with no additional payment processing fees. Patreon charges 5-12% platform fees plus 2.9% + 30¢ per transaction for payment processing. On a $5 sale, Patreon's total cut can exceed 20%, while Gategram takes exactly 25¢.",
+          text: 'Gategram charges at most 5% of each Stars payment, rounded down to whole Stars, with no monthly fee. Patreon pricing depends on the creator plan, payment method, currency, and other factors; check its current published pricing before comparing a specific offer.',
         },
       },
       {
@@ -60,8 +60,8 @@ export default function PatreonAlternative() {
 
   const reasons = [
     {
-      title: 'Patreon takes 5-12% plus payment processing',
-      desc: 'Patreon\'s platform fee ranges from 5% to 12% depending on your plan, plus 2.9% + 30¢ per transaction via Stripe. On a $5 tier, you can lose over $1 per subscriber per month. Gategram takes a flat 5% via Telegram Stars — no additional processing fees.',
+      title: 'Compare the complete cost for your offer',
+      desc: 'Gategram charges at most 5% of each Stars payment, rounded down to whole Stars, with no monthly fee. Patreon pricing can vary by plan, payment method, currency, taxes, and other factors, so compare its current published pricing for your own case.',
     },
     {
       title: 'Patreon requires leaving Telegram',
@@ -84,7 +84,7 @@ export default function PatreonAlternative() {
       <PageHeader
         badge="Alternative"
         title={<>The Patreon alternative built for <span className="text-site-accent">Telegram</span></>}
-        description="Patreon is great for YouTube creators. For Telegram creators, Gategram offers native checkout, per-item sales, and lower fees."
+        description="Compare Patreon&rsquo;s current membership model with Gategram&rsquo;s native Telegram checkout and one-time per-item sales."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -117,11 +117,11 @@ export default function PatreonAlternative() {
                 {[
                   { f: 'Built for', p: 'Telegram creators', g: 'YouTube / podcast creators' },
                   { f: 'Checkout', p: 'Native Telegram Stars', g: 'External Patreon page' },
-                  { f: 'Fee', p: '5% flat (Telegram Stars)', g: '5-12% + payment processing (2.9% + 30¢)' },
-                  { f: 'Sales model', p: 'Per-item sales (+ subscriptions coming)', g: 'Monthly subscription tiers only' },
-                  { f: 'Delivery', p: 'Instant in-chat message', g: 'Patreon post (requires login)' },
+                  { f: 'Fee', p: 'At most 5% of Stars, rounded down', g: 'Varies by plan and payment details' },
+                  { f: 'Sales model', p: 'One-time per-item sales', g: 'Memberships and one-time purchases' },
+                  { f: 'Delivery', p: 'Automatic in-chat message', g: 'Patreon post or membership page' },
                   { f: 'Buyer account', p: 'Not needed', g: 'Required (email + password)' },
-                  { f: 'Setup time', p: '2 minutes', g: '30+ minutes (tiers, page, branding)' },
+                  { f: 'Setup', p: 'Create an offer and share its link', g: 'Configure a creator page and membership tiers' },
                   { f: 'Mobile experience', p: 'One-tap Stars payment', g: 'Browser checkout on mobile' },
                 ].map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}>
@@ -162,7 +162,7 @@ export default function PatreonAlternative() {
           {[
             { q: 'Is there a Patreon for Telegram?', a: 'Gategram is the closest equivalent to Patreon built specifically for Telegram. It lets you sell content and gate access using native Telegram Stars checkout. Unlike Patreon, there is no external page, no account creation for buyers, and the entire transaction happens inside the Telegram app.' },
             { q: 'Can I use Patreon with Telegram?', a: 'You can share Patreon links in Telegram, but the experience is poor. Buyers leave Telegram, create a Patreon account, enter payment details, and wait to access content on a separate platform. This multi-step process creates friction and loses potential subscribers who would have paid if checkout were simpler.' },
-            { q: "What's cheaper than Patreon for Telegram creators?", a: "Gategram charges a flat 5% via Telegram Stars with no additional payment processing fees. Patreon charges 5-12% platform fees plus 2.9% + 30¢ per transaction for payment processing. On a $5 sale, Patreon's total cut can exceed 20%, while Gategram takes exactly 25¢." },
+            { q: "What's cheaper than Patreon for Telegram creators?", a: 'Gategram charges at most 5% of each Stars payment, rounded down to whole Stars, with no monthly fee. Patreon pricing depends on the creator plan, payment method, currency, and other factors; check its current published pricing before comparing a specific offer.' },
             { q: 'Does Patreon work inside Telegram?', a: 'No. Patreon has no native Telegram integration. All checkout and content delivery happens on the Patreon website. Gategram is built specifically for Telegram — payment dialog is native, content is delivered as a Telegram message, and buyers never leave the app.' },
           ].map((item) => (
             <div key={item.q} className="site-panel text-sm text-site-muted">
@@ -173,9 +173,9 @@ export default function PatreonAlternative() {
       </section>
 
       <PageCTA
-        title="Monetize on Telegram without the Patreon tax"
-        description="Per-item sales, native checkout, 5% flat fee. Built for where your audience actually is."
-        primary="Start in 2 minutes"
+        title="Sell one-time offers directly in Telegram"
+        description="Per-item sales, native Stars checkout, and a platform fee capped at 5%."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"

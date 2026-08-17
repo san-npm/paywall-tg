@@ -5,7 +5,7 @@ import {
   createProduct,
   getProductRaw,
   recordPurchase,
-  reactivatePurchase,
+  getPurchaseByChargeId,
   markPurchaseRefunded,
   hasPurchased,
   recordFiatPurchase,
@@ -17,8 +17,8 @@ import {
 
 /**
  * Regression tests for the two HIGH payment-flow fixes from the 2026-06 audit:
- *  - pay-2: a refunded Stars purchase must be re-buyable (reactivatePurchase),
- *           instead of the second charge silently failing on UNIQUE(product,buyer).
+ *  - pay-2: a refunded Stars purchase must be re-buyable without overwriting
+ *           the original transaction and payout history.
  *  - pay-1: a Stripe refund/chargeback must revoke access + reverse the sale
  *           (markFiatPurchaseRefundedByPaymentIntent).
  *
@@ -28,7 +28,7 @@ import {
 const CREATOR = '900001';
 const BUYER = '900002';
 
-test('pay-2: refunded Stars purchase can be re-bought via reactivatePurchase', async () => {
+test('pay-2: refunded Stars purchase can be re-bought without overwriting history', async () => {
   await getOrCreateCreator(CREATOR, 'creator', 'Creator');
   const pid = 'rebuy23a';
   await createProduct(pid, CREATOR, 'Re-buy product', '', 100, 'text', 'secret-body', null);
@@ -43,17 +43,11 @@ test('pay-2: refunded Stars purchase can be re-bought via reactivatePurchase', a
   assert.equal(await hasPurchased(pid, BUYER), false, 'refund revokes access');
   assert.equal(Number((await getProductRaw(pid)).sales_count), 0);
 
-  // Re-buy: a fresh INSERT would throw UNIQUE(product_id,buyer); reactivate instead.
-  let threw = false;
-  try {
-    await recordPurchase(pid, BUYER, 100, 95, 5, 'charge_B');
-  } catch (err) {
-    threw = err?.message?.includes('UNIQUE constraint');
-    assert.ok(threw, 'expected the UNIQUE-constraint path for a refunded re-buy');
-    const reactivated = await reactivatePurchase(pid, BUYER, 100, 95, 5, 'charge_B');
-    assert.equal(reactivated, true, 'reactivatePurchase must restore the refunded row');
-  }
-  assert.equal(threw, true, 'second insert should hit the UNIQUE path that reactivation handles');
+  // Re-buy appends a new row. The original charge remains available for audit,
+  // refund, and payout-statement history.
+  await recordPurchase(pid, BUYER, 100, 95, 5, 'charge_B');
+  assert.equal(Number((await getPurchaseByChargeId('charge_A')).refunded), 1);
+  assert.equal(Number((await getPurchaseByChargeId('charge_B')).refunded), 0);
   assert.equal(await hasPurchased(pid, BUYER), true, 're-buyer regains access');
   assert.equal(Number((await getProductRaw(pid)).sales_count), 1, 'sales_count restored');
 });

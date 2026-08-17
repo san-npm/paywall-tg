@@ -25,15 +25,6 @@ export function GET() {
         ],
       },
       {
-        anchor: `${SITE_URL}/api/checkout`,
-        'service-desc': [
-          { href: `${SITE_URL}/.well-known/openapi.yaml`, type: 'application/yaml' },
-        ],
-        'service-doc': [
-          { href: `${SITE_URL}/how-payments-work`, type: 'text/html' },
-        ],
-      },
-      {
         anchor: `${SITE_URL}/api/invoice`,
         'service-desc': [
           { href: `${SITE_URL}/.well-known/openapi.yaml`, type: 'application/yaml' },

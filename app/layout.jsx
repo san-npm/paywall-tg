@@ -1,10 +1,6 @@
 import './globals.css';
-import Script from 'next/script';
 import { CORE_KEYWORDS, SITE_URL } from '@/lib/seo';
 import WebMcpTools from '@/components/WebMcpTools';
-
-const GA_MEASUREMENT_ID_RAW = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
-const GA_MEASUREMENT_ID = /^G-[A-Z0-9]{6,12}$/.test(GA_MEASUREMENT_ID_RAW) ? GA_MEASUREMENT_ID_RAW : null;
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
@@ -17,7 +13,7 @@ export const metadata = {
     default: 'Gategram — Telegram Paywall & Community Monetization',
     template: '%s | Gategram',
   },
-  description: 'Telegram paywall for paid communities and digital products. Monetize community access with Telegram Stars, instant delivery, and low-friction checkout.',
+  description: 'Telegram paywall for paid communities and digital products. Monetize one-time access with native Stars checkout and automated delivery.',
   keywords: CORE_KEYWORDS,
   alternates: { canonical: '/' },
   robots: {
@@ -50,22 +46,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" dir="ltr" className="dark">
       <body className="min-h-screen">
         <WebMcpTools />
         {children}
       </body>
-      {GA_MEASUREMENT_ID ? (
-        <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy="afterInteractive"
-          />
-          <Script id="ga4-init" strategy="afterInteractive">
-            {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${GA_MEASUREMENT_ID}');`}
-          </Script>
-        </>
-      ) : null}
     </html>
   );
 }

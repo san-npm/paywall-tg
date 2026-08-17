@@ -113,7 +113,7 @@ export default function PurchasesPage() {
                   {formatDate(p.purchased_at)}
                 </p>
                 {Number(p.active) === 0 && (
-                  <p className="text-xs" style={{ color: 'var(--tg-theme-destructive-text-color, #e53935)' }}>No longer available</p>
+                  <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color, #999)' }}>No longer sold · your purchase remains accessible</p>
                 )}
               </div>
               <span className="text-lg" style={{ color: 'var(--tg-theme-hint-color, #999)' }}>{'\u203A'}</span>

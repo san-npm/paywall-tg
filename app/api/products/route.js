@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { DEFAULT_EUR_PER_STAR, DEFAULT_USD_PER_STAR, ENABLE_STRIPE, MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
-import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms, toPublicProduct } from '@/lib/db';
+import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, MAX_CONTENT_LENGTH, MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
+import { getOrCreateCreator, createProduct, getCreatorProducts, getProduct, getProductRaw, hasPurchased, getCreatorStats, softDeleteProduct, updateProduct, incrementViews, hasAcceptedCurrentCreatorTerms, toPublicProduct, recordEvent } from '@/lib/db';
 import { validateInitData, validateInitDataDetailed, isValidProductId, generateShortId, getForwardedClientIp } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { VALID_CONTENT_TYPES, VALID_PAYMENT_METHODS } from '@/lib/constants';
+import { VALID_CONTENT_TYPES } from '@/lib/constants';
 
 export const runtime = 'nodejs';
 
@@ -27,24 +27,41 @@ export async function GET(req) {
     if (!isValidProductId(productId)) {
       return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 });
     }
-    const product = await getProduct(productId);
+    let product = await getProduct(productId);
+    let purchased = false;
+    let isOwner = false;
+
+    // Inactive/deleted listings are hidden from the public, but an owner or a
+    // non-refunded buyer must retain access to the item that was already sold.
+    if (!product && authenticatedBuyerId) {
+      const rawProduct = await getProductRaw(productId);
+      if (rawProduct) {
+        isOwner = authenticatedBuyerId === String(rawProduct.creator_id);
+        purchased = await hasPurchased(productId, authenticatedBuyerId);
+        if (isOwner || purchased) product = rawProduct;
+      }
+    }
     if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const isOwner = Boolean(authenticatedBuyerId) && authenticatedBuyerId === product.creator_id;
+    isOwner = Boolean(authenticatedBuyerId) && authenticatedBuyerId === String(product.creator_id);
+    if (authenticatedBuyerId && !purchased) purchased = await hasPurchased(productId, authenticatedBuyerId);
 
     // Increment view counter (skip if viewer is the creator). Rate-limit the
     // public read path by IP and only sample the write so an unauthenticated
     // caller can't hammer a DB write per request (audit ratelimit-1).
-    if (!isOwner) {
+    if (Number(product.active) === 1 && !product.deleted_at && !isOwner) {
       const ip = getForwardedClientIp(req.headers.get('x-forwarded-for')) || 'unknown';
       const { limited } = await checkRateLimit(`product_view:${ip}`, 600);
       if (limited) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
       if (Math.random() < 0.25) { incrementViews(productId).catch(() => {}); }
+      // Funnel event (unsampled, best-effort): the top of the buy funnel. Awaited
+      // so serverless does not drop it; the events table is append-only (no row
+      // contention like the sampled view counter) and this path is rate-limited.
+      await recordEvent({ eventType: 'product_view', productId, creatorId: product.creator_id, buyerId: authenticatedBuyerId || null, source: 'miniapp' });
     }
 
     // Don't expose content unless authenticated buyer has purchased; never expose
     // file_id or owner-only metadata to non-owners (audit authz-3 / sqldb-4).
-    const purchased = authenticatedBuyerId ? await hasPurchased(productId, authenticatedBuyerId) : false;
     const safeProduct = toPublicProduct(product, { includeContent: purchased || isOwner, isOwner });
     return NextResponse.json({ product: safeProduct, purchased });
   }
@@ -95,7 +112,7 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Rate limit exceeded. Max 30 products per hour.' }, { status: 429 });
   }
 
-  const { title, description, price_stars, content_type, content, media_kind, price_usd_cents, price_eur_cents, payment_methods } = body;
+  const { title, description, price_stars, content_type, content, media_kind } = body;
 
 
   const normalizedContentType = (content_type === 'photo' || content_type === 'video') ? 'file' : content_type;
@@ -137,24 +154,6 @@ export async function POST(req) {
     }
   }
 
-  const requestedMethods = Array.isArray(payment_methods)
-    ? payment_methods
-    : String(payment_methods || 'stars,stripe').split(',');
-  const allowedMethods = requestedMethods
-    .map((v) => String(v).trim().toLowerCase())
-    .filter((v) => VALID_PAYMENT_METHODS.includes(v));
-  const uniqueMethods = [...new Set(allowedMethods)];
-  const effectiveMethods = ENABLE_STRIPE
-    ? (uniqueMethods.length ? uniqueMethods : ['stars', 'stripe'])
-    : ['stars'];
-
-  const usdCents = Number.isFinite(Number(price_usd_cents))
-    ? Math.max(50, Math.round(Number(price_usd_cents)))
-    : Math.max(50, Math.round(price * DEFAULT_USD_PER_STAR * 100));
-  const eurCents = Number.isFinite(Number(price_eur_cents))
-    ? Math.max(50, Math.round(Number(price_eur_cents)))
-    : Math.max(50, Math.round(price * DEFAULT_EUR_PER_STAR * 100));
-
   try {
     await getOrCreateCreator(creatorId, username, displayName);
 
@@ -178,9 +177,9 @@ export async function POST(req) {
       String(content),
       null,
       effectiveMediaKind,
-      usdCents,
-      eurCents,
-      effectiveMethods.join(','),
+      null,
+      null,
+      'stars',
     );
     return NextResponse.json({ product: toPublicProduct(product, { includeContent: true, isOwner: true }) });
   } catch (err) {

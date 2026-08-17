@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Monetize Adult Content on Telegram',
-  description: 'Sell adult content, PPV, and exclusive sets on Telegram with native Stars checkout. Lower fees than OnlyFans, no platform risk, instant delivery.',
+  description: 'Sell eligible PPV and exclusive digital content on Telegram with native Stars checkout and automated delivery, subject to platform rules.',
   path: '/use-cases/adult-content-telegram',
   keywords: ['adult content telegram', 'telegram adult monetization', 'sell adult content telegram', 'telegram ppv'],
 });
@@ -28,7 +28,7 @@ export default function AdultContentTelegram() {
         name: 'Is selling adult content on Telegram allowed?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: "Telegram allows adult content in channels and groups that are appropriately marked. Gategram operates within Telegram's terms of service and does not impose additional content restrictions. You are responsible for complying with local laws and Telegram's content policies for your region.",
+          text: "Eligibility depends on the specific content, where it is offered, applicable law, Gategram's terms, Telegram's current terms, and relevant app-store rules. Gategram may reject or remove an offer. Review all applicable rules before publishing.",
         },
       },
       {
@@ -36,7 +36,7 @@ export default function AdultContentTelegram() {
         name: 'How do I price adult content on Telegram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Most adult content creators on Telegram price individual PPV content between $5-30 and VIP group access at $15-50. Pricing depends on content exclusivity, your audience size, and market demand. Gategram supports flexible per-item pricing so you can test different price points easily.',
+          text: 'Pricing depends on the content, audience, applicable rules, and demand. Gategram supports flexible per-item Stars pricing above its published minimum, so eligible creators can test their own price points.',
         },
       },
       {
@@ -44,7 +44,7 @@ export default function AdultContentTelegram() {
         name: 'Is Telegram safer than OnlyFans for adult creators?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'On Telegram, you own your audience directly — there is no algorithm, no shadow bans, and no intermediary that can de-platform you overnight. OnlyFans has changed its content policies before, creating uncertainty for creators. Telegram gives you direct access to your subscribers without platform risk.',
+          text: 'Telegram gives creators a direct chat-based relationship with subscribers, but it is still a third-party platform with terms, moderation, and technical risks. Creators should keep independent records and avoid relying on any single platform.',
         },
       },
       {
@@ -52,17 +52,17 @@ export default function AdultContentTelegram() {
         name: 'How does payment work for adult content on Telegram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'With Gategram, buyers pay using Telegram Stars (backed by Apple Pay and Google Pay). They tap the buy link, confirm payment with one tap in the native Telegram dialog, and receive the content instantly as a message. No external checkout page, no account creation, no card form.',
+          text: 'With Gategram, buyers pay using Telegram Stars from their Telegram balance. They open the buy link, confirm the native Stars invoice, and receive eligible content automatically as a message. There is no Gategram-hosted card checkout.',
         },
       },
     ],
   };
 
   const products = [
-    { icon: '🔒', name: 'PPV Content', desc: 'Sell individual photos, videos, or sets as pay-per-view. Buyers pay once, get instant access in chat.' },
+    { icon: '🔒', name: 'PPV Content', desc: 'Sell eligible individual photos, videos, or sets as pay-per-view. Buyers pay once and receive the item in chat.' },
     { icon: '⭐', name: 'Exclusive Sets', desc: 'Bundle premium content into themed sets. Price each set individually and sell directly to your audience.' },
-    { icon: '💎', name: 'VIP Access', desc: 'Gate access to your private channel or group. Premium subscribers get exclusive content not available anywhere else.' },
-    { icon: '📱', name: 'Custom Content Links', desc: 'Deliver custom or personalized content via secure links. Payment first, delivery instant.' },
+    { icon: '💎', name: 'VIP Access', desc: 'Sell an invite link to an eligible private channel or group. Gategram does not manage recurring membership.' },
+    { icon: '📱', name: 'Content Links', desc: 'Deliver a fixed digital item through a link after payment.' },
     { icon: '📋', name: 'Content Menus', desc: 'Create a catalog of products at different price points. Buyers pick what they want and pay per item.' },
     { icon: '🎁', name: 'Tip-Gated Specials', desc: 'Offer bonus content that unlocks at specific price points. Higher payment, more exclusive content.' },
   ];
@@ -74,7 +74,7 @@ export default function AdultContentTelegram() {
       <PageHeader
         badge="Use Case"
         title={<>Monetize adult content on <span className="text-site-accent">Telegram</span> — your platform, your rules</>}
-        description="Sell PPV, exclusive sets, and VIP access directly on Telegram. Native Stars checkout, 5% fee, instant delivery. No platform middleman."
+        description="Sell eligible PPV, exclusive sets, and one-time access directly in Telegram. Native Stars checkout and a fee capped at 5%."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -98,15 +98,15 @@ export default function AdultContentTelegram() {
           <div className="space-y-4">
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1 text-red-400">OnlyFans and Fansly take 20% of your revenue</h3>
-              <p className="text-sm text-site-muted">On a $10 PPV, you lose $2 to the platform before payment processing. Over a month of active selling, that adds up to hundreds or thousands in fees. Gategram takes 5% — that's it.</p>
+              <p className="text-sm text-site-muted">Gategram charges at most 5% of a successful Stars payment, rounded down to whole Stars. Compare each alternative&rsquo;s current full pricing and payout terms for your own offer.</p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1 text-red-400">Platform risk is real</h3>
-              <p className="text-sm text-site-muted">Platforms change their policies, ban accounts, or restrict content without warning. On Telegram, you own your audience directly. No algorithm, no shadow bans, no intermediary deciding what you can sell.</p>
+              <p className="text-sm text-site-muted">A chat-based audience can reduce dependence on recommendation algorithms, but Telegram still has terms and moderation controls. Keep independent records and follow all applicable platform rules.</p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1 text-green-400">With Gategram: sell directly, keep more</h3>
-              <p className="text-sm text-site-muted">Your buyers are already on Telegram. They tap Buy, confirm with Stars (Apple Pay / Google Pay), and get your content instantly in chat. No browser redirect, no account creation, no third-party platform in between.</p>
+              <p className="text-sm text-site-muted">Buyers already on Telegram can tap Buy, confirm from their Stars balance, and receive eligible content automatically in chat. Gategram does not send them to a card checkout.</p>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function AdultContentTelegram() {
               { step: '1', title: 'Open the Gategram bot', desc: 'Tap "Create your first product" below. The bot opens inside Telegram.' },
               { step: '2', title: 'Create your content product', desc: 'Set a title, price in Stars, and upload your content or paste a secure link.' },
               { step: '3', title: 'Share with your audience', desc: 'Post the buy link in your channel, group, or send it directly to subscribers.' },
-              { step: '4', title: 'Get paid, content delivered instantly', desc: 'Stars go to your balance. Buyer gets the content immediately. You keep 95%.' },
+              { step: '4', title: 'Payment and delivery', desc: 'Gategram credits at least 95% to your creator balance and sends the product to the buyer, retrying temporary failures.' },
             ].map((s) => (
               <div key={s.step} className="flex gap-4 p-5 rounded-xl border border-site-border bg-site-card">
                 <div className="w-8 h-8 rounded-full bg-site-accent text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -150,7 +150,7 @@ export default function AdultContentTelegram() {
             </Link>
             <Link href="/fees" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Gategram Pricing</h3>
-              <p className="text-sm text-site-muted">Flat 5% per sale vs 20% on OnlyFans and Fansly.</p>
+              <p className="text-sm text-site-muted">Gategram&rsquo;s platform fee is capped at 5% per Stars sale.</p>
             </Link>
           </div>
         </div>
@@ -160,10 +160,10 @@ export default function AdultContentTelegram() {
         <div className="max-w-3xl mx-auto space-y-3">
           <h2 className="text-2xl font-bold">Adult Content on Telegram FAQ</h2>
           {[
-            { q: 'Is selling adult content on Telegram allowed?', a: "Telegram allows adult content in channels and groups that are appropriately marked. Gategram operates within Telegram's terms of service and does not impose additional content restrictions. You are responsible for complying with local laws and Telegram's content policies for your region." },
-            { q: 'How do I price adult content on Telegram?', a: 'Most adult content creators on Telegram price individual PPV content between $5-30 and VIP group access at $15-50. Pricing depends on content exclusivity, your audience size, and market demand. Gategram supports flexible per-item pricing so you can test different price points easily.' },
-            { q: 'Is Telegram safer than OnlyFans for adult creators?', a: 'On Telegram, you own your audience directly — there is no algorithm, no shadow bans, and no intermediary that can de-platform you overnight. OnlyFans has changed its content policies before, creating uncertainty for creators. Telegram gives you direct access to your subscribers without platform risk.' },
-            { q: 'How does payment work for adult content on Telegram?', a: 'With Gategram, buyers pay using Telegram Stars (backed by Apple Pay and Google Pay). They tap the buy link, confirm payment with one tap in the native Telegram dialog, and receive the content instantly as a message. No external checkout page, no account creation, no card form.' },
+            { q: 'Is selling adult content on Telegram allowed?', a: "Eligibility depends on the specific content, where it is offered, applicable law, Gategram's terms, Telegram's current terms, and relevant app-store rules. Gategram may reject or remove an offer. Review all applicable rules before publishing." },
+            { q: 'How do I price adult content on Telegram?', a: 'Pricing depends on the content, audience, applicable rules, and demand. Gategram supports flexible per-item Stars pricing above its published minimum, so eligible creators can test their own price points.' },
+            { q: 'Is Telegram safer than OnlyFans for adult creators?', a: 'Telegram offers a different, chat-based distribution model, but it remains a third-party platform with terms, moderation, and technical risks. No platform can guarantee uninterrupted access.' },
+            { q: 'How does payment work for adult content on Telegram?', a: 'For eligible content, buyers open the Gategram buy link, confirm a native Stars invoice, and receive the content automatically as a Telegram message. There is no Gategram-hosted card checkout.' },
           ].map((item) => (
             <div key={item.q} className="site-panel text-sm text-site-muted">
               <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
@@ -174,8 +174,8 @@ export default function AdultContentTelegram() {
 
       <PageCTA
         title="Your content, your audience, your revenue"
-        description="Stop giving 20% to platforms. Sell directly on Telegram with a 5% fee."
-        primary="Start in 2 minutes"
+        description="For eligible content, use native Stars checkout with a Gategram service fee capped at 5%."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"

@@ -11,7 +11,7 @@ Ready-to-use copy for directory submissions, Telegram channel, and outreach.
 **Logo:** Use Gategram-icon.png (200x200 resize)
 
 **Description (paste in form):**
-Gategram lets Telegram creators sell digital content with native Stars checkout. Create a paid product in 2 minutes — set title, price, add content — share the buy link in your channel or group. Buyers tap to pay with Telegram Stars (Apple Pay / Google Pay), content delivers instantly as a message. 95% payout, 5% flat fee. No external checkout, no redirects, no account creation for buyers. Works for trading signals, courses, exclusive content, digital products, and any creator selling to a Telegram audience.
+Gategram lets Telegram creators sell digital content with native Stars checkout. Create a paid product, set its title and price, add content, then share its buy link. Buyers confirm a Telegram Stars invoice and Gategram delivers the content in chat. The platform fee is capped at 5% and there is no monthly fee or buyer account to create.
 
 **Category:** Payments / E-Commerce / Monetization
 
@@ -21,7 +21,7 @@ Gategram lets Telegram creators sell digital content with native Stars checkout.
 
 ### Channel name: Gategram
 ### Channel description:
-Sell digital content on Telegram with native Stars checkout. 95% payout. 2 min setup.
+Sell digital content on Telegram with native Stars checkout. Keep at least 95%. Set up in minutes.
 
 Bot: @gategramapp_bot
 Website: gategram.app
@@ -35,12 +35,12 @@ How it works:
 1. Open @gategramapp_bot
 2. Create your product (title + price + content)
 3. Share the buy link in your channel or DMs
-4. Buyers pay with Stars, content delivers instantly
+4. Buyers pay with Stars, and content is delivered automatically
 
-- 5% flat fee, you keep 95%
+- Platform fee capped at 5%; creators keep at least 95%
 - No external checkout or redirects
 - Works for signals, courses, art, adult content, anything digital
-- Setup takes 2 minutes
+- Setup takes only a few steps
 
 Get started: https://www.gategram.app/docs#connect-bot
 
@@ -48,23 +48,23 @@ Get started: https://www.gategram.app/docs#connect-bot
 
 **Post 1:** [Pinned — see above]
 
-**Post 2: "Why external checkout kills your sales"**
-You share a Gumroad link in your Telegram channel. Your buyer opens a browser, lands on an unknown page, enters their card. 70% abandon (Baymard Institute data). Gategram keeps checkout inside Telegram — one tap, instant delivery. That's the difference between getting paid and losing the sale.
+**Post 2: "Remove an external checkout step"**
+An external payment link can send a Telegram buyer to a browser and ask for more information. Gategram keeps the Stars invoice and delivery inside Telegram. Measure your own funnel to see how your audience responds.
 
 **Post 3: "For trading signal sellers"**
-Giving away signals for free? Your analysis has value. Gate your premium calls behind a Stars payment. Post the teaser in your public channel, sell the full signal via Gategram. Buyers pay, signal delivers instantly.
+Giving away signals for free? Your analysis has value. Gate your premium calls behind a Stars payment. Post the teaser in your public channel, sell the full signal via Gategram. Buyers pay, signal delivers automatically.
 → https://www.gategram.app/use-cases/sell-trading-signals
 
-**Post 4: "Patreon takes 5-12%. We take 5%."**
+**Post 4: "One-time sales inside Telegram"**
 Patreon was built for YouTube. Gategram was built for Telegram. Native Stars checkout, per-item sales, no monthly subscription model required.
 → https://www.gategram.app/alternatives/patreon-for-telegram
 
 **Post 5: "For adult content creators"**
-OnlyFans takes 20%. Platform risk is real — policies change, accounts get banned. On Telegram, you own your audience. Sell PPV, exclusive sets, VIP access with Gategram. 5% fee. No middleman.
+Sell PPV, exclusive sets, and one-time VIP access with native Telegram Stars. Gategram&rsquo;s platform fee is capped at 5%; review Telegram&rsquo;s terms and content rules before publishing.
 → https://www.gategram.app/use-cases/adult-content-telegram
 
 **Post 6: "How Stars payments work"**
-Telegram Stars are backed by Apple Pay and Google Pay. Buyers purchase Stars in-app, use them to buy your content. One tap to pay, instant delivery. No credit card forms, no external pages.
+Buyers use their Telegram Stars balance to confirm a native invoice. Gategram does not collect card details or send them to an external checkout page.
 → https://www.gategram.app/how-payments-work
 
 **Post 7: "Sell courses on Telegram"**
@@ -90,7 +90,7 @@ InviteMember opens a browser for Stripe checkout. Gategram keeps everything nati
 - Go to: https://alternativeto.net/submit/
 - App name: Gategram
 - URL: https://www.gategram.app
-- Description: Telegram paywall and content monetization platform with native Stars checkout. Sell digital content, courses, signals, and exclusive access inside Telegram. 5% flat fee, 2 minute setup, instant delivery.
+- Description: Telegram paywall and content monetization platform with native Stars checkout. Sell digital content, courses, signals, and one-time access inside Telegram. Platform fee capped at 5%, with automated in-chat delivery.
 - Listed as alternative to: Gumroad, Patreon, InviteMember, Ko-fi, Buy Me a Coffee
 - Platform: Web, Telegram
 - Tags: monetization, paywall, telegram, content creators, digital products
@@ -98,9 +98,9 @@ InviteMember opens a browser for Stripe checkout. Gategram keeps everything nati
 ### Product Hunt
 - Product name: Gategram
 - Tagline: Sell digital content on Telegram with native Stars checkout
-- Description: Stop sending your Telegram audience to external checkout pages. Gategram keeps the entire purchase inside Telegram — native Stars payment, instant content delivery, 95% payout. Set up in 2 minutes. Built for trading signal sellers, course creators, adult entertainers, crypto researchers, and anyone monetizing a Telegram audience.
+- Description: Gategram keeps payment and content delivery inside Telegram with native Stars invoices. Creators retain at least 95% in their Gategram balance and can set up an offer in minutes.
 - Topics: Creator Tools, Telegram, Monetization, SaaS, Payments
-- Maker comment: "We built Gategram because every other solution sends Telegram buyers to an external checkout page — and 70% of them never come back. Native Stars checkout means one tap to pay, instant delivery, zero friction. We keep 5%, you keep 95%."
+- Maker comment: "We built Gategram to remove the external checkout step for Telegram audiences. Buyers confirm a native Stars invoice and receive the product in chat. The platform fee is capped at 5%."
 
 ### BotList.co
 - Bot: @gategramapp_bot
@@ -111,26 +111,26 @@ InviteMember opens a browser for Stripe checkout. Gategram keeps everything nati
 - Product name: Gategram
 - URL: https://www.gategram.app
 - Category: Creator Tools / Monetization
-- Description: Telegram-native content monetization. Stars checkout, instant delivery, 5% fee.
+- Description: Telegram-native content monetization. Stars checkout, automated delivery, platform fee capped at 5%.
 - Alternatives to: Gumroad, Patreon, InviteMember
 
 ---
 
 ## 4. Indie Hackers Post
 
-**Title:** I built a Telegram paywall — native Stars checkout, 2 min setup, 95% payout
+**Title:** I built a Telegram paywall with native Stars checkout
 
 **Body:**
-For the past few months I've been building Gategram — a way for Telegram creators to sell digital content with zero friction.
+For the past few months I've been building Gategram — a way for Telegram creators to sell digital content without an external checkout page.
 
-The problem: every monetization tool sends your Telegram audience to an external checkout (Gumroad, Stripe links, Patreon). They leave the app, see an unknown payment page, and 70% abandon.
+The problem: many monetization tools send a Telegram audience to an external checkout, adding more steps between the offer and payment.
 
-The solution: Gategram uses Telegram Stars (native in-app currency backed by Apple Pay / Google Pay). Buyer taps Buy, confirms in the native dialog, content delivers instantly as a message. No browser, no account creation, no card form.
+The solution: Gategram uses Telegram Stars. The buyer taps Buy, confirms the native invoice, and Gategram delivers the content as a message. No external checkout, buyer account, or Gategram card form.
 
 Details:
-- 5% flat fee (no monthly charges)
-- Creators keep 95%
-- Setup takes ~2 minutes
+- Platform fee capped at 5% (no monthly charges)
+- Creators keep at least 95% in their Gategram balance
+- Setup takes only a few steps
 - Works for signals, courses, digital art, adult content, anything digital
 
 Currently live at gategram.app with the bot @gategramapp_bot.

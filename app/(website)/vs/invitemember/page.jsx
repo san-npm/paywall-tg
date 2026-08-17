@@ -2,7 +2,7 @@ import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'Gategram vs InviteMember for Telegram Monetization',
+  title: 'Gategram vs InviteMember',
   description: 'Telegram paywall comparison: native Stars checkout vs external flows for paid community access and channel monetization.',
   path: '/vs/invitemember',
   keywords: ['invitemember alternative', 'telegram community access tools'],
@@ -19,15 +19,15 @@ export default function VsInviteMember() {
   };
 
   const rows = [
-    { feature: 'Payment flow', paygate: 'Native Telegram Stars — one tap inside the app', other: 'External Stripe/PayPal checkout — opens browser' },
-    { feature: 'Buyer friction', paygate: 'Zero. No account, no email, no card form', other: 'High. Account creation + card details on external page' },
-    { feature: 'Delivery', paygate: 'Instant — content arrives as a Telegram message', other: 'Invite link after payment confirmation (can take minutes)' },
-    { feature: 'Setup time', paygate: '2 minutes. Create product, share link, done', other: '15-30 minutes. Connect Stripe, configure subscription plans, set up bot' },
-    { feature: 'Revenue split', paygate: '95/5 (Telegram takes 5% via Stars)', other: '~85-90% after Stripe fees + InviteMember fees' },
+    { feature: 'Payment flow', paygate: 'Native Telegram Stars invoice inside the app', other: 'External checkout flow' },
+    { feature: 'Buyer flow', paygate: 'Telegram account and Stars invoice', other: 'Separate membership checkout' },
+    { feature: 'Delivery', paygate: 'Automatic Telegram message with retries', other: 'Invite delivery after payment confirmation' },
+    { feature: 'Setup', paygate: 'Create an offer and share its Telegram link', other: 'Configure the membership and external payment flow' },
+    { feature: 'Service fee', paygate: 'Gategram: up to 5%; separate published payout rate', other: 'InviteMember and payment-processor fees apply' },
     { feature: 'Product types', paygate: 'Any digital content: text, links, files, access', other: 'Primarily subscription/membership access' },
-    { feature: 'One-time sales', paygate: 'Yes, native support', other: 'Limited — built for subscriptions' },
-    { feature: 'Free tier', paygate: 'Yes, free to start', other: 'Free tier with limits, paid plans for features' },
-    { feature: 'Payment methods', paygate: 'Telegram Stars (Apple Pay / Google Pay backed)', other: 'Stripe (cards, some local methods)' },
+    { feature: 'One-time sales', paygate: 'Core product model', other: 'Membership-oriented product model' },
+    { feature: 'Pricing', paygate: 'No monthly Gategram fee', other: 'See current provider pricing' },
+    { feature: 'Payment methods', paygate: 'Telegram Stars', other: 'Stripe (cards, some local methods)' },
     { feature: 'Trust model', paygate: 'Buyer trusts Telegram — native dialog', other: 'Buyer must trust external checkout page' },
   ];
 
@@ -69,11 +69,11 @@ export default function VsInviteMember() {
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1">Your buyers are mobile-first</h3>
-              <p className="text-sm text-site-muted">Telegram Stars are backed by Apple Pay / Google Pay. Your mobile buyers can pay with one tap instead of typing card numbers on a small screen.</p>
+              <p className="text-sm text-site-muted">Buyers use their Telegram Stars balance in Telegram, so Gategram does not ask them to type card numbers into an external checkout page.</p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1">You want maximum conversion</h3>
-              <p className="text-sm text-site-muted">Every redirect kills conversion. InviteMember opens a browser for checkout. Gategram keeps the entire flow inside Telegram. Less friction = more completed sales.</p>
+              <p className="text-sm text-site-muted">InviteMember uses an external checkout, while Gategram uses Telegram Stars inside Telegram. Measure completed sales for your own audience rather than assuming a conversion result.</p>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function VsInviteMember() {
       <PageCTA
         title="Want to switch from external checkout to native Telegram payments?"
         description="Go live fast and give buyers a cleaner path from click to unlock."
-        primary="Start in 2 minutes"
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"

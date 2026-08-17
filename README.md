@@ -4,9 +4,9 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![Telegram Stars](https://img.shields.io/badge/Payments-Telegram%20Stars-26A5E4)](https://core.telegram.org/bots/payments-stars)
 
-**Sell digital content on Telegram. 95% yours.**
+**Sell digital content on Telegram. Keep at least 95%.**
 
-Gategram is an open-source Telegram Mini App that lets creators sell guides, links, and exclusive content using native Telegram Stars payments. Buyers pay with Apple Pay or Google Pay — right inside Telegram. No external accounts, no redirects, no friction.
+Gategram is an open-source Telegram Mini App that lets creators sell guides, links, and exclusive content using native Telegram Stars payments. Buyers confirm a Stars invoice inside Telegram, with no external Gategram account or checkout redirect.
 
 ### Try it now → [@gategramapp_bot](https://t.me/gategramapp_bot)
 
@@ -18,10 +18,10 @@ If you have a Telegram audience, you shouldn't need Gumroad, Patreon, or Stripe 
 
 | | Gategram | Gumroad | Patreon | Ko-fi |
 |---|---|---|---|---|
-| **Creator cut** | **95%** | 90% | 88-95% | 95% |
+| **Creator share** | **At least 95%** | See current provider pricing | See current provider pricing | See current provider pricing |
 | **Setup time** | Seconds | Minutes | Minutes | Minutes |
 | **Works inside Telegram** | Yes | No (redirect) | No (redirect) | No (redirect) |
-| **Payment methods** | Apple Pay, Google Pay (via Stars) | Card | Card | Card, PayPal |
+| **Payment method** | Telegram Stars | See provider | See provider | See provider |
 | **Buyer account required** | No (just Telegram) | Email | Email | Email |
 | **Open source** | Yes (MIT) | No | No | No |
 | **Self-hostable** | Yes | No | No | No |
@@ -39,16 +39,16 @@ Creator                    Telegram                     Buyer
   │                           │◄──── /buy <id> ───────────┤
   │                           │                           │
   │                           │── Payment screen ────────►│
-  │                           │   (Apple Pay/Google Pay)  │
+  │                           │   (Telegram Stars)       │
   │                           │                           │
   │                           │◄──── Stars payment ───────┤
   │                           │                           │
   │◄── Sale notification ─────│── Content delivered ─────►│
-  │    (+95% Stars earned)    │                           │
+  │    (≥95% creator share)   │                           │
 ```
 
-- Creators earn **95%** of every sale
-- Platform takes **5%** commission
+- Creators receive **at least 95%** of every Stars sale in their Gategram balance
+- Platform fee is **at most 5%**, rounded down to whole Stars
 - No external payment processor — native Telegram Stars
 
 ---
@@ -57,14 +57,14 @@ Creator                    Telegram                     Buyer
 
 **For Creators:**
 - Create products with text, links, or messages
-- Set prices from 1 to 10,000 Stars
+- Set prices from 20 to 10,000 Stars
 - Dashboard with sales count and total earnings
 - Share products via bot commands or deep links
-- Instant sale notifications
+- Automatic sale notifications
 
 **For Buyers:**
-- Pay with Telegram Stars (Apple Pay / Google Pay)
-- Instant content delivery after payment
+- Pay with Telegram Stars
+- Automatic content delivery after payment
 - No account or external credentials needed
 
 ---
@@ -110,6 +110,7 @@ Edit `.env`:
 BOT_TOKEN=your_bot_token_here          # From @BotFather
 WEBHOOK_SECRET=your_random_secret      # Any random string for webhook verification
 WEBAPP_URL=https://your-app.vercel.app # Your deployed URL
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_bot_username # Without the leading @
 TURSO_DATABASE_URL=libsql://your-db.turso.io
 TURSO_AUTH_TOKEN=your_turso_auth_token
 INIT_DATA_MAX_AGE_SECONDS=900
@@ -149,6 +150,7 @@ Send `/start` to your bot in Telegram.
 | `BOT_TOKEN` | Yes | — | Telegram bot token from @BotFather |
 | `WEBHOOK_SECRET` | Yes | — | Random string for webhook signature verification |
 | `WEBAPP_URL` | Yes | `https://gategram.app` | Your deployed URL |
+| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | Yes | — | Bot username, without `@`; required for creator share/deep links |
 | `TURSO_DATABASE_URL` | Yes | — | Turso/libSQL database URL (`libsql://...`) |
 | `TURSO_AUTH_TOKEN` | Yes | — | Turso auth token |
 | `INIT_DATA_MAX_AGE_SECONDS` | No | `900` | Max allowed age (seconds) for Telegram Mini App `initData` |
@@ -227,7 +229,7 @@ paywall-tg/
 | Table | Purpose |
 |-------|---------|
 | `creators` | Telegram user profiles (ID, username, display name) |
-| `products` | Digital products (UUID, title, price, content, type, sales count) |
+| `products` | Digital products (random ID, title, price, content, type, sales count) |
 | `purchases` | Transaction records (buyer, seller, stars paid, creator share, platform fee) |
 | `payouts` | Future payout tracking (pending) |
 
@@ -244,8 +246,8 @@ paywall-tg/
 2. **Share** — Creator shares `/buy <id>` command or deep link
 3. **Invoice** — Bot sends Telegram Stars payment invoice to buyer
 4. **Verify** — `pre_checkout_query`: bot confirms product exists and price matches
-5. **Pay** — Buyer completes payment via Apple Pay / Google Pay / Stars balance
-6. **Record** — `successful_payment`: purchase recorded with 95/5 split
+5. **Pay** — Buyer confirms the Telegram Stars invoice
+6. **Record** — `successful_payment`: purchase recorded with a platform fee capped at 5%
 7. **Deliver** — Content sent to buyer via private message
 8. **Notify** — Creator receives sale notification with earnings
 
@@ -253,10 +255,10 @@ paywall-tg/
 
 | | Amount |
 |---|--------|
-| Creator share | 95% of Stars paid |
-| Platform fee | 5% of Stars paid |
+| Creator share | At least 95% of Stars paid |
+| Platform fee | At most 5%, rounded down to whole Stars |
 
-Price range: **1 — 10,000 Stars** per product.
+Price range: **20 — 10,000 Stars** per product.
 
 ---
 
