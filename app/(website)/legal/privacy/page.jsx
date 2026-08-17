@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
       <PageHeader
         badge="Legal"
         title="Privacy Policy"
-        description="Last updated: March 20, 2026"
+        description="Last updated: August 17, 2026"
       />
 
       <section className="px-4 py-12">
@@ -32,7 +32,8 @@ export default function PrivacyPolicy() {
               <li><strong className="text-site-text">Telegram user data:</strong> Your Telegram user ID, username, and first name, provided by the Telegram Mini App SDK when you open Gategram. We do not access your phone number, contacts, or message history.</li>
               <li><strong className="text-site-text">Creator profile data:</strong> Legal name, email address, country, and payout details (IBAN or PayPal email), provided voluntarily when you set up payouts.</li>
               <li><strong className="text-site-text">Transaction data:</strong> Purchase records including product ID, buyer ID, amount paid, payment method, and timestamp.</li>
-              <li><strong className="text-site-text">Usage data:</strong> Page views and interaction events via Google Analytics (anonymized, no personal identifiers).</li>
+              <li><strong className="text-site-text">Consent records:</strong> The terms version, time, source, IP address, and user agent recorded when a buyer or creator accepts the applicable terms.</li>
+              <li><strong className="text-site-text">Usage data:</strong> Public-site page views and interaction events via Google Analytics only after you opt in.</li>
             </ul>
           </div>
 
@@ -50,7 +51,7 @@ export default function PrivacyPolicy() {
 
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">4. Data storage and security</h2>
-            <p>Your data is stored in a Turso (libSQL) database hosted in the EU (AWS eu-west-1, Ireland). All data is encrypted in transit (TLS) and at rest. We do not store payment card details — payments are handled by Telegram (Stars) and Stripe.</p>
+            <p>Your data is stored in a Turso (libSQL) database hosted in the EU (AWS eu-west-1, Ireland). All data is encrypted in transit (TLS) and at rest. New digital-goods payments are handled by Telegram Stars. We retain limited historical Stripe transaction identifiers for refunds, dispute handling, and accounting, but do not store card details.</p>
             <p>Authentication uses Telegram's HMAC-SHA256 initData validation with timing-safe comparison and replay protection.</p>
           </div>
 
@@ -59,8 +60,8 @@ export default function PrivacyPolicy() {
             <p>We do not sell your data. We share data only with:</p>
             <ul className="list-disc pl-5 space-y-1">
               <li><strong className="text-site-text">Telegram:</strong> For payment processing via Stars.</li>
-              <li><strong className="text-site-text">Stripe:</strong> For card payment processing (when enabled).</li>
-              <li><strong className="text-site-text">Google Analytics:</strong> Anonymized usage data only.</li>
+              <li><strong className="text-site-text">Stripe:</strong> Only for historical refund, dispute, and accounting records from the retired card flow.</li>
+              <li><strong className="text-site-text">Google Analytics:</strong> Public-site usage data only after explicit consent.</li>
             </ul>
           </div>
 
@@ -72,12 +73,12 @@ export default function PrivacyPolicy() {
 
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">7. Data retention</h2>
-            <p>Transaction records are retained for the duration required by Luxembourg tax law (10 years). Creator profiles are retained while the account is active and deleted upon request. Processed webhook update IDs are retained for 3 days and then automatically purged.</p>
+            <p>Transaction and associated terms-acceptance records are retained for the duration required to establish transactions and meet Luxembourg accounting or legal obligations (normally 10 years for accounting records). Creator profiles are retained while the account is active and deleted upon request where no legal retention duty applies. Processed webhook update IDs are retained for 3 days and then automatically purged.</p>
           </div>
 
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">8. Cookies</h2>
-            <p>Gategram does not use cookies for tracking. We use <code className="px-1 py-0.5 rounded bg-site-elevated text-site-text text-xs">sessionStorage</code> to cache your Telegram authentication token for the duration of your session. Google Analytics may set its own cookies according to its own policy.</p>
+            <p>We use <code className="px-1 py-0.5 rounded bg-site-elevated text-site-text text-xs">sessionStorage</code> to cache Telegram authentication for the session and <code className="px-1 py-0.5 rounded bg-site-elevated text-site-text text-xs">localStorage</code> to remember your analytics choice. Google Analytics is not loaded unless you accept; if accepted, Google may set analytics cookies under its policy. Global Privacy Control or Do Not Track is treated as a decline when no choice has been saved.</p>
           </div>
 
           <div className="site-panel space-y-3">

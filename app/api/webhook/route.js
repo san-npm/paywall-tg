@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
-import { BOT_TOKEN, WEBAPP_URL, PLATFORM_FEE_PERCENT, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_FAKE_PAYMENTS } from '@/lib/config';
+import { BOT_TOKEN, WEBAPP_URL, MIN_PRICE_STARS, MAX_PRICE_STARS, ADMIN_TELEGRAM_IDS, TELEGRAM_CURRENCY, ENABLE_FAKE_PAYMENTS } from '@/lib/config';
 import {
   getOrCreateCreator, createProduct, getProduct, getProductRaw, getCreatorProducts,
-  getCreatorStats, recordPurchase, reactivatePurchase, getPurchaseByChargeId, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, setProductActive, logAdminAction,
-  setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery, markDeliveryDoneForTarget
+  getCreatorStats, recordPurchase, getPurchaseByChargeId, hasPurchased, markPurchaseRefunded, attachFileToProduct, markUpdateProcessed, releaseProcessedUpdate, setProductActive, logAdminAction,
+  setPendingAttach, getPendingAttach, clearPendingAttach, enqueueDelivery, markDeliveryDoneForTarget,
+  upsertCreatorChannel, deactivateCreatorChannel, deactivateChannel, getCreatorChannels, recordEvent,
+  acceptBuyerTerms, hasAcceptedCurrentBuyerTerms, hasAcceptedCurrentCreatorTerms,
 } from '@/lib/db';
 import { verifyWebhookSecret, escapeMarkdown, parseNewCommand, isValidProductId, generateShortId, sanitizeErrorMessage } from '@/lib/validate';
+import { calculatePlatformFee, isProductReady } from '@/lib/payments';
 
 export const runtime = 'nodejs';
 
@@ -20,8 +23,7 @@ function getBot() {
 async function deliverPaidMedia(api, chatId, product) {
   if (product.content_type !== 'file') return;
   if (!product.file_id) {
-    await api.sendMessage(chatId, 'The media for this creation is not yet available. Contact the creator.');
-    return;
+    throw new Error('Paid file is missing media');
   }
   const kind = String(product.file_kind || 'document');
   if (kind === 'photo') {
@@ -31,6 +33,58 @@ async function deliverPaidMedia(api, chatId, product) {
   } else {
     await api.sendDocument(chatId, product.file_id);
   }
+}
+
+function productMethods(product) {
+  return String(product.payment_methods || 'stars').split(',').map((v) => v.trim().toLowerCase());
+}
+
+// Digital goods sold through Telegram must use Telegram Stars.
+async function sendStarsInvoice(api, chatId, product, productId, buyerId) {
+  const methods = productMethods(product);
+  if (!methods.includes('stars') || !isProductReady(product)) {
+    await api.sendMessage(String(chatId), 'This product is not available for purchase right now.');
+    return;
+  }
+  await api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
+    { label: product.title, amount: product.price_stars },
+  ]);
+  await recordEvent({ eventType: 'checkout_start', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
+}
+
+async function presentBuyOptions(api, chatId, product, productId) {
+  const methods = productMethods(product);
+  if (!methods.includes('stars') || !isProductReady(product)) {
+    await api.sendMessage(String(chatId), 'This product is not available for purchase right now.');
+    return;
+  }
+  await api.sendMessage(String(chatId),
+    `📦 ${product.title}\n⭐ ${product.price_stars} Stars\n\nBy tapping “Agree & Buy”, you confirm that you have read and agree to Gategram’s Terms of Service. Payment support is provided by Gategram, not Telegram.`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: 'Read Terms', url: `${WEBAPP_URL}/legal/terms` }],
+          [{ text: `Agree & Buy — ${product.price_stars} ⭐`, callback_data: `buy:${productId}` }],
+        ],
+      },
+    },
+  );
+}
+
+// Post a product as a text card with a Buy button into a channel/group the bot
+// administers. Intentionally text-only: it must NEVER include the product's
+// file_id or content, which are the paid goods. Records a broadcast event.
+async function postProductToChannel(api, chatId, product, botUsername) {
+  const priceLine = `⭐ ${product.price_stars} Stars`;
+  const buyLabel = '⭐ Buy now';
+  const desc = product.description ? `\n\n${String(product.description).slice(0, 300)}` : '';
+  const text = `\u{1F4E6} ${product.title}\n${priceLine}${desc}`;
+  const buyUrl = `https://t.me/${botUsername}?start=buy_${product.id}`;
+  await api.sendMessage(String(chatId), text, {
+    reply_markup: { inline_keyboard: [[{ text: buyLabel, url: buyUrl }]] },
+    link_preview_options: { is_disabled: true },
+  });
+  await recordEvent({ eventType: 'broadcast', productId: product.id, creatorId: product.creator_id, source: 'bot', meta: { chat_id: String(chatId) } });
 }
 
 export async function POST(req) {
@@ -59,6 +113,139 @@ export async function POST(req) {
   const b = getBot();
 
   try {
+    // The bot's own admin status changed in a chat. Telegram sends my_chat_member
+    // only about this bot, so new_chat_member is always the bot. When a creator
+    // adds it as a channel/group admin, remember that chat as a broadcast target.
+    if (body.my_chat_member) {
+      const upd = body.my_chat_member;
+      const chat = upd.chat || {};
+      const status = upd.new_chat_member?.status;
+      const addedBy = upd.from?.id ? String(upd.from.id) : '';
+      const isBroadcastable = chat.type === 'channel' || chat.type === 'supergroup' || chat.type === 'group';
+      if (addedBy && isBroadcastable) {
+        if (status === 'administrator') {
+          const canPost = chat.type === 'channel' ? !!upd.new_chat_member?.can_post_messages : true;
+          await upsertCreatorChannel(addedBy, chat.id, chat.title || null, chat.type, canPost);
+          await b.api.sendMessage(addedBy,
+            `✅ Connected "${chat.title || 'your channel'}". Post a product to it any time with /broadcast.`,
+          ).catch(() => {});
+        } else if (status === 'left' || status === 'kicked' || status === 'member' || status === 'restricted') {
+          // The bot lost admin/post rights in this chat, so no creator can post
+          // there any more, whoever performed the change. Deactivate chat-wide.
+          await deactivateChannel(chat.id).catch(() => {});
+        }
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    // Inline button taps (broadcast flow).
+    if (body.callback_query) {
+      const cq = body.callback_query;
+      const data = String(cq.data || '');
+      const fromId = cq.from?.id ? String(cq.from.id) : '';
+      const dmChatId = cq.message?.chat?.id;
+
+      if (data.startsWith('buy:')) {
+        const productId = data.slice(4);
+        if (!fromId || !dmChatId || !isValidProductId(productId)) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Invalid purchase.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        const product = await getProduct(productId);
+        if (!product || !isProductReady(product)) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Creation no longer available.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        if (String(product.creator_id) === fromId || await hasPurchased(productId, fromId)) {
+          await b.api.answerCallbackQuery(cq.id, { text: String(product.creator_id) === fromId ? "That's your own creation." : 'Already purchased.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        await acceptBuyerTerms(fromId, null, null, 'bot');
+        await b.api.answerCallbackQuery(cq.id).catch(() => {});
+        await sendStarsInvoice(b.api, dmChatId, product, productId, fromId);
+        return NextResponse.json({ ok: true });
+      }
+
+      if (data.startsWith('bcast:')) {
+        const [, productId = '', targetArg = ''] = data.split(':');
+        if (!isValidProductId(productId)) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Invalid product.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        const product = await getProductRaw(productId);
+        if (!product) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Product not found.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        if (String(product.creator_id) !== fromId) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Not your product.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+        // Do not promote a product that /start buy_ can no longer sell.
+        if (!product.active || !isProductReady(product)) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'This product is not ready to publish.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+
+        const channels = await getCreatorChannels(fromId);
+        if (channels.length === 0) {
+          await b.api.answerCallbackQuery(cq.id).catch(() => {});
+          if (dmChatId) {
+            await b.api.sendMessage(dmChatId,
+              'To post to a channel, add this bot as an admin (with "Post messages") to your channel or group, then tap "Post to my channel" again.',
+            ).catch(() => {});
+          }
+          return NextResponse.json({ ok: true });
+        }
+
+        let target = targetArg;
+        if (!target) {
+          if (channels.length === 1) {
+            target = String(channels[0].chat_id);
+          } else {
+            const kb = channels.slice(0, 20).map((c) => [{ text: (c.chat_title || String(c.chat_id)).slice(0, 60), callback_data: `bcast:${productId}:${c.chat_id}` }]);
+            await b.api.answerCallbackQuery(cq.id).catch(() => {});
+            if (dmChatId) await b.api.sendMessage(dmChatId, 'Which channel?', { reply_markup: { inline_keyboard: kb } }).catch(() => {});
+            return NextResponse.json({ ok: true });
+          }
+        }
+        if (!channels.some((c) => String(c.chat_id) === String(target))) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Channel not connected.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+
+        // The creator may have lost their own admin rights while the bot stayed
+        // on, leaving a stale creator_channels row. Verify at post time that the
+        // caller still administers the target; if not, refuse and deactivate it.
+        try {
+          const member = await b.api.getChatMember(String(target), Number(fromId));
+          if (member.status !== 'administrator' && member.status !== 'creator') {
+            await deactivateCreatorChannel(fromId, target).catch(() => {});
+            await b.api.answerCallbackQuery(cq.id, { text: "You're no longer an admin of that channel." }).catch(() => {});
+            return NextResponse.json({ ok: true });
+          }
+        } catch {
+          await deactivateCreatorChannel(fromId, target).catch(() => {});
+          await b.api.answerCallbackQuery(cq.id, { text: 'Cannot verify your channel access.' }).catch(() => {});
+          return NextResponse.json({ ok: true });
+        }
+
+        try {
+          const botUsername = (await b.api.getMe()).username;
+          await postProductToChannel(b.api, target, product, botUsername);
+          await b.api.answerCallbackQuery(cq.id, { text: 'Posted!' }).catch(() => {});
+          if (dmChatId) await b.api.sendMessage(dmChatId, `📢 Posted "${product.title}" to your channel.`).catch(() => {});
+        } catch (e) {
+          await b.api.answerCallbackQuery(cq.id, { text: 'Post failed.' }).catch(() => {});
+          if (dmChatId) await b.api.sendMessage(dmChatId, `⚠️ Could not post: ${e?.description || e?.message || 'unknown error'}. Make sure the bot is an admin with post rights.`).catch(() => {});
+        }
+        return NextResponse.json({ ok: true });
+      }
+
+      await b.api.answerCallbackQuery(cq.id).catch(() => {});
+      return NextResponse.json({ ok: true });
+    }
+
     // Handle pre_checkout_query (must respond within 10 seconds)
     if (body.pre_checkout_query) {
       const query = body.pre_checkout_query;
@@ -73,6 +260,10 @@ export async function POST(req) {
       // Validate product exists and price/currency match
       if (!product) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Creation no longer available.' });
+        return NextResponse.json({ ok: true });
+      }
+      if (!isProductReady(product) || !productMethods(product).includes('stars')) {
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'This creation is not ready for purchase.' });
         return NextResponse.json({ ok: true });
       }
       if (query.currency !== TELEGRAM_CURRENCY) {
@@ -90,6 +281,10 @@ export async function POST(req) {
       // Prevent duplicate purchase
       if (await hasPurchased(productId, buyerId)) {
         await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'You already purchased this creation.' });
+        return NextResponse.json({ ok: true });
+      }
+      if (!(await hasAcceptedCurrentBuyerTerms(buyerId))) {
+        await b.api.answerPreCheckoutQuery(query.id, false, { error_message: 'Please accept Gategram Terms before purchasing.' });
         return NextResponse.json({ ok: true });
       }
 
@@ -153,7 +348,7 @@ export async function POST(req) {
 
         const chargeId = payment.telegram_payment_charge_id;
         const starsPaid = payment.total_amount;
-        const platformFee = Math.ceil(starsPaid * PLATFORM_FEE_PERCENT / 100);
+        const platformFee = calculatePlatformFee(starsPaid);
         const creatorShare = starsPaid - platformFee;
 
         // Idempotency: a redelivery of the SAME charge (also guarded upstream by
@@ -165,23 +360,30 @@ export async function POST(req) {
         try {
           await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, chargeId);
         } catch (err) {
-          if (err.message?.includes('UNIQUE constraint')) {
-            // A prior, refunded purchase by this buyer blocks a fresh INSERT.
-            // Reactivate it so a paying re-buyer actually gets their content.
-            const reactivated = await reactivatePurchase(productId, buyerId, starsPaid, creatorShare, platformFee, chargeId);
-            if (!reactivated) {
-              // Genuine active duplicate \u2014 already owned. Nothing to deliver.
-              return NextResponse.json({ ok: true });
-            }
-          } else {
-            throw err;
+          if (!/UNIQUE constraint|active purchase exists/i.test(String(err?.message || ''))) throw err;
+          // A concurrent delivery of the same Telegram charge is idempotent;
+          // only a genuinely different second charge should be reversed.
+          if (await getPurchaseByChargeId(chargeId)) {
+            return NextResponse.json({ ok: true });
           }
+          try {
+            await b.api.refundStarPayment(buyerId, chargeId);
+            await b.api.sendMessage(buyerId, 'A duplicate payment was detected and automatically refunded. Your original purchase remains available.').catch(() => {});
+          } catch (refundErr) {
+            await releaseProcessedUpdate(body.update_id).catch(() => {});
+            console.error('Duplicate Stars payment could not be refunded:', refundErr);
+            return NextResponse.json({ ok: false }, { status: 500 });
+          }
+          return NextResponse.json({ ok: true });
         }
 
         // Durable delivery intent FIRST: if this function is interrupted (e.g.
         // serverless timeout) after recording the purchase, the retry cron still
         // delivers from the queue. On synchronous success we close the queue row.
+        // Analytics writes stay AFTER this so a slow event insert can never sit
+        // between the payment and the durable delivery intent.
         await enqueueDelivery(productId, buyerId, 'stars');
+        await recordEvent({ eventType: 'payment_success', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
         try {
           const safeTitle = escapeMarkdown(product.title);
           let contentMessage = '';
@@ -203,6 +405,7 @@ export async function POST(req) {
           await b.api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
           await deliverPaidMedia(b.api, buyerId, product);
           await markDeliveryDoneForTarget(productId, buyerId);
+          await recordEvent({ eventType: 'delivered', productId, creatorId: product.creator_id, buyerId, source: 'bot', meta: { rail: 'stars' } });
 
           // Notify creator
           const creatorMsg = `\u{1F4B0} New sale\\!\n*${safeTitle}*\nBuyer earned you \u2B50 ${creatorShare} Stars`;
@@ -273,7 +476,7 @@ export async function POST(req) {
         if (!parsed.ok) {
           const map = {
             format: '\u274C Format: `/new <price> <title> | <content>`',
-            price: `\u274C Price must be between 1 and ${MAX_PRICE_STARS.toLocaleString()} Stars`,
+            price: `\u274C Price must be between ${MIN_PRICE_STARS} and ${MAX_PRICE_STARS.toLocaleString()} Stars`,
             title: '\u274C Invalid title (empty or too long).',
             content: '\u274C Invalid content (empty or too long).',
           };
@@ -283,6 +486,13 @@ export async function POST(req) {
 
         const { price, title, content } = parsed.value;
         await getOrCreateCreator(userId, msg.from.username ?? null, msg.from.first_name ?? null);
+        if (!(await hasAcceptedCurrentCreatorTerms(userId))) {
+          await b.api.sendMessage(chatId,
+            'Before publishing, open Gategram and accept the current Creator Terms.',
+            { reply_markup: { inline_keyboard: [[{ text: 'Open Gategram', web_app: { url: `${WEBAPP_URL}/create` } }]] } },
+          );
+          return NextResponse.json({ ok: true });
+        }
         const id = generateShortId();
         await createProduct(id, userId, title, '', price, 'text', content, null);
 
@@ -292,8 +502,28 @@ export async function POST(req) {
           `\u2705 *Product created\\!*\n\n` +
           `\u{1F4E6} *${safeTitle}*\n\u2B50 ${price} Stars\n\u{1F194} \`${id}\`\n\n` +
           `Share this link:\n${escapeMarkdown(shareUrl)}`,
-          { parse_mode: 'MarkdownV2' }
+          {
+            parse_mode: 'MarkdownV2',
+            reply_markup: { inline_keyboard: [[{ text: '\uD83D\uDCE2 Post to my channel', callback_data: `bcast:${id}` }]] },
+          }
         );
+      }
+
+      // /broadcast: list the creator's products, each with a post-to-channel button
+      else if (text === '/broadcast' || text.startsWith('/broadcast ')) {
+        const products = (await getCreatorProducts(userId)).filter((p) => Number(p.active) === 1 && isProductReady(p));
+        if (!products.length) {
+          await b.api.sendMessage(chatId, 'No products yet. Use /create to make one, then post it to your channel.');
+        } else {
+          const kb = products.slice(0, 20).map((p) => [{
+            text: `\uD83D\uDCE2 ${String(p.title).slice(0, 40)} (${p.price_stars}\u2B50)`,
+            callback_data: `bcast:${p.id}`,
+          }]);
+          await b.api.sendMessage(chatId,
+            'Pick a product to post to your channel. (Add this bot as an admin of your channel first.)',
+            { reply_markup: { inline_keyboard: kb } },
+          );
+        }
       }
 
       // /attach <product_id> — prompts creator to send a file
@@ -305,7 +535,7 @@ export async function POST(req) {
         }
         const product = await getProductRaw(productId);
 
-        if (!product) {
+        if (!product || product.deleted_at) {
           await b.api.sendMessage(chatId, '\u274C Creation not found.');
           return NextResponse.json({ ok: true });
         }
@@ -338,7 +568,7 @@ export async function POST(req) {
         }
         const product = await getProductRaw(productId);
 
-        if (!product) {
+        if (!product || product.deleted_at) {
           await b.api.sendMessage(chatId, '\u274C Creation not found.');
           return NextResponse.json({ ok: true });
         }
@@ -369,14 +599,15 @@ export async function POST(req) {
           await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
           return NextResponse.json({ ok: true });
         }
-        const product = await getProduct(productId);
+        const alreadyPurchased = await hasPurchased(productId, userId);
+        const product = alreadyPurchased ? await getProductRaw(productId) : await getProduct(productId);
 
         if (!product) {
           await b.api.sendMessage(chatId, '\u274C Creation not found or no longer available.');
           return NextResponse.json({ ok: true });
         }
 
-        if (await hasPurchased(productId, userId)) {
+        if (alreadyPurchased) {
           const safeTitle = escapeMarkdown(product.title);
           let contentMessage = '';
           switch (product.content_type) {
@@ -409,9 +640,8 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content', productId, TELEGRAM_CURRENCY, [
-          { label: product.title, amount: product.price_stars }
-        ]);      }
+        await presentBuyOptions(b.api, chatId, product, productId);
+      }
 
       // /buy <id>
       else if (text.startsWith('/buy ')) {
@@ -420,14 +650,15 @@ export async function POST(req) {
           await b.api.sendMessage(chatId, '\u274C Invalid product ID format.');
           return NextResponse.json({ ok: true });
         }
-        const product = await getProduct(productId);
+        const alreadyPurchased = await hasPurchased(productId, userId);
+        const product = alreadyPurchased ? await getProductRaw(productId) : await getProduct(productId);
 
         if (!product) {
           await b.api.sendMessage(chatId, '\u274C Creation not found or no longer available.');
           return NextResponse.json({ ok: true });
         }
 
-        if (await hasPurchased(productId, userId)) {
+        if (alreadyPurchased) {
           const safeTitle = escapeMarkdown(product.title);
           let contentMessage = '';
           switch (product.content_type) {
@@ -460,9 +691,8 @@ export async function POST(req) {
           return NextResponse.json({ ok: true });
         }
 
-        await b.api.sendInvoice(chatId, product.title, product.description || 'Digital content by creator', productId, TELEGRAM_CURRENCY, [
-          { label: product.title, amount: product.price_stars }
-        ]);      }
+        await presentBuyOptions(b.api, chatId, product, productId);
+      }
 
       // /testbuy <id> (no-charge simulation)
       else if (text.startsWith('/testbuy ') || text.startsWith('/testbuy@')) {
@@ -492,10 +722,10 @@ export async function POST(req) {
 
         if (!(await hasPurchased(productId, userId))) {
           const starsPaid = Number(product.price_stars || 0);
-          const platformFee = Math.ceil(starsPaid * PLATFORM_FEE_PERCENT / 100);
+          const platformFee = calculatePlatformFee(starsPaid);
           const creatorShare = starsPaid - platformFee;
           const fakeChargeId = `test_${productId}_${userId}_${Date.now()}`;
-          await recordPurchase(productId, userId, starsPaid, creatorShare, platformFee, fakeChargeId);
+          await recordPurchase(productId, userId, starsPaid, creatorShare, platformFee, fakeChargeId, false);
         }
 
         const title = String(product.title || 'Creation');
@@ -520,7 +750,7 @@ export async function POST(req) {
           await deliverPaidMedia(b.api, chatId, product);
         }
 
-        const creatorShare = Math.max(0, Number(product.price_stars || 0) - Math.ceil(Number(product.price_stars || 0) * PLATFORM_FEE_PERCENT / 100));
+        const creatorShare = Math.max(0, Number(product.price_stars || 0) - calculatePlatformFee(product.price_stars));
         const creatorMsg = `🧪 Test sale\n${title}\nSimulated buyer generated ⭐ ${creatorShare} creator share`;
         await b.api.sendMessage(product.creator_id, creatorMsg).catch(() => {});
       }
@@ -563,6 +793,21 @@ export async function POST(req) {
         );
       }
 
+      // Telegram requires a dedicated payment-support command for digital goods.
+      else if (text === '/paysupport' || text === '/support') {
+        await b.api.sendMessage(chatId,
+          `Payment support\n\n` +
+          `If a paid creation was not delivered, send the creation ID, approximate payment time, and your Telegram username to bob@openletz.com.\n\n` +
+          `Do not send passwords, card details, or login codes. We will check the Telegram charge and delivery queue.`
+        );
+      }
+
+      else if (text === '/terms') {
+        await b.api.sendMessage(chatId,
+          `Gategram Terms of Service\n\n${WEBAPP_URL}/legal/terms\n\nCreator payout terms\n${WEBAPP_URL}/docs/creator-terms`
+        );
+      }
+
       // /help command
       else if (text === '/help') {
         await b.api.sendMessage(chatId,
@@ -576,12 +821,14 @@ export async function POST(req) {
           `*Buyer commands:*\n` +
           `\u{1F6D2} /buy \\<id\\> \\— Purchase a creation\n` +
           `\u{1F6CD}\u{FE0F} /purchases \\— View your purchases\n\n` +
+          `\u{1F198} /paysupport \\— Payment and delivery support\n\n` +
+          `\u{1F4DC} /terms \\— Terms of Service\n` +
           `*How it works:*\n` +
           `1\\. Create a paid creation \\(text, link, file, or message\\)\n` +
           `2\\. Share the buy link with your audience\n` +
-          `3\\. Get paid in Telegram Stars when someone buys\n` +
-          `4\\. Platform takes a 5% fee, you keep 95%\n\n` +
-          `_Need help\\? Contact @gategram\\_support_`,
+          `3\\. Gategram records the sale after Telegram confirms payment\n` +
+          `4\\. Creator payouts use the published payout rate after the holding period\n\n` +
+          `_Need help\\? Use /paysupport or email bob@openletz\\.com_`,
           { parse_mode: 'MarkdownV2' }
         );
       }
@@ -592,8 +839,10 @@ export async function POST(req) {
         if (products.length === 0) {
           await b.api.sendMessage(chatId, 'No products yet\\. Use /create to make one\\!', { parse_mode: 'MarkdownV2' });
         } else {
-          const list = products.map(p =>
-            `\u{1F4E6} *${escapeMarkdown(p.title)}* \\— \u2B50 ${p.price_stars} Stars\n   \u{1F194} \`${p.id}\` \\| ${p.sales_count} sales`
+          const list = products.map((p) => {
+            const status = Number(p.active) === 1 && isProductReady(p) ? 'live' : 'draft';
+            return `\u{1F4E6} *${escapeMarkdown(p.title)}* \\— \u2B50 ${p.price_stars} Stars\n   \u{1F194} \`${p.id}\` \\| ${p.sales_count} sales \\| ${status}`;
+          }
           ).join('\n\n');
           await b.api.sendMessage(chatId, `\u{1F4CB} *Your products:*\n\n${list}`, { parse_mode: 'MarkdownV2' });
         }

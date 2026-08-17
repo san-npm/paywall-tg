@@ -2,8 +2,8 @@ import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
 import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'Paid Community Access in Telegram — Gate Groups & Channels',
-  description: 'Sell paid access to Telegram groups and channels with native Stars checkout. Instant invite delivery, no external payment pages.',
+  title: 'Paid Telegram Community Access',
+  description: 'Sell one-time access to Telegram groups and channels with native Stars checkout and automated invite delivery.',
   path: '/community-access',
   keywords: ['community access', 'paid community access telegram', 'telegram paid group access', 'paid telegram channel', 'telegram gate group'],
 });
@@ -27,7 +27,7 @@ export default function CommunityAccessPage() {
         name: 'How do I sell access to a private Telegram group?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Create a paid access offer on Gategram with the invite link as your content, set a Stars price, and share the buy link in your public channel or DMs. When a buyer pays, the invite link is delivered instantly as a Telegram message.',
+          text: 'Create a paid access offer on Gategram with the invite link as your content, set a Stars price, and share the buy link in your public channel or DMs. When a buyer pays, the invite link is delivered automatically as a Telegram message.',
         },
       },
       {
@@ -35,7 +35,7 @@ export default function CommunityAccessPage() {
         name: 'Can I gate a Telegram channel with a paywall?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes. Set your channel to private, create a Gategram offer with the invite link, and share the buy link publicly. Buyers pay with Stars and receive the private channel invite instantly.',
+          text: 'Yes. Set your channel to private, create a Gategram offer with the invite link, and share the buy link publicly. Buyers pay with Stars and receive the private channel invite automatically.',
         },
       },
     ],
@@ -62,7 +62,7 @@ export default function CommunityAccessPage() {
             Automated tools like InviteMember improve the workflow but still route payment through external checkout (Stripe, PayPal). The buyer still leaves Telegram, still enters card details on an unknown page, still waits for confirmation. The friction is lower than manual, but it's still there.
           </p>
           <p className="text-site-muted text-sm leading-relaxed">
-            With native Telegram Stars checkout, the entire flow — discovery, payment, and access delivery — happens inside the app the buyer already has open. One tap to pay, instant invite link, done.
+            With native Telegram Stars checkout, discovery, payment confirmation, and access delivery happen through the app the buyer already has open. Gategram queues the invite link after payment and retries temporary failures.
           </p>
         </div>
       </section>
@@ -96,7 +96,7 @@ export default function CommunityAccessPage() {
               { step: '1', title: 'Create your private group or channel', desc: 'Set your Telegram group or channel to private so it requires an invite link to join.' },
               { step: '2', title: 'Create a Gategram offer', desc: 'Open the Gategram bot, create a new paid offer, set your Stars price, and paste your private invite link as the content.' },
               { step: '3', title: 'Share the buy link', desc: 'Post the buy link in your public channel, pinned messages, bio, or DMs. This is the single link buyers use to purchase access.' },
-              { step: '4', title: 'Buyers pay and join instantly', desc: 'When someone taps your buy link, they see the Stars payment dialog, confirm with one tap, and receive the invite link as a Telegram message. They join your community in seconds.' },
+              { step: '4', title: 'Buyers pay and join automatically', desc: 'When someone taps your buy link, they see the Stars payment dialog, confirm the invoice, and receive the invite link as a Telegram message.' },
             ].map((s) => (
               <div key={s.step} className="flex gap-4 p-5 rounded-xl border border-site-border bg-site-card">
                 <div className="w-8 h-8 rounded-full bg-site-accent text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -118,7 +118,7 @@ export default function CommunityAccessPage() {
           {[
             {
               q: 'How do I sell access to a private Telegram group?',
-              a: 'Create a Gategram offer with the invite link as your content, set a Stars price, and share the buy link. Buyers pay natively and receive the invite instantly.',
+              a: 'Create a Gategram offer with the invite link as your content, set a Stars price, and share the buy link. Buyers pay natively and receive the invite automatically.',
             },
             {
               q: 'Can I gate a Telegram channel with a paywall?',
@@ -142,8 +142,8 @@ export default function CommunityAccessPage() {
 
       <PageCTA
         title="Start selling community access"
-        description="Set up in 2 minutes. Native Stars checkout, instant invite delivery, 95% payout."
-        primary="Start in 2 minutes"
+        description="Set up in minutes with native Stars checkout, automated invite delivery, and at least a 95% creator share."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"

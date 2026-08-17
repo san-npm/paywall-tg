@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { Bot } from 'grammy';
 import { BOT_TOKEN, ADMIN_TELEGRAM_IDS } from '@/lib/config';
-import { getPendingDeliveries, getProduct, markDeliveryDone, markDeliveryFailed, getFailedDeliveries } from '@/lib/db';
+import { getPendingDeliveries, getProductRaw, markDeliveryDone, markDeliveryFailed, getFailedDeliveries, recordEvent } from '@/lib/db';
 import { escapeMarkdown } from '@/lib/validate';
 
 export const runtime = 'nodejs';
@@ -58,15 +58,12 @@ async function deliverContent(api, buyerId, product) {
 
   await api.sendMessage(buyerId, contentMessage, { parse_mode: 'MarkdownV2' });
 
-  if (product.content_type === 'file' && product.file_id) {
+  if (product.content_type === 'file') {
+    if (!product.file_id) throw new Error('Paid file is missing media');
     const kind = String(product.file_kind || 'document');
-    if (kind === 'photo') {
-      await api.sendPhoto(buyerId, product.file_id);
-    } else if (kind === 'video') {
-      await api.sendVideo(buyerId, product.file_id);
-    } else {
-      await api.sendDocument(buyerId, product.file_id);
-    }
+    if (kind === 'photo') await api.sendPhoto(buyerId, product.file_id);
+    else if (kind === 'video') await api.sendVideo(buyerId, product.file_id);
+    else await api.sendDocument(buyerId, product.file_id);
   }
 }
 
@@ -81,15 +78,18 @@ async function processDeliveryQueue() {
 
   for (const delivery of deliveries) {
     try {
-      const product = await getProduct(delivery.product_id);
+      // A paid buyer remains entitled to delivery even if the creator stops
+      // selling or deletes the listing after Telegram confirms payment.
+      const product = await getProductRaw(delivery.product_id);
       if (!product) {
-        await markDeliveryFailed(delivery.id, 'Product not found or inactive');
+        await markDeliveryFailed(delivery.id, 'Product record not found');
         results.push({ id: delivery.id, status: 'failed', error: 'product_not_found' });
         continue;
       }
 
       await deliverContent(b.api, String(delivery.buyer_telegram_id), product);
       await markDeliveryDone(delivery.id);
+      await recordEvent({ eventType: 'delivered', productId: delivery.product_id, creatorId: product.creator_id, buyerId: delivery.buyer_telegram_id, source: 'retry', meta: { rail: delivery.purchase_type || 'stars' } });
       results.push({ id: delivery.id, status: 'done' });
     } catch (err) {
       await markDeliveryFailed(delivery.id, err?.message || 'Unknown error');

@@ -21,15 +21,15 @@ export default function GumroadAlternative() {
   const reasons = [
     {
       title: 'Gumroad sends buyers away from Telegram',
-      desc: 'You share a Gumroad link in your channel. Your buyer opens a browser, lands on a Gumroad page, creates an account, enters their card. Half of them bounce. The conversion killer isn\'t your product — it\'s the redirect.',
+      desc: 'You share a Gumroad link in your channel. Your buyer opens a browser and completes Gumroad\'s checkout before returning to Telegram. Gategram instead uses Telegram\'s in-app Stars dialog.',
     },
     {
-      title: 'Gumroad takes 10% + payment processing',
-      desc: 'Gumroad\'s fee is 10% of every sale, plus Stripe\'s ~2.9% + 30c. On a $10 product, you lose $1.30+. Gategram\'s 95/5 split means you keep significantly more, especially on smaller digital products.',
+      title: 'Compare the complete cost of each sale',
+      desc: 'Gategram charges at most 5% of a Stars payment, rounded down to whole Stars. Gumroad pricing and tax handling follow a different model; check its current published pricing for your product and buyer location.',
     },
     {
       title: 'Gumroad delivery is email-based',
-      desc: 'After purchase, Gumroad emails the content. Your buyer has to check their inbox, find the email, click the download link. With Gategram, the content is delivered as a Telegram message the instant payment clears.',
+      desc: 'After purchase, Gumroad emails the content. Your buyer has to check their inbox, find the email, click the download link. With Gategram, the content is delivered as a Telegram message after payment clears.',
     },
     {
       title: 'Gumroad wasn\'t built for Telegram',
@@ -77,9 +77,9 @@ export default function GumroadAlternative() {
                   { f: 'Built for', p: 'Telegram creators', g: 'General creators (Twitter/X focus)' },
                   { f: 'Checkout', p: 'Native Telegram Stars', g: 'External Gumroad page' },
                   { f: 'Fee', p: '5% (Telegram Stars)', g: '10% + payment processing' },
-                  { f: 'Delivery', p: 'Instant in-chat message', g: 'Email with download link' },
+                  { f: 'Delivery', p: 'Automatic in-chat message', g: 'Email with download link' },
                   { f: 'Buyer account', p: 'Not needed', g: 'Required (email)' },
-                  { f: 'Setup time', p: '2 minutes', g: '10-15 minutes' },
+                  { f: 'Setup', p: 'Create an offer and share its link', g: 'Configure a storefront listing and delivery' },
                   { f: 'Mobile experience', p: 'One-tap Stars payment', g: 'Credit card form in mobile browser' },
                 ].map((row, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-site-bg' : 'bg-site-card'}>
@@ -97,7 +97,7 @@ export default function GumroadAlternative() {
       <PageCTA
         title="Want to replace Gumroad checkout friction?"
         description="Launch your Telegram-native flow and keep buyers inside chat from tap to unlock."
-        primary="Start in 2 minutes"
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"

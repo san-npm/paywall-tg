@@ -5,8 +5,8 @@ import { buildPageMetadata, jsonLd } from '@/lib/seo';
 const BOT_URL = 'https://t.me/gategramapp_bot';
 
 export const metadata = buildPageMetadata({
-  title: 'Gategram Quickstart — Set Up Your Telegram Paywall in Minutes',
-  description: 'Open the Gategram bot, create your first paid item, share the link, and get paid in Telegram Stars or by card. No bot token, no code, no signup.',
+  title: 'Gategram Quickstart: Set Up a Telegram Paywall',
+  description: 'Open the Gategram bot, create a paid item, share its link, and accept Telegram Stars. No bot token, code, or signup form required.',
   path: '/docs',
   keywords: ['telegram paywall setup', 'gategram quickstart', 'sell on telegram stars'],
 });
@@ -16,7 +16,7 @@ export default function DocsPage() {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
     name: 'How to set up a Telegram paywall with Gategram',
-    description: 'Open the Gategram bot, create a paid item, share your link, and get paid in Telegram Stars or by card — in minutes, no code.',
+    description: 'Open the Gategram bot, create a paid item, share your link, and accept Telegram Stars — in minutes, with no code.',
     totalTime: 'PT2M',
     tool: [{ '@type': 'HowToTool', name: 'Gategram Telegram bot (@gategramapp_bot)' }],
     step: [
@@ -27,11 +27,11 @@ export default function DocsPage() {
       },
       {
         '@type': 'HowToStep', position: 2, name: 'Create your first paid item',
-        text: 'Tap /create to open the form, or use the quick command /new price title | content. Set a title, a price in Telegram Stars (1 to 10,000), and your content: text, a link, a file (including photo or video), or a saved message.',
+        text: 'Tap /create to open the form, or use the quick command /new price title | content. Set a title, a price in Telegram Stars (20 to 10,000), and your content: text, a link, a file (including photo or video), or a saved message.',
       },
       {
         '@type': 'HowToStep', position: 3, name: 'Share your link and get paid',
-        text: 'Share your buy link (https://t.me/gategramapp_bot?start=buy_ID) in any channel, group, or DM. Buyers tap it, pay with Telegram Stars or by card in one tap, and receive the content instantly in chat. You keep 95% (5% fee).',
+        text: 'Share your buy link (https://t.me/gategramapp_bot?start=buy_ID) in any channel, group, or DM. Buyers tap it, confirm a Telegram Stars invoice, and receive the content in chat. The platform fee is never more than 5%.',
       },
       {
         '@type': 'HowToStep', position: 4, name: 'Manage your sales',
@@ -56,11 +56,11 @@ export default function DocsPage() {
     },
     {
       n: '2', title: 'Create your first paid item',
-      desc: 'Tap /create to open the form (or use the quick command /new price title | content). Set a title, a price in Telegram Stars (1 to 10,000), and your content: text, a link, a file (photo, video, or document), or a saved message.',
+      desc: 'Tap /create to open the form (or use the quick command /new price title | content). Set a title, a price in Telegram Stars (20 to 10,000), and your content: text, a link, a file (photo, video, or document), or a saved message.',
     },
     {
       n: '3', title: 'Share your link and get paid',
-      desc: 'You get a buy link like t.me/gategramapp_bot?start=buy_ID. Post it in any channel, group, or DM. Buyers tap it, pay with Telegram Stars or by card in one tap, and receive the content instantly in chat. You keep 95% (5% fee).',
+      desc: 'You get a buy link like t.me/gategramapp_bot?start=buy_ID. Post it in any channel, group, or DM. Buyers tap it, confirm the Stars invoice, and receive the content in chat. The platform fee is never more than 5%.',
     },
   ];
 
@@ -70,8 +70,8 @@ export default function DocsPage() {
       lede: 'A PDF, video, photo, a private link, a chunk of text, or a forwarded message — anything you can send in Telegram, you can sell.',
       steps: [
         'In the bot, tap /create to open the form (or type /new 50 My guide | your content for a quick text item).',
-        'Set a title, a price in Stars (1 to 10,000), and add your content: text, a link, or a file/photo/video.',
-        'Copy the buy link the bot gives you and post it in your channel, group, bio, or DMs. Buyers pay in one tap and get it instantly.',
+        'Set a title, a price in Stars (20 to 10,000), and add your content: text, a link, or a file/photo/video. File offers remain drafts until the upload finishes.',
+        'Copy the buy link the bot gives you and post it in your channel, group, bio, or DMs. Buyers confirm a Stars invoice and receive it automatically.',
       ],
     },
     {
@@ -80,16 +80,16 @@ export default function DocsPage() {
       steps: [
         'In Telegram, set your group or channel to private and copy its invite link.',
         'In the bot, tap /create, set a price, choose the link content type, and paste the invite link as the content.',
-        'Share the buy link publicly. When someone pays, the bot delivers your invite link instantly and they join.',
+        'Share the buy link publicly. When someone pays, the bot delivers your invite link automatically and they join.',
       ],
     },
     {
-      title: 'Sell ongoing community access',
-      lede: 'Run a paid community with tiers — each tier is its own paid item with its own invite link.',
+      title: 'Sell one-time community access',
+      lede: 'Offer multiple access levels — each is a paid item with its own invite link. Gategram does not automate renewals.',
       steps: [
-        'Create one private group or channel per tier (for example Monthly, VIP) and copy each invite link.',
+        'Create one private group or channel per access level (for example Standard or VIP) and copy each invite link.',
         'In the bot, create one paid item per tier — set its price and paste that tier’s invite link as the content.',
-        'Share each tier’s buy link. Buyers pick a tier, pay, and receive the matching invite link instantly.',
+        'Share each tier’s buy link. Buyers pick a tier, pay, and receive the matching invite link automatically.',
       ],
     },
   ];
@@ -113,7 +113,7 @@ export default function DocsPage() {
       <PageHeader
         badge="Quickstart"
         title="Set up your Telegram paywall in minutes"
-        description="Open one bot, create a paid item, share the link. Buyers pay in Telegram Stars or by card and get it instantly. No bot token, no code, no signup form."
+        description="Open one bot, create a paid item, and share the link. Buyers pay in Telegram Stars and receive it in chat. No bot token, code, or signup form."
       />
 
       {/* Primary CTA — open the official bot (the key fix). Anchored at #connect-bot. */}
@@ -134,7 +134,7 @@ export default function DocsPage() {
               <Link href="#quickstart" className="site-cta-secondary">See the 3 steps</Link>
             </div>
             <p className="text-xs text-site-muted mt-5">
-              Opens directly in Telegram · Free to start · Keep 95% of every sale
+              Opens directly in Telegram · No monthly fee · Platform fee capped at 5%
             </p>
           </article>
         </div>
@@ -164,7 +164,7 @@ export default function DocsPage() {
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold mb-2 text-center">What do you want to sell?</h2>
           <p className="text-sm text-site-muted mb-10 text-center max-w-xl mx-auto">
-            Same simple loop every time: create it in the bot, share a link, get paid in Telegram Stars or by card.
+            Same simple loop every time: create it in the bot, share a link, and accept Telegram Stars.
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {tasks.map((t) => (
@@ -193,11 +193,11 @@ export default function DocsPage() {
           <article className="site-panel text-sm text-site-muted leading-relaxed space-y-3">
             <p>
               Gating a private group or channel means <strong className="text-site-text">selling your private invite link behind a paywall</strong>.
-              You create a paid item whose content is the invite link; when a buyer pays, the bot delivers that link instantly and they join.
+              You create a paid item whose content is the invite link; when a buyer pays, the bot delivers that link automatically and they join.
             </p>
             <p className="text-site-text font-semibold">What Gategram does</p>
             <ul className="space-y-1.5 list-none">
-              <li className="flex gap-2"><span className="text-site-accent shrink-0">✓</span> Takes the payment (Telegram Stars or card) inside Telegram.</li>
+              <li className="flex gap-2"><span className="text-site-accent shrink-0">✓</span> Takes payment in Telegram Stars inside Telegram.</li>
               <li className="flex gap-2"><span className="text-site-accent shrink-0">✓</span> Delivers your private invite link to the buyer the moment they pay.</li>
               <li className="flex gap-2"><span className="text-site-accent shrink-0">✓</span> Lets you run multiple tiers, each with its own price and invite link.</li>
             </ul>
@@ -209,7 +209,7 @@ export default function DocsPage() {
             </ul>
             <p>
               You stay in control of your group in Telegram. To limit reuse, use Telegram’s own invite-link controls
-              (member limits, expiry, or revoking and re-issuing a link). Membership management stays in your hands; Gategram handles payment and instant delivery.
+              (member limits, expiry, or revoking and re-issuing a link). Membership management stays in your hands; Gategram handles payment and automatic delivery.
             </p>
           </article>
         </div>
@@ -260,7 +260,7 @@ export default function DocsPage() {
 
       <PageCTA
         title="Ready to launch your first paid drop?"
-        description="Open the bot, create it, share it, and get paid in Telegram Stars or by card. You keep 95%."
+        description="Open the bot, create it, share it, and accept Telegram Stars. The platform fee is never more than 5%."
         primary="Open the Gategram bot"
         primaryHref={BOT_URL}
         secondary="See how payments work"

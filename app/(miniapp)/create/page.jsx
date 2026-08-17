@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { trackEvent } from '@/lib/analytics';
+import { MIN_PRICE_STARS, MAX_PRICE_STARS, NEXT_PUBLIC_TELEGRAM_BOT_USERNAME } from '@/lib/config';
 import {
   waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
   hapticImpact, hapticNotification, hapticSelection,
@@ -40,6 +41,7 @@ export default function CreateOffer() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     trackEvent('create_offer_page_viewed', { page: 'create_offer' });
@@ -125,7 +127,7 @@ export default function CreateOffer() {
     if (!title || !price || !content) { setError('Please fill in all required fields.'); return; }
 
     const priceNum = Number.parseInt(price, 10);
-    if (Number.isNaN(priceNum) || priceNum < 1 || priceNum > 10000) { setError('Price must be between 1 and 10,000 Stars.'); return; }
+    if (Number.isNaN(priceNum) || priceNum < MIN_PRICE_STARS || priceNum > MAX_PRICE_STARS) { setError(`Price must be between ${MIN_PRICE_STARS} and ${MAX_PRICE_STARS.toLocaleString()} Stars.`); return; }
 
     setLoading(true);
     trackEvent('create_offer_submit_attempted', { content_type: contentType, has_description: Boolean(description), price_stars: priceNum });
@@ -145,6 +147,7 @@ export default function CreateOffer() {
         setError(data.error || 'Failed to create offer.');
       } else if (data.product) {
         setSessionExpired(false); hapticNotification('success'); disableClosingConfirmation();
+        setUploaded(Boolean(data.product.is_ready));
         trackEvent('create_offer_succeeded', { content_type: data.product.content_type, price_stars: data.product.price_stars });
         setCreated(data.product);
       }
@@ -155,12 +158,34 @@ export default function CreateOffer() {
   if (!ready) return <CreateSkeleton />;
 
   if (created) {
-    const botUsername = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initDataUnsafe?.bot?.username || '' : '';
+    const botUsername = (typeof window !== 'undefined' ? window.Telegram?.WebApp?.initDataUnsafe?.bot?.username : '') || NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+    const isReady = created.content_type !== 'file' || uploaded || created.is_ready;
+    const buyLink = botUsername ? `https://t.me/${botUsername}?start=buy_${created.id}` : '';
+    const share = () => {
+      if (!buyLink) { setError('Bot username is not configured. Set NEXT_PUBLIC_TELEGRAM_BOT_USERNAME and redeploy.'); return; }
+      hapticImpact('light');
+      const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${created.title} — ${created.price_stars} Stars`)}`;
+      const tg = getTg();
+      if (tg?.openTelegramLink) tg.openTelegramLink(url);
+      else window.open(url, '_blank', 'noopener,noreferrer');
+    };
+    const copy = async () => {
+      if (!buyLink) { setError('Bot username is not configured. Set NEXT_PUBLIC_TELEGRAM_BOT_USERNAME and redeploy.'); return; }
+      try {
+        await navigator.clipboard.writeText(buyLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+        hapticNotification('success');
+      } catch {
+        setError('Could not copy the link. Use Share instead.');
+        hapticNotification('error');
+      }
+    };
     return (
       <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
         <div className="text-center pt-6">
           <p className="tg-celebration mb-3" aria-hidden="true">{'\u{1F389}'}</p>
-          <h1 className="text-2xl font-extrabold">Published!</h1>
+          <h1 className="text-2xl font-extrabold">{isReady ? 'Published!' : 'Draft saved'}</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>{created.title} · {created.price_stars} Stars</p>
         </div>
 
@@ -207,6 +232,7 @@ export default function CreateOffer() {
                     hapticNotification('error');
                   } else {
                     setUploaded(true);
+                    setCreated((prev) => ({ ...prev, active: data.published ? 1 : 0, is_ready: true }));
                     hapticNotification('success');
                   }
                 } catch {
@@ -230,12 +256,26 @@ export default function CreateOffer() {
           <div className="tg-banner-success">Media uploaded successfully!</div>
         )}
 
-        <div className="tg-section">
-          <p className="font-bold text-sm">Share your creation</p>
-          <p className="text-sm mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>
-            Send <code className="font-mono px-1 py-0.5 rounded" style={{ background: 'var(--tg-theme-secondary-bg-color)' }}>/buy {created.id}</code> in any Telegram chat.
-          </p>
-        </div>
+        {isReady && buyLink ? (
+          <div className="tg-section space-y-3">
+            <div>
+              <p className="font-bold text-sm">Share your creation</p>
+              <p className="text-sm mt-1 break-all" style={{ color: 'var(--tg-theme-hint-color)' }}>{buyLink}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" className="tg-btn" onClick={share} aria-label={`Share ${created.title}`}>Share</button>
+              <button type="button" className="tg-btn-secondary" onClick={copy}>{copied ? 'Copied' : 'Copy link'}</button>
+            </div>
+          </div>
+        ) : isReady ? (
+          <div className="tg-banner-warning" role="status">
+            Sharing is unavailable until NEXT_PUBLIC_TELEGRAM_BOT_USERNAME is configured and the app is redeployed.
+          </div>
+        ) : (
+          <div className="tg-banner-warning" role="status">
+            This offer is private and cannot be purchased until its media upload succeeds.
+          </div>
+        )}
 
         <a href="/" className="tg-btn">Back to dashboard</a>
       </main>
@@ -318,7 +358,8 @@ export default function CreateOffer() {
             <hr className="tg-separator" />
             <div>
               <label className="tg-label">Price (Stars)</label>
-              <input type="number" min="1" max="10000" value={price} onChange={(e) => setPrice(e.target.value)} required className="tg-input" placeholder="49" />
+              <input type="number" min={MIN_PRICE_STARS} max={MAX_PRICE_STARS} value={price} onChange={(e) => setPrice(e.target.value)} required className="tg-input" placeholder="49" />
+              <p className="text-xs mt-1" style={{ color: 'var(--tg-theme-hint-color)' }}>Minimum {MIN_PRICE_STARS} Stars so the whole-Star service fee never exceeds 5%.</p>
             </div>
           </div>
 
@@ -348,7 +389,7 @@ export default function CreateOffer() {
           </div>
 
           <button type="submit" disabled={loading} className="tg-btn disabled:opacity-50">
-            {loading ? 'Publishing...' : (termsAccepted ? '\u{1F680} Publish offer' : 'Accept terms to publish')}
+            {loading ? 'Saving...' : (termsAccepted ? (['file', 'photo', 'video'].includes(contentType) ? 'Save draft and upload' : '\u{1F680} Publish offer') : 'Accept terms to publish')}
           </button>
         </form>
       )}
