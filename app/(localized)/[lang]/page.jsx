@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import HomePageClient from '../../../components/website/HomePageClient';
-import { buildPageMetadata, SITE_URL, jsonLd } from '@/lib/seo';
+import { SITE_URL, jsonLd } from '@/lib/seo';
 import { messages } from '@/lib/i18n';
 
 const SUPPORTED_LANGS = ['es', 'ru', 'pt', 'id', 'ar', 'hi', 'tr', 'fa', 'uk'];
@@ -26,15 +26,8 @@ export async function generateMetadata({ params }) {
   if (!SUPPORTED_LANGS.includes(lang)) return {};
 
   const meta = langMeta[lang];
-  const allLangs = ['en', ...SUPPORTED_LANGS];
-  const alternates = {
-    canonical: `${SITE_URL}/${lang}`,
-    languages: {},
-  };
-  alternates.languages['en'] = SITE_URL;
-  for (const l of SUPPORTED_LANGS) {
-    alternates.languages[l] = `${SITE_URL}/${l}`;
-  }
+  const alternates = { canonical: `${SITE_URL}/${lang}`, languages: { en: SITE_URL } };
+  for (const locale of SUPPORTED_LANGS) alternates.languages[locale] = `${SITE_URL}/${locale}`;
   alternates.languages['x-default'] = SITE_URL;
 
   return {
@@ -56,9 +49,7 @@ export async function generateMetadata({ params }) {
       description: meta.description,
       images: [`${SITE_URL}/og-image.png`],
     },
-    other: {
-      'content-language': meta.htmlLang,
-    },
+    other: { 'content-language': meta.htmlLang },
   };
 }
 
@@ -66,9 +57,7 @@ export default async function LangHomePage({ params }) {
   const { lang } = await params;
   if (!SUPPORTED_LANGS.includes(lang)) notFound();
 
-  const t = messages[lang] || messages.en;
   const meta = langMeta[lang];
-
   const softwareSchema = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -77,7 +66,6 @@ export default async function LangHomePage({ params }) {
     operatingSystem: 'Telegram Mini App',
     description: meta.description,
     inLanguage: meta.htmlLang,
-    // No misleading "price: 0" Offer (sales carry a 5% fee; no genuine ratings).
   };
 
   return (
