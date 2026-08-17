@@ -31,7 +31,9 @@ function waitForServer(timeoutMs = 45_000) {
   });
 }
 
-const server = spawn('npm', ['run', 'dev', '--', '-p', String(port)], {
+// Spawn Next directly so cleanup targets the actual server process. Killing an
+// npm wrapper can orphan Next on Linux CI and prevent the job from completing.
+const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'dev', '-p', String(port), '-H', '127.0.0.1'], {
   cwd: process.cwd(),
   env,
   stdio: ['ignore', 'inherit', 'inherit'],
@@ -54,7 +56,10 @@ try {
 } finally {
   server.kill('SIGTERM');
   await new Promise((resolve) => {
-    const timeout = setTimeout(resolve, 3_000);
+    const timeout = setTimeout(() => {
+      if (server.exitCode === null) server.kill('SIGKILL');
+      resolve();
+    }, 3_000);
     server.once('exit', () => {
       clearTimeout(timeout);
       resolve();
