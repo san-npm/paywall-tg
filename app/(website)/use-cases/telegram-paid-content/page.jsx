@@ -3,8 +3,8 @@ import PageHeader, { PageCTA } from '../../../../components/website/PageHeader';
 import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'Telegram Paid Content Unlocker — Sell & Deliver Instantly',
-  description: 'Unlock paid content on Telegram with native Stars checkout. Buyers tap once, content is delivered instantly in chat — no external pages.',
+  title: 'Sell Paid Content on Telegram',
+  description: 'Sell paid content with native Telegram Stars checkout and automated in-chat delivery, without an external payment page.',
   path: '/use-cases/telegram-paid-content',
   keywords: ['telegram paid content unlocker', 'telegram paid content', 'unlock paid content telegram', 'telegram content paywall', 'community access monetization', 'video paywall telegram', 'sell video on telegram', 'telegram video paywall', 'paid video telegram'],
 });
@@ -22,17 +22,17 @@ export default function TelegramPaidContent() {
   const useCases = [
     {
       title: 'Premium channel posts',
-      desc: 'Share a teaser in your public channel. Followers who want the full version tap Buy and receive it instantly as a DM.',
+      desc: 'Share a teaser in your public channel. Followers who want the full version tap Buy and receive it automatically as a DM.',
       example: 'A trading signals channel shares the daily overview for free, and sells the detailed analysis with specific entry/exit points.',
     },
     {
       title: 'Paid group access',
-      desc: 'Gate access to a private group or channel. Buyer pays, gets an invite link delivered instantly.',
+      desc: 'Gate access to a private group or channel. Buyer pays, gets an invite link delivered automatically.',
       example: 'A fitness coach sells monthly access to a private group with daily workout plans and Q&A.',
     },
     {
       title: 'One-time exclusive content',
-      desc: 'Sell individual pieces of content — articles, tutorials, research, predictions — delivered instantly after payment.',
+      desc: 'Sell individual pieces of content — articles, tutorials, research, predictions — delivered automatically after payment.',
       example: 'A crypto analyst sells individual deep-dive reports on specific tokens.',
     },
     {
@@ -42,7 +42,7 @@ export default function TelegramPaidContent() {
     },
     {
       title: 'Paid video content',
-      desc: 'Sell video tutorials, courses, exclusive clips, or premium video content. Upload as a file — delivered instantly via Telegram after Stars payment.',
+      desc: 'Sell video tutorials, courses, exclusive clips, or premium video content. Upload as a file — delivered automatically via Telegram after Stars payment.',
       example: 'A filmmaker sells behind-the-scenes footage or a videographer sells editing tutorials as individual paid videos.',
     },
   ];
@@ -52,8 +52,8 @@ export default function TelegramPaidContent() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <PageHeader
         badge="Use Case"
-        title={<>Telegram paid content unlocker: sell and deliver in one tap</>}
-        description="Lock any content behind a Stars paywall. Buyers tap Buy, pay natively, and unlock instantly — no redirect, no signup, no friction."
+        title={<>Telegram paid content unlocker: sell and deliver in chat</>}
+        description="Lock any content behind a Stars paywall. Buyers tap Buy, pay natively, and unlock automatically — no redirect, no signup, no friction."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -86,7 +86,7 @@ export default function TelegramPaidContent() {
                 <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> Creates account / enters email</li>
                 <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> Enters credit card details</li>
                 <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> Waits for email delivery</li>
-                <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> 40-60% abandon at checkout</li>
+                <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> Additional browser and account steps</li>
               </ul>
             </div>
             <div className="p-5 rounded-xl border border-site-accent/30 bg-site-bg" style={{ boxShadow: '0 0 20px rgba(42, 171, 238, 0.05)' }}>
@@ -95,8 +95,8 @@ export default function TelegramPaidContent() {
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Buyer stays in Telegram</li>
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Native payment dialog</li>
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> No account needed</li>
-                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Stars (Apple/Google Pay)</li>
-                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Instant in-chat delivery</li>
+                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Telegram Stars</li>
+                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Automatic in-chat delivery</li>
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> One-tap purchase flow</li>
               </ul>
             </div>
@@ -125,15 +125,15 @@ export default function TelegramPaidContent() {
           {[
             {
               q: 'Can I sell video content behind a Telegram paywall?',
-              a: 'Yes. Upload your video as a file when creating a product. When a buyer pays with Stars, the video is delivered instantly as a Telegram message. You can sell individual videos, video courses, or exclusive video content — all behind a paywall.',
+              a: 'Yes. Upload your video as a file when creating a product. When a buyer pays with Stars, the video is delivered automatically as a Telegram message. You can sell individual videos, video courses, or exclusive video content — all behind a paywall.',
             },
             {
               q: 'How can buyers tell if a video on Telegram is behind a paywall?',
-              a: 'When content is gated through Gategram, buyers see a purchase button with the price in Stars. They tap to buy, confirm the native Stars payment in one tap, and the video or content is delivered immediately in chat. No redirect, no signup.',
+              a: 'When content is gated through Gategram, buyers see a purchase button with the Stars price. They confirm the native invoice, and the content is queued for delivery in chat. No external checkout or separate Gategram signup.',
             },
             {
-              q: 'Can I sell both one-time content and recurring access?',
-              a: 'Yes. Many creators run one-time paid drops for specific reports while also selling private group access for recurring value.',
+              q: 'Can I sell one-time content and access offers?',
+              a: 'Yes. Gategram supports one-time paid drops and one-time access offers. It does not currently automate recurring subscriptions.',
             },
             {
               q: 'What content formats work best for paid Telegram offers?',
@@ -154,7 +154,7 @@ export default function TelegramPaidContent() {
       <PageCTA
         title="Ready to launch paid Telegram content?"
         description="Set up once, share your link, and let buyers pay and unlock without leaving Telegram."
-        primary="Start in 2 minutes"
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"

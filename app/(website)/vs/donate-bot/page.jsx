@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Gategram vs DonateBot for Telegram Monetization',
-  description: 'Compare Gategram and DonateBot: sell content with instant delivery vs tips and donations. Native Telegram Stars checkout vs donation-only flows.',
+  description: 'Compare Gategram and DonateBot: sell content with automatic delivery vs tips and donations. Native Telegram Stars checkout vs donation-only flows.',
   path: '/vs/donate-bot',
   keywords: ['donate bot alternative', 'telegram donate bot vs paywall', 'donatebot alternative'],
 });
@@ -28,7 +28,7 @@ export default function VsDonateBot() {
         name: 'Is DonateBot good for selling content?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'DonateBot is designed for tips and donations, not content sales. It collects payments but does not deliver any product or file after a transaction. If you want to sell digital content on Telegram with instant delivery, you need a tool like Gategram that handles both payment and fulfillment.',
+          text: 'DonateBot is designed for tips and donations, not content sales. It collects payments but does not deliver any product or file after a transaction. If you want to sell digital content on Telegram with automatic delivery, you need a tool like Gategram that handles both payment and fulfillment.',
         },
       },
       {
@@ -36,7 +36,7 @@ export default function VsDonateBot() {
         name: "What's the difference between donations and paid content on Telegram?",
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Donations are voluntary tips with no guaranteed deliverable — supporters give money out of goodwill. Paid content is a transaction where the buyer pays a set price and receives a specific product instantly. Gategram enables paid content sales with automatic delivery, while DonateBot handles the donation model.',
+          text: 'Donations are voluntary tips with no guaranteed deliverable — supporters give money out of goodwill. Paid content is a transaction where the buyer pays a set price and receives a specific product automatically. Gategram enables paid content sales with automatic delivery, while DonateBot handles the donation model.',
         },
       },
       {
@@ -44,23 +44,23 @@ export default function VsDonateBot() {
         name: 'Can DonateBot deliver content after payment?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'No. DonateBot confirms that a donation was made but does not deliver files, text, or links after payment. You would need to manually send content to each supporter. Gategram automates the entire process — payment triggers instant content delivery inside Telegram.',
+          text: 'Gategram is designed for paid digital delivery: after a confirmed Stars payment, it queues the purchased file, text, link, or access message for delivery inside Telegram.',
         },
       },
     ],
   };
 
   const rows = [
-    { feature: 'Core model', paygate: 'Sell content — buyer pays, gets product instantly', other: 'Tips and donations — no product delivery' },
-    { feature: 'Content delivery', paygate: 'Instant — file, text, or link arrives as a Telegram message', other: 'None. Donations don\'t unlock anything' },
-    { feature: 'Payment flow', paygate: 'Native Telegram Stars — one tap inside the app', other: 'External payment processors (Stripe, PayPal, crypto)' },
-    { feature: 'Buyer friction', paygate: 'Zero. No account, no card form, no redirect', other: 'Moderate. External checkout or crypto wallet needed' },
-    { feature: 'Revenue model', paygate: 'Per-sale — price what you want, get paid per product', other: 'Voluntary tips — unpredictable, lower revenue' },
-    { feature: 'Setup time', paygate: '2 minutes. Create product, share link, done', other: '5-10 minutes. Configure payment methods, tip amounts' },
-    { feature: 'Revenue split', paygate: '95/5 (Telegram takes 5% via Stars)', other: 'Varies by payment processor (2.9%+ for Stripe, higher for crypto)' },
+    { feature: 'Core model', paygate: 'Sell content — buyer pays, gets product automatically', other: 'Tips and donations — no product delivery' },
+    { feature: 'Content delivery', paygate: 'Automatic file, text, or link message', other: 'Donation confirmation rather than a gated product' },
+    { feature: 'Payment flow', paygate: 'Native Telegram Stars invoice inside the app', other: 'Separate third-party payment flow' },
+    { feature: 'Buyer flow', paygate: 'Telegram account and Stars invoice', other: 'Depends on the configured payment method' },
+    { feature: 'Revenue model', paygate: 'Fixed-price product sale', other: 'Voluntary contribution' },
+    { feature: 'Setup', paygate: 'Create an offer and share its link', other: 'Configure a donation flow and amounts' },
+    { feature: 'Service fee', paygate: 'Gategram: up to 5%; separate published payout rate', other: 'Varies by payment processor and asset' },
     { feature: 'Use case', paygate: 'Selling digital products, premium content, paid access', other: 'Accepting tips, funding community projects, donations' },
-    { feature: 'Product catalog', paygate: 'Yes — multiple products with titles, descriptions, prices', other: 'No products — just donation goals and tip jars' },
-    { feature: 'Sales analytics', paygate: 'Per-product sales tracking and revenue dashboard', other: 'Donation totals and contributor lists' },
+    { feature: 'Product catalog', paygate: 'Multiple offers with titles, descriptions, and Stars prices', other: 'Donation-oriented setup' },
+    { feature: 'Reporting focus', paygate: 'Per-product sales and creator balances', other: 'Contribution reporting' },
   ];
 
   return (
@@ -70,7 +70,7 @@ export default function VsDonateBot() {
       <PageHeader
         badge="Comparison"
         title={<>Gategram vs <span className="text-site-muted">DonateBot</span>: selling content vs collecting tips</>}
-        description="DonateBot handles tips and donations. Gategram handles content sales with instant delivery. Different tools for different goals."
+        description="DonateBot handles tips and donations. Gategram handles content sales with automatic delivery. Different tools for different goals."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -105,7 +105,7 @@ export default function VsDonateBot() {
               <p className="text-sm text-site-muted">Tips are voluntary and unpredictable. Product sales give you a fixed price per item. You control what you earn based on what you create and how you price it.</p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
-              <h3 className="font-bold mb-1">You want instant delivery</h3>
+              <h3 className="font-bold mb-1">You want automatic delivery</h3>
               <p className="text-sm text-site-muted">DonateBot confirms a donation happened. Gategram confirms payment and delivers the content in the same step. No manual fulfillment, no follow-up messages, no delays.</p>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function VsDonateBot() {
             </Link>
             <Link href="/telegram-paywall" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Telegram Paywall</h3>
-              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout in under 2 minutes.</p>
+              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout without code.</p>
             </Link>
           </div>
         </div>
@@ -136,9 +136,9 @@ export default function VsDonateBot() {
         <div className="max-w-3xl mx-auto space-y-3">
           <h2 className="text-2xl font-bold">DonateBot vs Gategram FAQ</h2>
           {[
-            { q: 'Is DonateBot good for selling content?', a: 'DonateBot is designed for tips and donations, not content sales. It collects payments but does not deliver any product or file after a transaction. If you want to sell digital content on Telegram with instant delivery, you need a tool like Gategram that handles both payment and fulfillment.' },
-            { q: "What's the difference between donations and paid content on Telegram?", a: 'Donations are voluntary tips with no guaranteed deliverable — supporters give money out of goodwill. Paid content is a transaction where the buyer pays a set price and receives a specific product instantly. Gategram enables paid content sales with automatic delivery, while DonateBot handles the donation model.' },
-            { q: 'Can DonateBot deliver content after payment?', a: 'No. DonateBot confirms that a donation was made but does not deliver files, text, or links after payment. You would need to manually send content to each supporter. Gategram automates the entire process — payment triggers instant content delivery inside Telegram.' },
+            { q: 'Is DonateBot good for selling content?', a: 'DonateBot is designed for tips and donations, not content sales. It collects payments but does not deliver any product or file after a transaction. If you want to sell digital content on Telegram with automatic delivery, you need a tool like Gategram that handles both payment and fulfillment.' },
+            { q: "What's the difference between donations and paid content on Telegram?", a: 'Donations are voluntary tips with no guaranteed deliverable — supporters give money out of goodwill. Paid content is a transaction where the buyer pays a set price and receives a specific product automatically. Gategram enables paid content sales with automatic delivery, while DonateBot handles the donation model.' },
+            { q: 'How does Gategram deliver content after payment?', a: 'After a confirmed Stars payment, Gategram queues the purchased file, text, link, or access message for delivery inside Telegram and retries temporary failures.' },
           ].map((item) => (
             <div key={item.q} className="site-panel text-sm text-site-muted">
               <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
@@ -149,8 +149,8 @@ export default function VsDonateBot() {
 
       <PageCTA
         title="Ready to sell content instead of asking for tips?"
-        description="Set a price, list your product, and let buyers unlock it with one tap."
-        primary="Start in 2 minutes"
+        description="Set a Stars price, list your product, and deliver it automatically after payment."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"

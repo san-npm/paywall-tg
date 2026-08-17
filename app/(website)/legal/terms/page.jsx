@@ -13,7 +13,7 @@ export default function TermsOfService() {
       <PageHeader
         badge="Legal"
         title="Terms of Service"
-        description="Last updated: March 20, 2026"
+        description="Last updated: August 17, 2026"
       />
 
       <section className="px-4 py-12">
@@ -21,8 +21,8 @@ export default function TermsOfService() {
 
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">1. Service overview</h2>
-            <p>Gategram is a platform operated by <strong className="text-site-text">COMMIT MEDIA SARL</strong> (Luxembourg, LU34811132) that enables creators to sell digital content through Telegram using Telegram Stars as the primary payment method.</p>
-            <p>By using Gategram, you agree to these terms. If you do not agree, do not use the service.</p>
+            <p>Gategram is a platform operated by <strong className="text-site-text">COMMIT MEDIA SARL</strong> (Luxembourg, VAT LU34811132, RCS B276192) that enables creators to sell digital content through Telegram using Telegram Stars.</p>
+            <p>By using Gategram, you agree to these terms. Buyers confirm agreement before a new invoice is issued, and we retain a versioned acceptance record. If you do not agree, do not use the service.</p>
           </div>
 
           <div className="site-panel space-y-3">
@@ -43,8 +43,8 @@ export default function TermsOfService() {
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">4. Buyer obligations</h2>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Purchases are final. Content is delivered instantly after payment.</li>
-              <li>Refunds are handled on a case-by-case basis and are at our discretion.</li>
+              <li>Digital content is normally delivered after Telegram confirms payment; temporary Telegram or delivery failures may be retried.</li>
+              <li>Refunds are handled under applicable law, Telegram&rsquo;s payment rules, and the circumstances of the transaction.</li>
               <li>You must not redistribute, resell, or publicly share purchased content unless the creator explicitly permits it.</li>
             </ul>
           </div>
@@ -52,17 +52,18 @@ export default function TermsOfService() {
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">5. Fees and payouts</h2>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Gategram charges a <strong className="text-site-text">5% platform fee</strong> on each sale, deducted from the creator's share.</li>
-              <li>Creators receive 95% of each sale amount in Stars.</li>
-              <li>Payouts are converted from Stars to EUR at the current conversion rate and transferred via SEPA bank transfer (free) or PayPal (fees apply, charged to creator).</li>
-              <li>Minimum payout threshold is 100 Stars.</li>
-              <li>Payouts are processed manually after a creator requests them.</li>
+              <li>Gategram charges a service fee of up to <strong className="text-site-text">5%</strong> on each sale. Whole-Star fees are rounded down.</li>
+              <li>Telegram credits Stars to Gategram&rsquo;s bot account. Gategram records the remaining creator share internally; creators do not receive those Stars directly.</li>
+              <li>Creator shares become eligible after a minimum 21-day hold and are converted to EUR using the published payout rate. That rate reflects Telegram&rsquo;s bot-developer reward rather than the consumer purchase price of Stars.</li>
+              <li>The minimum payout threshold is 1,000 cleared Stars. The applicable EUR rate is locked when the payout record is created.</li>
+              <li>SEPA or PayPal transfer charges shown before payout are deducted from the payable amount. Payouts may be held for refunds, fraud, sanctions, tax, or compliance checks.</li>
             </ul>
           </div>
 
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">6. Payments</h2>
-            <p>Payments are processed through Telegram Stars (the primary method) and optionally through Stripe for card payments. Gategram does not store credit card information. All payment processing is handled by Telegram and Stripe respectively, subject to their own terms of service.</p>
+            <p>Digital-goods payments in the Telegram bot and Mini App are processed exclusively through Telegram Stars, subject to Telegram&rsquo;s terms. Gategram does not ask buyers for payment-card details.</p>
+            <p>For payment or delivery problems, use <strong className="text-site-text">/paysupport</strong> or <strong className="text-site-text">/support</strong> in the bot, or email <a href="mailto:bob@openletz.com" className="text-site-accent underline">bob@openletz.com</a>. Gategram, not Telegram, is responsible for resolving purchases made through Gategram.</p>
           </div>
 
           <div className="site-panel space-y-3">
@@ -79,13 +80,13 @@ export default function TermsOfService() {
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">9. Limitation of liability</h2>
             <p>Gategram is provided "as is" without warranties of any kind. We are not liable for indirect, incidental, or consequential damages. Our total liability is limited to the fees you have paid to us in the 12 months preceding the claim.</p>
-            <p>We are not responsible for content sold by creators, payment processing failures by third parties (Telegram, Stripe), or losses arising from unauthorized access to your Telegram account.</p>
+            <p>We are not responsible for content sold by creators, failures of Telegram or other infrastructure providers, or losses arising from unauthorized access to your Telegram account, except where applicable law provides otherwise.</p>
           </div>
 
           <div className="site-panel space-y-3">
             <h2 className="text-lg font-bold text-site-text">10. Termination</h2>
             <p>You may stop using Gategram at any time. Creators can request deletion of their profile and data by contacting us. We may suspend or terminate accounts that violate these terms.</p>
-            <p>Upon termination, any pending payouts will be processed within 30 days, provided the creator's profile is complete and no violations have occurred.</p>
+            <p>Upon termination, eligible cleared amounts will be processed after applicable holds and reviews, provided the creator&rsquo;s profile is complete and no legal or policy restriction applies.</p>
           </div>
 
           <div className="site-panel space-y-3">

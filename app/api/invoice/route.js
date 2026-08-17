@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
 import { randomUUID } from 'crypto';
 import { BOT_TOKEN, TELEGRAM_CURRENCY } from '@/lib/config';
-import { getProduct, hasPurchased, recordEvent } from '@/lib/db';
+import { acceptBuyerTerms, getProduct, hasPurchased, recordEvent } from '@/lib/db';
 import { validateInitData, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { isProductReady } from '@/lib/payments';
 
 export const runtime = 'nodejs';
 
@@ -32,7 +33,7 @@ export async function POST(req) {
     return jsonWithRequestId({ error: 'Invalid JSON body' }, requestId, 400);
   }
 
-  const { init_data, product_id } = body;
+  const { init_data, product_id, terms_accepted: termsAccepted } = body;
 
   // Validate initData
   const initData = validateInitData(init_data);
@@ -41,6 +42,10 @@ export async function POST(req) {
   }
 
   const buyerId = String(initData.user.id);
+
+  if (termsAccepted !== true) {
+    return jsonWithRequestId({ error: 'You must accept the Terms of Service before purchasing.' }, requestId, 400);
+  }
 
   // Rate limit: 30 invoices per hour per user
   const { limited } = await checkRateLimit(`invoice:${buyerId}`, 30);
@@ -70,7 +75,11 @@ export async function POST(req) {
     return jsonWithRequestId({ error: 'Product not found' }, requestId, 404);
   }
 
-  const methods = String(product.payment_methods || 'stars,stripe').split(',').map(v => v.trim().toLowerCase());
+  if (!isProductReady(product)) {
+    return jsonWithRequestId({ error: 'This offer is still a draft while its media is uploaded.' }, requestId, 409);
+  }
+
+  const methods = String(product.payment_methods || 'stars').split(',').map(v => v.trim().toLowerCase());
   if (!methods.includes('stars')) {
     return jsonWithRequestId({ error: 'Stars payments are disabled for this product' }, requestId, 400);
   }
@@ -84,6 +93,10 @@ export async function POST(req) {
   if (await hasPurchased(product_id, buyerId)) {
     return jsonWithRequestId({ error: 'Already purchased' }, requestId, 400);
   }
+
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  const acceptedIp = forwardedFor?.split(',')[0]?.trim() || null;
+  await acceptBuyerTerms(buyerId, acceptedIp, req.headers.get('user-agent'), 'miniapp');
 
   try {
     const b = getBot();

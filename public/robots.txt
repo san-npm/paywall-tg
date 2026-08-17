@@ -7,12 +7,8 @@ User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 
-# App / auth-gated / API routes — no search value, and they waste crawl budget.
+# API routes have no search value. Mini App routes remain crawlable so their
+# X-Robots-Tag/meta noindex directives can be seen and existing URLs deindexed.
 Disallow: /api/
-Disallow: /buy/
-Disallow: /create
-Disallow: /edit/
-Disallow: /dashboard
-Disallow: /purchases
 
 Sitemap: https://gategram.app/sitemap.xml

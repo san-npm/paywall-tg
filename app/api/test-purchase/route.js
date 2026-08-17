@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { Bot } from 'grammy';
-import { BOT_TOKEN, ENABLE_FAKE_PAYMENTS, PLATFORM_FEE_PERCENT } from '@/lib/config';
+import { BOT_TOKEN, ENABLE_FAKE_PAYMENTS } from '@/lib/config';
 import { getProduct, hasPurchased, recordPurchase } from '@/lib/db';
 import { validateInitData, escapeMarkdown, isValidProductId } from '@/lib/validate';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { calculatePlatformFee } from '@/lib/payments';
 
 export const runtime = 'nodejs';
 
@@ -55,12 +56,12 @@ export async function POST(req) {
   }
 
   const starsPaid = Number(product.price_stars || 0);
-  const platformFee = Math.ceil(starsPaid * PLATFORM_FEE_PERCENT / 100);
+  const platformFee = calculatePlatformFee(starsPaid);
   const creatorShare = starsPaid - platformFee;
   const fakeChargeId = `test_${productId}_${buyerId}_${Date.now()}`;
 
   try {
-    await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, fakeChargeId);
+    await recordPurchase(productId, buyerId, starsPaid, creatorShare, platformFee, fakeChargeId, false);
   } catch (err) {
     if (err?.message?.includes('UNIQUE constraint')) {
       return NextResponse.json({ ok: true, alreadyPurchased: true });

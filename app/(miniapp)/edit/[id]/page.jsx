@@ -7,6 +7,7 @@ import {
   showBackButton, hideBackButton,
   getTg,
 } from '@/lib/telegram';
+import { MIN_PRICE_STARS, MAX_PRICE_STARS } from '@/lib/config';
 
 function EditSkeleton() {
   return (
@@ -72,8 +73,8 @@ export default function EditProduct() {
     setError(null); setSaved(false); hapticImpact('light');
     if (!user || !initData) { setError('Open inside Telegram to edit.'); return; }
     const priceNum = parseInt(price);
-    if (isNaN(priceNum) || priceNum < 1 || priceNum > 10000) {
-      setError('Price must be between 1 and 10,000 Stars.');
+    if (isNaN(priceNum) || priceNum < MIN_PRICE_STARS || priceNum > MAX_PRICE_STARS) {
+      setError(`Price must be between ${MIN_PRICE_STARS} and ${MAX_PRICE_STARS.toLocaleString()} Stars.`);
       hapticNotification('error'); return;
     }
 
@@ -140,7 +141,7 @@ export default function EditProduct() {
           <hr className="tg-separator" />
           <div>
             <label className="tg-label">Price (Stars)</label>
-            <input type="number" min="1" max="10000" value={price} onChange={e => setPrice(e.target.value)} required className="tg-input" />
+            <input type="number" min={MIN_PRICE_STARS} max={MAX_PRICE_STARS} value={price} onChange={e => setPrice(e.target.value)} required className="tg-input" />
           </div>
         </div>
 
@@ -154,9 +155,9 @@ export default function EditProduct() {
 
         {product?.content_type === 'file' && (
           <div className="tg-section space-y-3">
-            <p className="font-bold text-sm">{product.file_id ? 'Replace media' : 'Upload media'}</p>
+            <p className="font-bold text-sm">{product.is_ready ? 'Replace media' : 'Upload media'}</p>
             <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>
-              {product.file_id ? 'Upload a new file to replace the current one.' : 'Upload the file that buyers will unlock.'}
+              {product.is_ready ? 'Upload a new file to replace the current one.' : 'Upload the file that buyers will unlock. The offer stays private until this succeeds.'}
             </p>
             {uploadSuccess && <div className="tg-banner-success text-sm">Media uploaded!</div>}
             <input
@@ -190,6 +191,7 @@ export default function EditProduct() {
                     hapticNotification('error');
                   } else {
                     setUploadSuccess(true);
+                    setProduct((prev) => ({ ...prev, active: data.published ? 1 : 0, is_ready: true }));
                     setSelectedFile(null);
                     hapticNotification('success');
                   }

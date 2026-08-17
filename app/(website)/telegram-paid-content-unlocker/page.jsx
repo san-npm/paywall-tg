@@ -4,7 +4,7 @@ import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'Can You Unlock Telegram Paid Content for Free?',
-  description: 'No — there is no legitimate unlocker that bypasses a Telegram Stars paywall. Here is why paid content is secure, the only real way to access it, and how creators protect and sell it.',
+  description: 'There is no legitimate tool that bypasses a Telegram Stars paywall. Learn how verified payment and server-side delivery protect paid content.',
   path: '/telegram-paid-content-unlocker',
   keywords: ['telegram paid content unlocker', 'telegram star content unlocker', 'see telegram paid content for free', 'bypass telegram stars paywall', 'unlock telegram paid content'],
 });
@@ -36,7 +36,7 @@ export default function TelegramPaidContentUnlockerPage() {
     },
     {
       q: 'How do I sell my own paid content on Telegram?',
-      a: 'Connect a bot to Gategram, create a product, set a price in Telegram Stars (from 1 to 10,000), and share the link. Buyers pay in one tap and the content is delivered instantly in chat. Gategram takes a 5% fee and you keep 95% of every sale.',
+      a: 'Open the Gategram bot, create a product, set a price in Telegram Stars (from 20 to 10,000), and share the link. Buyers confirm a Stars invoice and Gategram delivers the content in chat. The platform fee is never more than 5%.',
     },
   ];
 
@@ -107,10 +107,10 @@ export default function TelegramPaidContentUnlockerPage() {
             If you landed here because you want to <em>protect</em> your content from being copied or shared for free, that is exactly what Gategram does. Your content stays behind a native Telegram Stars paywall and is only ever delivered to buyers who have actually paid — the same server-side delivery that makes &ldquo;unlockers&rdquo; useless against you.
           </p>
           <ul className="space-y-2 text-sm text-site-muted">
-            <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> 5% fee, you keep 95% of every sale</li>
-            <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Instant in-chat delivery the moment payment confirms</li>
+            <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Platform fee capped at 5%; creators keep at least 95%</li>
+            <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Automatic in-chat delivery the moment payment confirms</li>
             <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> No buyer account or external checkout — one-tap Stars payment</li>
-            <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Price anything from 1 to 10,000 Stars</li>
+            <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Set a price from 20 to 10,000 Stars</li>
           </ul>
           <p className="text-site-muted text-sm leading-relaxed">
             Learn how it works with the <Link href="/telegram-paywall" className="text-site-accent underline">Telegram paywall</Link>, follow the step-by-step guide on <Link href="/how-to-sell-on-telegram" className="text-site-accent underline">how to sell on Telegram</Link>, or see real setups on the <Link href="/use-cases/telegram-paid-content" className="text-site-accent underline">paid content use case</Link> page.
@@ -131,8 +131,8 @@ export default function TelegramPaidContentUnlockerPage() {
 
       <PageCTA
         title="Want to protect and sell your content?"
-        description="Put your content behind a native Stars paywall so only paying buyers ever receive it — set up in about 2 minutes."
-        primary="Start in 2 minutes"
+        description="Put your content behind a native Stars paywall so only paying buyers ever receive it — set up without code."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"
         secondaryHref="/how-payments-work"

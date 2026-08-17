@@ -4,6 +4,8 @@ import TelegramInitDataBridge from './TelegramInitDataBridge';
 export const metadata = {
   title: 'Gategram — Dashboard',
   description: 'Manage your digital products on Telegram.',
+  alternates: {},
+  robots: { index: false, follow: false, noarchive: true, nosnippet: true },
 };
 
 export default function MiniAppLayout({ children }) {
