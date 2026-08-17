@@ -3,8 +3,8 @@ import PageHeader, { PageCTA } from '../../../components/website/PageHeader';
 import { buildPageMetadata, SITE_URL, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
-  title: 'How to Sell Products on Telegram (Step-by-Step Guide)',
-  description: 'Learn how to sell digital products, paid content, and community access on Telegram using native Stars checkout. Set up in under 2 minutes.',
+  title: 'How to Sell Products on Telegram',
+  description: 'Learn how to sell digital products, paid content, and one-time community access using native Telegram Stars checkout.',
   path: '/how-to-sell-on-telegram',
   keywords: [
     'how to sell products on telegram',
@@ -33,7 +33,7 @@ export default function HowToSellOnTelegram() {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
     name: 'How to sell products on Telegram',
-    description: 'Set up a Telegram store and start selling digital products with native Stars checkout in under 2 minutes.',
+    description: 'Set up a Telegram store and start selling digital products with native Stars checkout without code.',
     totalTime: 'PT2M',
     tool: [{ '@type': 'HowToTool', name: 'Gategram Telegram bot' }],
     step: [
@@ -58,8 +58,8 @@ export default function HowToSellOnTelegram() {
       {
         '@type': 'HowToStep',
         position: 4,
-        name: 'Buyers pay and receive instantly',
-        text: 'Buyers confirm with one tap using Stars (powered by Apple Pay / Google Pay). Content is delivered immediately as a Telegram message.',
+        name: 'Buyers pay and receive automatically',
+        text: 'Buyers confirm a Stars invoice from their Telegram balance. Gategram then queues the content for delivery as a Telegram message.',
       },
     ],
   };
@@ -76,12 +76,12 @@ export default function HowToSellOnTelegram() {
       {
         '@type': 'Question',
         name: 'How do Telegram Stars payments work?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Telegram Stars is Telegram\'s native payment currency. Buyers purchase Stars through Apple Pay or Google Pay inside the app. When they buy your product, they confirm with one tap — no credit card form, no redirect.' },
+        acceptedAnswer: { '@type': 'Answer', text: 'Telegram Stars is Telegram\'s in-app currency for digital goods. Buyers fund and use a Stars balance through Telegram. When they buy your product, they confirm in Telegram — Gategram does not show a card form or redirect to card checkout.' },
       },
       {
         '@type': 'Question',
         name: 'How much does it cost to sell on Telegram?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Gategram charges a 5% platform fee. You keep 95% of every sale. There are no monthly fees, setup costs, or hidden charges.' },
+        acceptedAnswer: { '@type': 'Answer', text: 'Gategram charges at most 5% per Stars payment, rounded down to whole Stars. At least 95% is credited to the creator balance, with no monthly or setup fee.' },
       },
       {
         '@type': 'Question',
@@ -91,7 +91,7 @@ export default function HowToSellOnTelegram() {
       {
         '@type': 'Question',
         name: 'Is selling on Telegram better than using Gumroad or Patreon?',
-        acceptedAnswer: { '@type': 'Answer', text: 'If your audience is already on Telegram, yes. External checkout pages cause 40-60% drop-off because buyers leave the app. With native Stars checkout, buyers pay in one tap without leaving Telegram, leading to significantly higher conversion rates.' },
+        acceptedAnswer: { '@type': 'Answer', text: 'Gategram removes the external checkout and buyer-account steps for a Telegram audience. Whether that improves conversion depends on your offer and audience, so use the creator funnel metrics to compare results.' },
       },
     ],
   };
@@ -146,14 +146,14 @@ export default function HowToSellOnTelegram() {
     {
       num: '4',
       title: 'Get paid automatically',
-      desc: 'Buyers pay with Stars (Apple Pay / Google Pay). Content is delivered instantly as a message. You keep 95%.',
+      desc: 'Buyers confirm a Stars invoice. Gategram delivers the content as a message and credits at least 95% to your creator balance.',
     },
   ];
 
   const whyTelegram = [
     { stat: '950M+', label: 'Monthly active Telegram users' },
     { stat: '1 tap', label: 'Native Stars checkout — no redirect' },
-    { stat: '95%', label: 'Creator payout on every sale' },
+    { stat: '≥95%', label: 'Creator share on every sale' },
     { stat: '<2 min', label: 'From zero to first product live' },
   ];
 
@@ -166,7 +166,7 @@ export default function HowToSellOnTelegram() {
       <PageHeader
         badge="Guide"
         title={<>How to sell products on <span className="text-site-accent">Telegram</span></>}
-        description="Set up a Telegram store in under 2 minutes. Sell digital products, paid content, and community access with native Stars checkout."
+        description="Set up a Telegram store without code. Sell digital products, paid content, and community access with native Stars checkout."
       />
 
       {/* Why Telegram */}
@@ -225,7 +225,7 @@ export default function HowToSellOnTelegram() {
       {/* External vs native */}
       <section className="py-16 px-4 border-b border-site-border">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold mb-8 text-center">Why selling inside Telegram converts better</h2>
+          <h2 className="text-2xl font-bold mb-8 text-center">External checkout versus native Stars</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="p-5 rounded-xl border border-site-border bg-site-card">
               <h3 className="font-bold mb-2 text-red-400">External checkout (Gumroad, Stripe, etc.)</h3>
@@ -234,7 +234,7 @@ export default function HowToSellOnTelegram() {
                 <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> Unknown payment page</li>
                 <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> Account creation + email</li>
                 <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> Credit card form</li>
-                <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> 40-60% abandon at checkout</li>
+                <li className="flex gap-2"><span className="text-red-400 shrink-0">&#10005;</span> More funnel steps to measure</li>
               </ul>
             </div>
             <div className="p-5 rounded-xl border border-site-accent/30 bg-site-card" style={{ boxShadow: '0 0 20px rgba(42, 171, 238, 0.05)' }}>
@@ -243,8 +243,8 @@ export default function HowToSellOnTelegram() {
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Buyer stays in Telegram</li>
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Native payment dialog</li>
                 <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> No account needed</li>
-                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Apple Pay / Google Pay</li>
-                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Instant in-chat delivery</li>
+                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Telegram Stars balance</li>
+                <li className="flex gap-2"><span className="text-green-400 shrink-0">&#10003;</span> Automatic in-chat delivery</li>
               </ul>
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function HowToSellOnTelegram() {
 
       <PageCTA
         title="Ready to start selling on Telegram?"
-        description="Create your first product in under 2 minutes. No signup, no website needed."
+        description="Create your first product without code. No signup, no website needed."
         primary="Start selling"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See how payments work"

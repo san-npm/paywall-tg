@@ -24,7 +24,7 @@ export default function SecurityPage() {
       <PageHeader
         badge="Trust"
         title="Security & webhook validation"
-        description="Gategram takes a security-first approach. Every webhook is validated, every transaction is verified, and we never touch payment credentials."
+        description="Gategram validates webhook secrets, authenticates Mini App requests, verifies payment amounts, and does not collect buyer card details."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -32,11 +32,9 @@ export default function SecurityPage() {
           <h2 className="text-2xl font-bold mb-8">Webhook validation</h2>
           <div className="space-y-4">
             <div className="p-5 rounded-xl border border-site-border bg-site-card">
-              <h3 className="font-bold mb-2">HMAC-SHA256 signature verification</h3>
+              <h3 className="font-bold mb-2">Telegram webhook secret verification</h3>
               <p className="text-sm text-site-muted leading-relaxed">
-                Every incoming webhook from Telegram is validated using HMAC-SHA256 with the bot token as the secret key.
-                This cryptographically proves that the webhook originated from Telegram and was not tampered with in transit.
-                Invalid signatures are rejected immediately.
+                Telegram sends a deployment-specific secret token in the webhook request header. Gategram compares it with a timing-safe check and rejects missing or incorrect values before processing an update.
               </p>
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-card">
@@ -64,11 +62,11 @@ export default function SecurityPage() {
             {[
               {
                 title: 'Minimal data collection',
-                desc: 'Gategram stores only what\'s needed: Telegram user IDs, product metadata, and transaction records. We don\'t collect emails, phone numbers, or personal data beyond what Telegram provides.',
+                desc: 'Gategram stores Telegram identity fields, product and transaction records, and creator payout details when a creator supplies them. It does not request buyer phone numbers, contacts, or message history.',
               },
               {
                 title: 'No payment credentials',
-                desc: 'All payment processing happens through Telegram\'s Stars system. Gategram never sees, stores, or processes credit card numbers, bank details, or payment credentials.',
+                desc: 'New purchases use Telegram Stars. Gategram does not collect buyer card numbers or payment credentials. Creator payout details are stored separately for payout administration.',
               },
               {
                 title: 'Content isolation',
@@ -95,7 +93,7 @@ export default function SecurityPage() {
             {[
               { title: 'HTTPS everywhere', desc: 'All communication between Telegram, Gategram, and users is encrypted with TLS.' },
               { title: 'Input validation', desc: 'All user inputs are validated and sanitized before processing to prevent injection attacks.' },
-              { title: 'UUID product IDs', desc: 'Product IDs are cryptographically random UUIDs, not sequential integers. This prevents enumeration attacks.' },
+              { title: 'Random product IDs', desc: 'New product IDs are eight-character, non-sequential identifiers generated with cryptographic randomness. Paid content still requires verified ownership or purchase; an ID is not treated as authorization.' },
               { title: 'Dependency auditing', desc: 'Dependencies are regularly audited for known vulnerabilities using automated security scanning.' },
             ].map((item, i) => (
               <div key={i} className="p-5 rounded-xl border border-site-border bg-site-card">

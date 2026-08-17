@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Monetize Crypto Alpha on Telegram',
-  description: 'Sell crypto research, token picks, DeFi strategies, and alpha calls on Telegram with instant Stars checkout and delivery.',
+  description: 'Sell eligible crypto research and analysis on Telegram with native Stars checkout and automatic delivery.',
   path: '/use-cases/crypto-alpha-telegram',
   keywords: ['crypto alpha telegram', 'monetize crypto research', 'telegram crypto paywall', 'paid crypto signals telegram'],
 });
@@ -28,7 +28,7 @@ export default function CryptoAlphaTelegram() {
         name: 'How do I monetize crypto research on Telegram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'With Gategram, you create paid products for your research — token deep dives, DeFi strategy guides, or alpha calls. Set a price in Stars, share the buy link in your free channel as a teaser, and let buyers unlock the full research with one tap. You keep 95% of every sale.',
+          text: 'With Gategram, you create paid products for your research — token deep dives, DeFi strategy guides, or alpha calls. Set a price in Stars, share the buy link in your free channel as a teaser, and let buyers unlock the full research with a native invoice. At least 95% is credited to your creator balance.',
         },
       },
       {
@@ -36,7 +36,7 @@ export default function CryptoAlphaTelegram() {
         name: 'Can I sell token picks on Telegram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes. Create a Gategram product with your token picks, analysis, and entry/exit targets. Share the buy link in your Telegram channel alongside a free preview. Buyers pay with Stars and receive the full alpha instantly in chat. Include appropriate disclaimers that this is not financial advice.',
+          text: 'Yes. Create a Gategram product with your token picks, analysis, and entry/exit targets. Share the buy link in your Telegram channel alongside a free preview. Buyers pay with Stars and receive the full alpha automatically in chat. Include appropriate disclaimers that this is not financial advice.',
         },
       },
       {
@@ -63,7 +63,7 @@ export default function CryptoAlphaTelegram() {
     { icon: '💎', name: 'Alpha Calls', desc: 'Early token picks, presale opportunities, and airdrop strategies. Gate your best finds behind a paywall.' },
     { icon: '📊', name: 'DeFi Strategies', desc: 'Yield farming setups, liquidity positions, bridge arbitrage plays — step-by-step guides sold as paid content.' },
     { icon: '🗺️', name: 'Portfolio Plays', desc: 'Your allocation strategy, rotation thesis, and conviction picks — sold as periodic research updates.' },
-    { icon: '⚡', name: 'Real-Time Alerts', desc: 'On-chain movement alerts, whale tracking, smart money follows — time-sensitive content delivered instantly.' },
+    { icon: '⚡', name: 'Real-Time Alerts', desc: 'On-chain movement alerts, whale tracking, smart money follows — time-sensitive content delivered automatically.' },
     { icon: '🔑', name: 'Premium Group Access', desc: 'Gate your inner circle. Paying members get real-time discussion, early calls, and exclusive research.' },
   ];
 
@@ -106,7 +106,7 @@ export default function CryptoAlphaTelegram() {
             </div>
             <div className="p-5 rounded-xl border border-site-border bg-site-bg">
               <h3 className="font-bold mb-1 text-green-400">With Gategram: sell alpha per piece</h3>
-              <p className="text-sm text-site-muted">Post your free market commentary publicly. Gate the actual alpha — token names, entry points, strategy details — behind a Stars payment. Buyers tap Buy, pay with Stars, and get the research instantly in chat.</p>
+              <p className="text-sm text-site-muted">Post your free market commentary publicly. Gate the actual alpha — token names, entry points, strategy details — behind a Stars payment. Buyers tap Buy, pay with Stars, and get the research automatically in chat.</p>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function CryptoAlphaTelegram() {
               { step: '1', title: 'Open the Gategram bot', desc: 'Tap "Create your first product" below. The bot opens inside Telegram.' },
               { step: '2', title: 'Create your alpha product', desc: 'Set a title like "Weekly DeFi Alpha #12", price in Stars, and paste your research or upload your report.' },
               { step: '3', title: 'Tease and share', desc: 'Post a free preview in your channel — the thesis, the setup — then drop the buy link for the full alpha.' },
-              { step: '4', title: 'Get paid per piece', desc: 'Stars land in your balance with every purchase. You keep 95%. Rinse and repeat with every new research piece.' },
+              { step: '4', title: 'Track each sale', desc: 'Gategram credits at least 95% to your creator balance and reports the sale in the dashboard.' },
             ].map((s) => (
               <div key={s.step} className="flex gap-4 p-5 rounded-xl border border-site-border bg-site-card">
                 <div className="w-8 h-8 rounded-full bg-site-accent text-white flex items-center justify-center font-bold text-sm shrink-0">
@@ -146,7 +146,7 @@ export default function CryptoAlphaTelegram() {
             </Link>
             <Link href="/telegram-paywall" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Telegram Paywall</h3>
-              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout in under 2 minutes.</p>
+              <p className="text-sm text-site-muted">Set up a native Telegram paywall with Stars checkout without code.</p>
             </Link>
             <Link href="/how-payments-work" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">How Payments Work</h3>
@@ -160,8 +160,8 @@ export default function CryptoAlphaTelegram() {
         <div className="max-w-3xl mx-auto space-y-3">
           <h2 className="text-2xl font-bold">Crypto Alpha Monetization FAQ</h2>
           {[
-            { q: 'How do I monetize crypto research on Telegram?', a: 'With Gategram, you create paid products for your research — token deep dives, DeFi strategy guides, or alpha calls. Set a price in Stars, share the buy link in your free channel as a teaser, and let buyers unlock the full research with one tap. You keep 95% of every sale.' },
-            { q: 'Can I sell token picks on Telegram?', a: 'Yes. Create a Gategram product with your token picks, analysis, and entry/exit targets. Share the buy link in your Telegram channel alongside a free preview. Buyers pay with Stars and receive the full alpha instantly in chat. Include appropriate disclaimers that this is not financial advice.' },
+            { q: 'How do I monetize crypto research on Telegram?', a: 'With Gategram, you create paid products for your research — token deep dives, DeFi strategy guides, or alpha calls. Set a price in Stars, share the buy link in your free channel as a teaser, and let buyers unlock the full research with a native invoice. At least 95% is credited to your creator balance.' },
+            { q: 'Can I sell token picks on Telegram?', a: 'Yes. Create a Gategram product with your token picks, analysis, and entry/exit targets. Share the buy link in your Telegram channel alongside a free preview. Buyers pay with Stars and receive the full alpha automatically in chat. Include appropriate disclaimers that this is not financial advice.' },
             { q: "What's the best way to paywall DeFi alpha?", a: 'The most effective approach is posting free market commentary and general analysis publicly, then gating the specific actionable alpha — token names, entry points, yield strategies — behind a Gategram paywall. This gives followers a taste of your research quality while monetizing the premium insights.' },
             { q: 'How much should I charge for crypto signals?', a: 'Crypto signal pricing varies by depth and exclusivity. Individual alpha calls typically sell for $5-25, while weekly research packs range from $20-100. Premium group access can be priced at $50-200. Start with per-item pricing to gauge demand, then adjust based on buyer response and your track record.' },
           ].map((item) => (
@@ -174,8 +174,8 @@ export default function CryptoAlphaTelegram() {
 
       <PageCTA
         title="Your research has value — price it accordingly"
-        description="Gate your crypto alpha behind Stars payments. Instant checkout, instant delivery."
-        primary="Start in 2 minutes"
+        description="Gate your crypto alpha behind Stars payments. Native checkout, automatic delivery."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing"
         secondaryHref="/fees"

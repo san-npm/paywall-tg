@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { ENABLE_FAKE_PAYMENTS } from '@/lib/config';
 import {
   waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
@@ -8,7 +8,6 @@ import {
   showMainButton, hideMainButton, setMainButtonLoading,
   getTg,
 } from '@/lib/telegram';
-import { starsToEur } from '@/lib/conversion';
 
 const CONTENT_ICONS = { text: '\u{1F4DD}', link: '\u{1F517}', file: '\u{1F4CE}', photo: '\u{1F4F7}', video: '\u{1F3AC}' };
 
@@ -32,9 +31,6 @@ function BuySkeleton() {
 
 export default function BuyProduct() {
   const { id } = useParams();
-  const searchParams = useSearchParams();
-  const paidStripe = searchParams.get('paid') === 'stripe';
-  const stripeSessionId = searchParams.get('session_id') || '';
   const [product, setProduct] = useState(null);
   const [purchased, setPurchased] = useState(false);
   const [user, setUser] = useState(null);
@@ -42,9 +38,8 @@ export default function BuyProduct() {
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState(null);
   const [initData, setInitData] = useState('');
-  const [verifyingStripe, setVerifyingStripe] = useState(false);
-  const [stripeVerified, setStripeVerified] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const buyRef = useRef(null);
 
@@ -84,35 +79,21 @@ export default function BuyProduct() {
   }, [id]);
 
   useEffect(() => {
-    if (!paidStripe || !stripeSessionId || stripeVerified) return;
-    setVerifyingStripe(true);
-    fetch(`/api/checkout/verify?session_id=${encodeURIComponent(stripeSessionId)}`)
-      .then(r => r.json())
-      .then((data) => {
-        if (data?.delivered || data?.alreadyProcessed) {
-          setStripeVerified(true); setPurchased(true); hapticNotification('success');
-        }
-      })
-      .catch(() => {})
-      .finally(() => setVerifyingStripe(false));
-  }, [paidStripe, stripeSessionId, stripeVerified]);
-
-  useEffect(() => {
-    if (!product || purchased || !user || loading) { hideMainButton(); return; }
+    if (!product || purchased || !user || loading || !termsAccepted) { hideMainButton(); return; }
     const handler = () => { if (buyRef.current) buyRef.current(); };
     showMainButton(`Buy for ${product.price_stars} Stars`, handler);
     return () => { hideMainButton(); };
-  }, [product, purchased, user, loading]);
+  }, [product, purchased, user, loading, termsAccepted]);
 
   const handleBuy = useCallback(async () => {
-    if (!user || !initData || buying) return;
+    if (!user || !initData || buying || !termsAccepted) return;
     setBuying(true); setMainButtonLoading(true); hapticImpact('medium'); setError(null);
 
     try {
       const res = await fetch('/api/invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ init_data: initData, product_id: id }),
+        body: JSON.stringify({ init_data: initData, product_id: id, terms_accepted: true }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -133,7 +114,7 @@ export default function BuyProduct() {
       setError('Network error — please try again.');
       hapticNotification('error'); setBuying(false); setMainButtonLoading(false);
     }
-  }, [user, initData, buying, id, refreshPurchaseState]);
+  }, [user, initData, buying, termsAccepted, id, refreshPurchaseState]);
 
   useEffect(() => { buyRef.current = handleBuy; }, [handleBuy]);
 
@@ -155,12 +136,12 @@ export default function BuyProduct() {
 
   if (loading) return <BuySkeleton />;
 
-  if (error || !product) {
+  if (!product) {
     return (
       <div className="p-4 text-center pt-12">
         <p className="text-4xl mb-3" aria-hidden="true">{'\u{274C}'}</p>
         <p className="font-semibold">Product not found</p>
-        <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>This product may have been removed.</p>
+        <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>{error || 'This product may have been removed.'}</p>
       </div>
     );
   }
@@ -179,7 +160,6 @@ export default function BuyProduct() {
           <span className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Price</span>
           <span>
             <span className="text-lg font-bold" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{product.price_stars} Stars</span>
-            <span className="text-xs ml-1" style={{ color: 'var(--tg-theme-hint-color)' }}>~{starsToEur(product.price_stars).toFixed(2)} EUR</span>
           </span>
         </div>
         <hr className="tg-separator" />
@@ -193,14 +173,6 @@ export default function BuyProduct() {
           <span className="text-sm font-semibold">{product.sales_count}</span>
         </div>
       </div>
-
-      {paidStripe && !purchased && (
-        <div className="tg-banner-warning">
-          {verifyingStripe
-            ? 'Card payment detected. Finalizing delivery...'
-            : 'Card payment completed. Content will appear in bot chat.'}
-        </div>
-      )}
 
       {error && <div className="tg-banner-error">{error}</div>}
 
@@ -228,13 +200,27 @@ export default function BuyProduct() {
         </div>
       ) : (
         <div className="text-center space-y-3">
-          {!user && !paidStripe && (
+          {!user && (
             <div className="tg-banner-warning">Open inside Telegram to purchase</div>
+          )}
+
+          {user && (
+            <label className="min-h-11 flex items-start gap-3 text-left px-2 py-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(event) => setTermsAccepted(event.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0"
+              />
+              <span className="text-xs leading-5" style={{ color: 'var(--tg-theme-hint-color)' }}>
+                I have read and agree to the <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="underline">Terms of Service</a> and understand that payment support is provided by Gategram.
+              </span>
+            </label>
           )}
 
           {/* MainButton handles the primary buy CTA. Inline fallback only when MainButton is unavailable. */}
           {user && !getTg()?.MainButton && (
-            <button onClick={handleBuy} disabled={buying} className="tg-btn disabled:opacity-50">
+            <button onClick={handleBuy} disabled={buying || !termsAccepted} className="tg-btn disabled:opacity-50">
               {buying ? 'Processing...' : `Buy for ${product.price_stars} Stars`}
             </button>
           )}
@@ -245,10 +231,8 @@ export default function BuyProduct() {
             </button>
           )}
 
-          {!user && !paidStripe ? (
+          {!user ? (
             <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Open this page in Telegram to purchase.</p>
-          ) : paidStripe && !purchased ? (
-            <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>Payment completed. Return to Telegram to view content.</p>
           ) : null}
 
           <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>Powered by Telegram Stars</p>

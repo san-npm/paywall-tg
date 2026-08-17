@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export const metadata = buildPageMetadata({
   title: 'Buy Me a Coffee Alternative for Telegram Creators',
-  description: 'Alternative to Buy Me a Coffee for Telegram: native Stars checkout, instant content delivery, built for Telegram creators.',
+  description: 'Alternative to Buy Me a Coffee for Telegram: native Stars checkout and automatic content delivery for Telegram creators.',
   path: '/alternatives/buymeacoffee-telegram',
   keywords: ['buy me a coffee alternative telegram', 'buymeacoffee telegram', 'telegram creator support alternative'],
 });
@@ -28,7 +28,7 @@ export default function BuyMeACoffeeAlternative() {
         name: 'Can I use Buy Me a Coffee on Telegram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'You can share Buy Me a Coffee links in Telegram, but buyers are redirected to an external web page for payment. BMC has no native Telegram integration — no in-app checkout, no automatic content delivery. For Telegram creators, Gategram offers a fully native experience with Stars checkout and instant delivery.',
+          text: 'You can share Buy Me a Coffee links in Telegram, but buyers are redirected to an external web page for payment. BMC has no native Telegram integration — no in-app checkout, no automatic content delivery. For Telegram creators, Gategram offers a fully native experience with Stars checkout and automatic delivery.',
         },
       },
       {
@@ -36,7 +36,7 @@ export default function BuyMeACoffeeAlternative() {
         name: 'Is there a Buy Me a Coffee for Telegram?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Gategram is the Buy Me a Coffee equivalent built for Telegram. Instead of a web-based tip page, Gategram lets you sell content with native Telegram Stars checkout. Buyers pay with one tap inside the app and receive content instantly as a message. Same 5% fee, but with actual content delivery built in.',
+          text: 'Gategram is built for one-time content sales in Telegram. Instead of a web-based tip page, buyers confirm a native Telegram Stars invoice and receive the content as a message. Gategram charges at most 5%, rounded down to whole Stars.',
         },
       },
       {
@@ -44,7 +44,7 @@ export default function BuyMeACoffeeAlternative() {
         name: 'What\'s the best tip jar for Telegram creators?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'For Telegram creators, Telegram Stars via Gategram is the most frictionless way to accept payments. Unlike external tip jars (BMC, Ko-fi), Stars payments happen natively inside the app with one tap. You can accept tips by creating low-priced support products, or sell actual content for predictable revenue.',
+          text: 'Telegram Stars via Gategram keeps the invoice inside Telegram. Gategram is designed for a defined one-time product rather than an open-ended donation; the minimum product price is 20 Stars.',
         },
       },
     ],
@@ -60,8 +60,8 @@ export default function BuyMeACoffeeAlternative() {
       desc: 'Buy Me a Coffee is built around voluntary support: "buy me a coffee for $5." That works for some creators, but it leaves revenue up to generosity. With Gategram, you set a price for content and buyers pay it. Predictable income per product sold.',
     },
     {
-      title: 'BMC takes 5% and doesn\'t deliver content in Telegram',
-      desc: 'Buy Me a Coffee takes 5% of transactions. Gategram also takes 5% via Stars — but Gategram delivers your content instantly inside Telegram after payment. With BMC, you\'d need to manually send the content or set up email delivery.',
+      title: 'Gategram includes Telegram delivery',
+      desc: 'Gategram charges at most 5% of a Stars payment and automatically sends the product in Telegram after payment. Compare Buy Me a Coffee\'s current pricing and delivery options for your own use case.',
     },
     {
       title: 'BMC memberships don\'t integrate with Telegram',
@@ -76,7 +76,7 @@ export default function BuyMeACoffeeAlternative() {
       <PageHeader
         badge="Alternative"
         title={<>The Buy Me a Coffee alternative for <span className="text-site-accent">Telegram</span></>}
-        description="BMC is a tip jar with a web page. Gategram is a content sales tool built for Telegram — one-tap checkout, instant delivery."
+        description="BMC is a tip jar with a web page. Gategram is a content sales tool built for Telegram — one-tap checkout, automatic delivery."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -109,9 +109,9 @@ export default function BuyMeACoffeeAlternative() {
                 {[
                   { f: 'Built for', p: 'Telegram creators', g: 'General creators (web-based)' },
                   { f: 'Checkout', p: 'Native Telegram Stars', g: 'External BMC page (browser)' },
-                  { f: 'Fee', p: '5% (Telegram Stars)', g: '5% + payment processing' },
+                  { f: 'Fee', p: 'At most 5% of Stars', g: 'See current published pricing' },
                   { f: 'Core model', p: 'Per-item content sales', g: 'Tips and memberships' },
-                  { f: 'Content delivery', p: 'Instant in-chat message', g: 'Manual or email-based' },
+                  { f: 'Content delivery', p: 'Automatic in-chat message', g: 'Manual or email-based' },
                   { f: 'Buyer account', p: 'Not needed', g: 'Optional but adds friction' },
                   { f: 'Telegram integration', p: 'Native — built for Telegram', g: 'None — web link only' },
                   { f: 'Mobile experience', p: 'One-tap Stars payment', g: 'Mobile browser checkout' },
@@ -138,7 +138,7 @@ export default function BuyMeACoffeeAlternative() {
             </Link>
             <Link href="/alternatives/patreon-for-telegram" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Patreon Alternative for Telegram</h3>
-              <p className="text-sm text-site-muted">Per-item sales, native checkout, lower fees than Patreon.</p>
+              <p className="text-sm text-site-muted">Compare one-time Stars sales with membership platforms.</p>
             </Link>
             <Link href="/community-monetization" className="p-5 rounded-xl border border-site-border bg-site-card hover:border-site-accent/50 transition-colors block">
               <h3 className="font-bold mb-1">Community Monetization</h3>
@@ -152,9 +152,9 @@ export default function BuyMeACoffeeAlternative() {
         <div className="max-w-3xl mx-auto space-y-3">
           <h2 className="text-2xl font-bold">Buy Me a Coffee for Telegram FAQ</h2>
           {[
-            { q: 'Can I use Buy Me a Coffee on Telegram?', a: 'You can share Buy Me a Coffee links in Telegram, but buyers are redirected to an external web page for payment. BMC has no native Telegram integration — no in-app checkout, no automatic content delivery. For Telegram creators, Gategram offers a fully native experience with Stars checkout and instant delivery.' },
-            { q: 'Is there a Buy Me a Coffee for Telegram?', a: 'Gategram is the Buy Me a Coffee equivalent built for Telegram. Instead of a web-based tip page, Gategram lets you sell content with native Telegram Stars checkout. Buyers pay with one tap inside the app and receive content instantly as a message. Same 5% fee, but with actual content delivery built in.' },
-            { q: "What's the best tip jar for Telegram creators?", a: 'For Telegram creators, Telegram Stars via Gategram is the most frictionless way to accept payments. Unlike external tip jars (BMC, Ko-fi), Stars payments happen natively inside the app with one tap. You can accept tips by creating low-priced support products, or sell actual content for predictable revenue.' },
+            { q: 'Can I use Buy Me a Coffee on Telegram?', a: 'You can share Buy Me a Coffee links in Telegram, but buyers are redirected to an external web page for payment. BMC has no native Telegram integration — no in-app checkout, no automatic content delivery. For Telegram creators, Gategram offers a fully native experience with Stars checkout and automatic delivery.' },
+            { q: 'Is there a Buy Me a Coffee for Telegram?', a: 'Gategram is built for one-time content sales in Telegram. Instead of a web-based tip page, buyers confirm a native Telegram Stars invoice and receive the content as a message. Gategram charges at most 5%, rounded down to whole Stars.' },
+            { q: "What's the best tip jar for Telegram creators?", a: 'Telegram Stars via Gategram keeps the invoice inside Telegram. Gategram is designed for a defined one-time product rather than an open-ended donation; the minimum product price is 20 Stars.' },
           ].map((item) => (
             <div key={item.q} className="site-panel text-sm text-site-muted">
               <p><strong className="text-site-text">{item.q}</strong><br />{item.a}</p>
@@ -165,8 +165,8 @@ export default function BuyMeACoffeeAlternative() {
 
       <PageCTA
         title="Sell content, not coffee"
-        description="Native Telegram checkout. Instant delivery. Built for creators who sell on Telegram."
-        primary="Start in 2 minutes"
+        description="Native Telegram checkout. Automatic delivery. Built for creators who sell on Telegram."
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="See pricing details"
         secondaryHref="/fees"

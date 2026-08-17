@@ -11,19 +11,36 @@ export const metadata = buildPageMetadata({
 export default function ChangelogPage() {
   const entries = [
     {
+      date: '2026-08-17',
+      version: 'v1.1',
+      title: 'Payments, payouts, delivery, and discovery hardening',
+      changes: [
+        'Stars-only checkout for new digital-goods purchases',
+        '20-Star minimum with platform fees rounded down and capped at 5%',
+        'File offers stay private until their Telegram media upload succeeds',
+        'Append-only purchase history and refund adjustments for accurate payouts',
+        '21-day earnings hold, 1,000-Star payout threshold, and locked EUR payout rates',
+        'Queued delivery recovery with failed-delivery visibility',
+        'Real Telegram deep links for product sharing and channel broadcasts',
+        'Opt-in public-site analytics with Global Privacy Control support',
+        'Updated metadata, structured data, llms.txt, policies, and multilingual claims',
+        'Patched dependency advisories and enforced CI tests, builds, and vulnerability scans',
+      ],
+    },
+    {
       date: '2026-03-10',
       version: 'v1.0',
       title: 'Public launch',
       changes: [
         'Native Telegram Stars payments for digital products',
         'Support for text, link, file, and message content types',
-        'Instant in-chat delivery after payment',
+        'Automatic in-chat delivery after payment',
         'Creator dashboard with product management',
         'Sales analytics and view tracking',
         'Product editing and deletion',
         'Share-to-Telegram integration',
         'File attachment support via /attach command',
-        'HMAC-SHA256 webhook validation',
+        'Telegram webhook secret validation and Mini App HMAC authentication',
         'Rate limiting on all API endpoints',
         'Public website with docs, pricing, and comparison pages',
       ],

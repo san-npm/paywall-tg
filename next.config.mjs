@@ -33,12 +33,12 @@ const nextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://telegram.org https://www.googletagmanager.com",
+      "script-src 'self' 'unsafe-inline' https://telegram.org https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.telegram.org https://t.me https://checkout.stripe.com https://api.stripe.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
-      "frame-src 'self' https://js.stripe.com",
+      "connect-src 'self' https://api.telegram.org https://t.me https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
+      "frame-src 'self'",
       "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org",
       "object-src 'none'",
       "base-uri 'self'",
@@ -47,6 +47,10 @@ const nextConfig = {
     ].join('; ');
 
     return [
+      ...['/dashboard', '/create', '/purchases', '/buy/:path*', '/edit/:path*'].map((source) => ({
+        source,
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, nosnippet' }],
+      })),
       {
         source: '/:path*',
         headers: [

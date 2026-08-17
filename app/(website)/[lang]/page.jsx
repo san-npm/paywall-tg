@@ -81,9 +81,9 @@ export default async function LangHomePage({ params }) {
   };
 
   return (
-    <>
+    <div lang={meta.htmlLang} dir={lang === 'ar' || lang === 'fa' ? 'rtl' : 'ltr'}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(softwareSchema) }} />
       <HomePageClient forceLang={lang} />
-    </>
+    </div>
   );
 }

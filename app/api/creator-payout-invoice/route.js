@@ -29,9 +29,9 @@ export async function POST(req) {
 
     // Verify minimum balance
     const summary = await getCreatorFinancialSummary(creatorId);
-    const pendingStars = Number(summary.totals?.pending_stars || 0);
-    if (pendingStars < MIN_PAYOUT_STARS) {
-      return NextResponse.json({ error: `Minimum ${MIN_PAYOUT_STARS} Stars required for payout. You have ${pendingStars}.` }, { status: 400 });
+    const availableStars = Number(summary.totals?.available_stars || 0);
+    if (availableStars < MIN_PAYOUT_STARS) {
+      return NextResponse.json({ error: `Minimum ${MIN_PAYOUT_STARS} cleared Stars required for payout. You have ${availableStars} available.` }, { status: 400 });
     }
 
     // Create payout from unassigned purchases

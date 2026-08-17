@@ -2,7 +2,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { COUNTRIES } from '@/lib/constants';
-import { starsToEur, formatEur, calculatePayoutFees } from '@/lib/conversion';
+import { formatEur } from '@/lib/conversion';
+import { NEXT_PUBLIC_TELEGRAM_BOT_USERNAME } from '@/lib/config';
 import {
   waitForSdk, initMiniApp, resolveInitData, parseUserFromInitData,
   hapticImpact, hapticNotification, hapticSelection,
@@ -130,11 +131,11 @@ export default function Home() {
   };
 
   const handleDelete = async (offerId, offerTitle) => {
+    const wasActive = Number(offers.find((offer) => offer.id === offerId)?.active) === 1;
     const confirmed = await showConfirm(`Delete "${offerTitle}"? This cannot be undone.`);
     if (!confirmed) return;
     hapticImpact('medium');
-    const tg = getTg();
-    const iData = tg?.initData || '';
+    const iData = getIData();
     setDeleting(offerId);
     try {
       const res = await fetch('/api/products', {
@@ -145,7 +146,7 @@ export default function Home() {
       if (res.ok) {
         hapticNotification('success');
         setOffers(prev => prev.filter(p => p.id !== offerId));
-        if (stats) setStats(prev => ({ ...prev, products: Math.max(0, prev.products - 1) }));
+        if (stats && wasActive) setStats(prev => ({ ...prev, products: Math.max(0, prev.products - 1) }));
       }
     } catch {
       hapticNotification('error');
@@ -330,6 +331,9 @@ export default function Home() {
     { key: 'earnings', label: 'Earnings', emoji: '\u{1F4B0}' },
     { key: 'profile', label: 'Profile', emoji: '\u{1F464}' },
   ];
+  const estimateEur = (stars) => finance?.eur_per_star
+    ? formatEur(Number(stars || 0) * Number(finance.eur_per_star))
+    : null;
 
   return (
     <main className="p-4 max-w-lg mx-auto space-y-4 pb-8">
@@ -362,7 +366,6 @@ export default function Home() {
           <div className="tg-stat">
             <p className="tg-stat-label">Earned</p>
             <p className="tg-stat-value">{stats.totalStars} <span className="tg-stat-unit">Stars</span></p>
-            <p className="tg-stat-unit">~{starsToEur(stats.totalStars).toFixed(2)} EUR</p>
           </div>
         </div>
       )}
@@ -401,8 +404,8 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-2">
           {offers.map((p) => (
             <div key={p.id} className="tg-product-item relative">
-              {Number(p.active) === 0 && (
-                <span className="tg-badge tg-badge-red absolute top-2 right-2">OFF</span>
+              {(Number(p.active) === 0 || !p.is_ready) && (
+                <span className="tg-badge tg-badge-amber absolute top-2 right-2">{!p.is_ready ? 'DRAFT' : 'UPDATE'}</span>
               )}
               <div className="tg-product-item-icon" aria-hidden="true">{CONTENT_ICONS[p.content_type] || '\u{1F4E6}'}</div>
               <p className="tg-product-item-title">{p.title}</p>
@@ -413,20 +416,24 @@ export default function Home() {
                   onClick={() => {
                     hapticImpact('light');
                     const tg = getTg();
-                    const botUsername = tg?.initDataUnsafe?.bot?.username || '';
-                    const buyLink = botUsername
-                      ? `https://t.me/${botUsername}?start=buy_${p.id}`
-                      : `${window.location.origin}/buy/${p.id}`;
-                    if (tg?.switchInlineQuery) {
-                      tg.switchInlineQuery(`${p.title} — ${p.price_stars} Stars\n${buyLink}`, ['users', 'groups', 'channels']);
-                    } else {
-                      const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ${p.price_stars} Stars`)}`;
-                      window.open(url);
+                    const botUsername = tg?.initDataUnsafe?.bot?.username || NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+                    if (!botUsername) {
+                      hapticNotification('error');
+                      setAdminError('Bot username is not configured. Set NEXT_PUBLIC_TELEGRAM_BOT_USERNAME and redeploy.');
+                      return;
                     }
+                    const buyLink = `https://t.me/${botUsername}?start=buy_${p.id}`;
+                    const url = `https://t.me/share/url?url=${encodeURIComponent(buyLink)}&text=${encodeURIComponent(`${p.title} — ${p.price_stars} Stars`)}`;
+                    if (tg?.openTelegramLink) tg.openTelegramLink(url);
+                    else window.open(url, '_blank', 'noopener,noreferrer');
                   }}
-                  className="tg-action-btn"
+                  disabled={Number(p.active) === 0 || !p.is_ready || !NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
+                  className="tg-action-btn disabled:opacity-50"
+                  aria-label={p.is_ready ? `Share ${p.title}` : `${p.title} is still a draft`}
                 >
-                  Share
+                  {p.is_ready && Number(p.active) === 1
+                    ? (NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ? 'Share' : 'Configure bot')
+                    : 'Not ready'}
                 </button>
                 <a href={`/edit/${p.id}`} className="tg-btn-secondary">Edit</a>
               </div>
@@ -434,7 +441,7 @@ export default function Home() {
               <div className="flex gap-1 justify-center mt-1 flex-wrap">
                 {p.content_type === 'file' && (
                   <a href={`/edit/${p.id}`} className="tg-btn-secondary text-xs">
-                    {p.file_id ? 'Replace media' : 'Upload media'}
+                    {p.is_ready ? 'Replace media' : 'Upload media'}
                   </a>
                 )}
                 <button
@@ -474,17 +481,17 @@ export default function Home() {
             <div className="tg-stat">
               <p className="tg-stat-label">Net earned</p>
               <p className="tg-stat-value" style={{ color: 'var(--tg-theme-button-color, #7c3aed)' }}>{finance.totals.net_stars}</p>
-              <p className="tg-stat-unit">~{formatEur(starsToEur(finance.totals.net_stars))}</p>
+              <p className="tg-stat-unit">Stars after service fee</p>
             </div>
             <div className="tg-stat">
               <p className="tg-stat-label">Pending</p>
               <p className="tg-stat-value">{finance.totals.pending_stars}</p>
-              <p className="tg-stat-unit">~{formatEur(starsToEur(finance.totals.pending_stars))}</p>
+              <p className="tg-stat-unit">{finance.totals.held_stars || 0} in hold</p>
             </div>
             <div className="tg-stat">
               <p className="tg-stat-label">Paid out</p>
               <p className="tg-stat-value">{finance.totals.paid_stars}</p>
-              <p className="tg-stat-unit">~{formatEur(starsToEur(finance.totals.paid_stars))}</p>
+              <p className="tg-stat-unit">Cleared payouts</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -505,27 +512,27 @@ export default function Home() {
                 </p>
               ) : !finance.payout_info.profile_complete ? (
                 <div>
-                  <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>You have <strong>{finance.totals.pending_stars} Stars</strong> (~{formatEur(starsToEur(finance.totals.pending_stars))}) pending. Complete your profile to request a payout.</p>
+                  <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>You have <strong>{finance.payout_info.available_stars} cleared Stars</strong>{estimateEur(finance.payout_info.available_stars) ? ` (estimated ${estimateEur(finance.payout_info.available_stars)})` : ''}. Complete your profile to request a payout.</p>
                   <button type="button" className="tg-action-btn mt-2" onClick={() => { hapticSelection(); setActiveTab('profile'); }}>Go to Profile</button>
                 </div>
               ) : !finance.payout_info.eligible ? (
                 <p className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>
-                  You have {finance.totals.pending_stars} Stars pending. Minimum {finance.payout_info.min_payout_stars} Stars (~{formatEur(starsToEur(finance.payout_info.min_payout_stars))}) required to request a payout.
+                  You have {finance.payout_info.available_stars} cleared Stars. Minimum {finance.payout_info.min_payout_stars} cleared Stars required. New sales remain on hold for {finance.payout_info.hold_days} days.
                 </p>
               ) : (
                 <div className="space-y-2">
                   <div className="tg-list-row">
                     <span className="text-sm">Payout amount</span>
-                    <span className="text-sm font-bold">{finance.totals.pending_stars} Stars</span>
+                    <span className="text-sm font-bold">{finance.payout_info.available_stars} Stars</span>
                   </div>
                   <hr className="tg-separator" />
                   <div className="tg-list-row">
                     <span className="text-sm">Gross sales</span>
-                    <span className="text-sm">{formatEur(starsToEur(finance.totals.gross_stars))} ({finance.totals.gross_stars} Stars)</span>
+                    <span className="text-sm">{finance.totals.gross_stars} Stars</span>
                   </div>
                   <div className="tg-list-row">
-                    <span className="text-sm">Platform fee (5%)</span>
-                    <span className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>-{formatEur(starsToEur(finance.totals.fee_stars))}</span>
+                    <span className="text-sm">Platform fee (up to 5%)</span>
+                    <span className="text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>-{finance.totals.fee_stars} Stars</span>
                   </div>
                   <div className="tg-list-row">
                     <span className="text-sm">Your share</span>
@@ -547,6 +554,7 @@ export default function Home() {
                       Switch to SEPA bank transfer in your profile to avoid fees.
                     </p>
                   )}
+                  <p className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>{finance.payout_info.rate_notice}</p>
                   <button
                     type="button"
                     className="tg-btn"
@@ -586,7 +594,7 @@ export default function Home() {
                 <div key={m.month} className="tg-list-row">
                   <span className="text-sm font-semibold">{m.month}</span>
                   <span className="text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>{m.sales_count} sales</span>
-                  <span className="text-sm font-bold">{m.net_stars} Stars <span className="font-normal text-xs" style={{ color: 'var(--tg-theme-hint-color)' }}>~{formatEur(starsToEur(m.net_stars))}</span></span>
+                  <span className="text-sm font-bold">{m.net_stars} Stars</span>
                 </div>
               ))}
             </div>
@@ -600,7 +608,7 @@ export default function Home() {
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <span className="text-sm font-bold">{p.amount_stars} Stars</span>
-                      <span className="text-xs ml-1" style={{ color: 'var(--tg-theme-hint-color)' }}>~{formatEur(starsToEur(p.amount_stars))}</span>
+                      {p.amount_eur_cents != null && <span className="text-xs ml-1" style={{ color: 'var(--tg-theme-hint-color)' }}>{formatEur(Number(p.amount_eur_cents) / 100)}</span>}
                     </div>
                     <span className={`tg-badge ${p.status === 'paid' ? 'tg-badge-green' : p.status === 'processing' ? 'tg-badge-blue' : 'tg-badge-amber'}`}>{p.status}</span>
                   </div>
@@ -634,9 +642,9 @@ export default function Home() {
           <div className="tg-section space-y-2">
             <p className="tg-section-header" style={{ padding: 0 }}>How payouts work</p>
             <div className="space-y-1 text-sm" style={{ color: 'var(--tg-theme-hint-color)' }}>
-              <p>1. Earn Stars from sales (you keep 95%)</p>
-              <p>2. Once you reach 100 Stars (~{formatEur(starsToEur(100))}), request a payout</p>
-              <p>3. We convert Stars to EUR and transfer to your bank or PayPal</p>
+              <p>1. Gategram records your creator share after a service fee of up to 5%</p>
+              <p>2. Sales clear after the 21-day Telegram holding period</p>
+              <p>3. Request a payout after 1,000 cleared Stars; the published EUR rate is locked at request time</p>
               <p>4. SEPA transfers are <strong style={{ color: 'var(--tg-theme-text-color)' }}>free</strong>, PayPal has a small fee</p>
             </div>
           </div>

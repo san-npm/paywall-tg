@@ -9,8 +9,8 @@ info:
     paywall. Most write operations require a Telegram initData header
     (X-Telegram-Init-Data) validated server-side.
 
-    Content-negotiable: send 'Accept: text/markdown' on any marketing
-    page and the server returns a markdown rendering of the HTML.
+    Machine-readable product context is published separately at /llms.txt and
+    /llms-full.txt. Marketing pages always return their page-specific HTML.
   contact:
     name: Gategram
     url: https://gategram.app/
@@ -53,50 +53,28 @@ paths:
       responses:
         '200': { description: Purchases list }
         '401': { description: Missing or invalid initData }
-  /api/checkout:
-    post:
-      summary: Create a Stripe card checkout session
-      description: >-
-        Requires a valid Telegram Mini App initData token (init_data) and is
-        unavailable to generic web agents. Card payments must be enabled for the
-        product. Returns a Stripe Checkout URL.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [init_data, product_id]
-              properties:
-                init_data: { type: string, description: Telegram Mini App initData token }
-                product_id: { type: string }
-                currency: { type: string, enum: [EUR, USD], default: EUR }
-      responses:
-        '200': { description: Checkout session created (checkout_url, session_id) }
-        '400': { description: Invalid payload or card payments disabled for product }
-        '401': { description: Missing or invalid Telegram authentication }
-        '403': { description: Card payments are disabled }
-        '404': { description: Product not found }
-        '429': { description: Rate limited }
   /api/invoice:
     post:
       summary: Create a Telegram Stars invoice link
       description: >-
         Requires a valid Telegram Mini App initData token (init_data). Returns a
-        Telegram Stars invoice link the buyer opens to pay in-app. Not a PDF.
+        Telegram Stars invoice link the buyer opens to pay in-app. The buyer
+        must affirm the current Terms of Service. Not a PDF.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [init_data, product_id]
+              required: [init_data, product_id, terms_accepted]
               properties:
                 init_data: { type: string, description: Telegram Mini App initData token }
                 product_id: { type: string }
+                terms_accepted: { type: boolean, enum: [true] }
       responses:
         '200': { description: Invoice link created (invoice_url) }
         '400': { description: Invalid payload, own product, or already purchased }
+        '409': { description: File offer is still a draft and has no media }
         '401': { description: Missing or invalid Telegram authentication }
         '404': { description: Product not found }
         '429': { description: Rate limited }

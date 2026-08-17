@@ -3,7 +3,7 @@ import { buildPageMetadata, jsonLd } from '@/lib/seo';
 
 export const metadata = buildPageMetadata({
   title: 'How Telegram Paywall Payments Work',
-  description: 'Understand the Telegram Stars payment flow for paid communities and instant content delivery.',
+  description: 'Understand the Telegram Stars payment flow for paid communities and automatic content delivery.',
   path: '/how-payments-work',
   keywords: ['telegram stars flow', 'telegram paid community checkout'],
 });
@@ -13,8 +13,8 @@ export default function HowPaymentsWork() {
     ['Buyer taps your link', 'They see your title, price, and content teaser in Telegram.'],
     ['Buyer pays in Stars', 'Telegram handles payment with its native Stars checkout.'],
     ['Payment is confirmed', 'Gategram receives confirmation and verifies the purchase.'],
-    ['Content unlocks instantly', 'Your text, link, or file is delivered right away in chat.'],
-    ['You get paid', 'You keep 95% of each sale after the 5% platform fee.'],
+    ['Content unlocks automatically', 'Your text, link, or file is queued for delivery in chat, with retries for temporary failures.'],
+    ['Your creator share is recorded', 'Gategram records at least 95% after a whole-Star service fee of up to 5%. Eligible balances are paid using the published payout rate after the holding period.'],
   ];
 
   const howToSchema = {
@@ -46,7 +46,7 @@ export default function HowPaymentsWork() {
       <PageHeader
         badge="Trust"
         title="How payments work, step by step"
-        description="Clear flow for buyers and creators: pay in Telegram Stars, verify payment, unlock instantly."
+        description="Clear flow for buyers and creators: pay in Telegram Stars, verify payment, unlock automatically."
       />
 
       <section className="py-16 px-4 border-b border-site-border">
@@ -76,7 +76,7 @@ export default function HowPaymentsWork() {
               'Does not store card details',
               'Does not process bank data',
               'Does not force buyer account creation',
-              'Does not delay delivery after successful payment verification',
+              'Does not intentionally delay delivery after successful payment verification',
             ].map((item) => (
               <div key={item} className="site-panel text-sm text-site-muted">✕ {item}</div>
             ))}
@@ -95,7 +95,7 @@ export default function HowPaymentsWork() {
       <PageCTA
         title="Want to launch this payment flow in your Telegram audience?"
         description="Set up once, share your link, and let buyers pay and unlock in chat."
-        primary="Start in 2 minutes"
+        primary="Open Gategram"
         primaryHref="https://t.me/gategramapp_bot"
         secondary="View security page"
         secondaryHref="/security"
