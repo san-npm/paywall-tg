@@ -79,6 +79,17 @@ test('creator payout statement endpoint requires auth', { timeout: 30000 }, asyn
   assert.equal(res.status, 401);
 });
 
+test('unmatched routes render the branded global 404', { timeout: 30000 }, async () => {
+  const res = await fetch(`${BASE}/missing/path`);
+  assert.equal(res.status, 404);
+
+  const html = await res.text();
+  assert.match(html, /data-gategram-error="not-found"/);
+  assert.match(html, /Page not found/);
+  assert.match(html, /<html[^>]*lang="en"/);
+  assert.match(html, /<meta name="robots" content="noindex"/);
+});
+
 test('stop next dev', async () => {
   if (!dev) return;
   dev.kill('SIGTERM');
