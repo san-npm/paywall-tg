@@ -50,7 +50,9 @@ test('payoutStatementRows appends TOTAL footer row', () => {
 });
 
 test('start next dev for endpoint smoke tests', { timeout: 60000 }, async () => {
-  dev = spawn('npm', ['run', 'dev', '--', '-p', String(PORT)], {
+  // Spawn Next directly instead of through npm. Killing an npm wrapper can
+  // orphan its Next child on Linux CI and leave the job running indefinitely.
+  dev = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'dev', '-p', String(PORT), '-H', '127.0.0.1'], {
     cwd: process.cwd(),
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -81,7 +83,10 @@ test('stop next dev', async () => {
   if (!dev) return;
   dev.kill('SIGTERM');
   await new Promise((resolve) => {
-    const t = setTimeout(resolve, 3000);
+    const t = setTimeout(() => {
+      if (dev.exitCode === null) dev.kill('SIGKILL');
+      resolve();
+    }, 3000);
     dev.on('exit', () => {
       clearTimeout(t);
       resolve();
