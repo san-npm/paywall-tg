@@ -1,5 +1,6 @@
 import Script from 'next/script';
 import TelegramInitDataBridge from './TelegramInitDataBridge';
+import '../globals.css';
 
 export const metadata = {
   title: 'Gategram — Dashboard',
@@ -10,13 +11,12 @@ export const metadata = {
 
 export default function MiniAppLayout({ children }) {
   return (
-    <>
-      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
-      <Script id="miniapp-body-class" strategy="beforeInteractive">
-        {`document.body.classList.add('miniapp');`}
-      </Script>
-      <TelegramInitDataBridge />
-      {children}
-    </>
+    <html lang="en" dir="ltr" className="dark">
+      <body className="min-h-screen miniapp">
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+        <TelegramInitDataBridge />
+        {children}
+      </body>
+    </html>
   );
 }
